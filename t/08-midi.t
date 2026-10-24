@@ -18,7 +18,8 @@ sub vlq {
 }
 
 sub parse {
-    my ($bytes) = @_;
+    my ($bytes, $expected_tempo) = @_;
+    $expected_tempo //= 500000;
     my ($magic, $header, $format, $tracks, $division, $track, $size) = unpack('a4Nnnna4N', $bytes);
     is($magic,  'MThd',              'MIDI header');
     is($header, 6,                   'header length');
@@ -37,7 +38,7 @@ sub parse {
             my $length = vlq($bytes, \$offset);
             if ($type == 81) {
                 is(unpack('N', "\0" . substr($bytes, $offset, 3)),
-                    500000, 'tempo microseconds per quarter');
+                    $expected_tempo, 'tempo microseconds per quarter');
             }
             $offset += $length;
             last if $type == 47;
@@ -101,12 +102,48 @@ for my $args (
     )
 {
     eval { Ham::CW::MIDI->new(%{$args}) };
-    is($@->code, 'CW_E_ARGUMENT', 'invalid MIDI option');
+    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_ARGUMENT', 'invalid MIDI option');
 }
 eval { Ham::CW::MIDI->new(max_bytes => 64)->encode(Ham::CW->new->events('SOS SOS')) };
-is($@->code, 'CW_E_RESOURCE', 'MIDI size bound');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_RESOURCE', 'MIDI size bound');
 eval { $midi->encode({unit => 'us', segments => [{state => 'on', duration => 1}]}) };
-is($@->code, 'CW_E_TIMING', 'zero tick note rejected');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_TIMING', 'zero tick note rejected');
 eval { $midi->encode({unit => 'us', segments => [{state => 'off', duration => 2**52}]}) };
-is($@->code, 'CW_E_TIMING', 'delta overflow rejected');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_TIMING', 'delta overflow rejected');
+for my $case ([1624, 32], [1625, 33], [1626, 33]) {
+    ($notes, $time) = parse(
+        $midi->encode(
+            {
+                sample_rate => 48000,
+                segments    => [{state => 'on', samples => $case->[0]}]
+            }
+        )
+    );
+    is($notes->[1][0], $case->[1], 'sample boundary rounds once to a MIDI tick');
+    is($time,          $case->[1], 'sample boundary and end-of-track agree');
+}
+($notes, $time) = parse(
+    $midi->encode(
+        {
+            sample_rate => 48000,
+            segments    => [
+                {state => 'off', samples => 1625},
+                {state => 'on',  samples => 1625},
+                {state => 'off', samples => 1625}
+            ]
+        }
+    )
+);
+is_deeply([map { $_->[0] } @{$notes}], [33, 65], 'sampled leading silence uses cumulative ticks');
+is($time, 98, 'sampled trailing silence uses cumulative ticks');
+($notes) = parse(
+    Ham::CW::MIDI->new(ppqn => 32767, bpm => 1000)->encode(
+        {
+            sample_rate => 384000,
+            segments    => [{state => 'on', samples => 1}]
+        }
+    ),
+    60000
+);
+is($notes->[1][0], 1, 'one sample avoids intermediate microsecond quantization');
 done_testing;

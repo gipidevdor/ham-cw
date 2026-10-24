@@ -16,7 +16,8 @@ sub validate_events {
     fail('CW_E_ARGUMENT', 'Use either unit or sample_rate')
         if $timed && exists $events->{sample_rate};
     if ($timed) {
-        fail('CW_E_ARGUMENT', 'TimedEvents unit must be us') unless $events->{unit} eq 'us';
+        fail('CW_E_ARGUMENT', 'TimedEvents unit must be us')
+            if !defined($events->{unit}) || ref($events->{unit}) || $events->{unit} ne 'us';
     }
     else { integer('sample_rate', $events->{sample_rate}, 1000, 384000) }
     my $field = $timed ? 'duration' : 'samples';
@@ -80,11 +81,15 @@ Ham::CW::Events - validate and convert canonical event sequences
 
 =head1 FUNCTIONS
 
+=head2 validate_events
+
 C<validate_events(events)> checks a hash containing C<segments>, plus either
 C<unit =E<gt> 'us'> or C<sample_rate>. It returns C<duration> or C<samples>.
 Each segment has C<state> (C<on>/C<off>) and a positive integer duration.
 States alternate; empty sequences and leading/trailing silence are valid.
 Rates range from 1000 to 384000. Total duration is limited to 2**52 units.
+
+=head2 to_samples
 
 C<to_samples(timed, rate)> and C<to_timed(sampled)> return fresh hashes.
 Cumulative boundaries round to nearest integer, with halves upward; rounding

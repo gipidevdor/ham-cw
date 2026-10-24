@@ -12,7 +12,7 @@ certified here.
 | [Text::Morse](https://metacpan.org/pod/Text::Morse) | 0.07, 2015-06-10 | Artistic 2.0; 5.6.1 | No runtime dependency. Its text mapping is useful prior art, but canonical events, strict symbol policy, explicit prosigns and incremental decoding require a different contract. The small internal codec is tested against independent vectors. |
 | [Audio::Wav](https://metacpan.org/pod/Audio::Wav) | 0.14, 2014-04-27 | License/minimum Perl not declared in release metadata | No runtime dependency. It provides broader WAV handling and optional accelerated paths. The current bounded PCM subset needs strict RIFF accounting, structured errors and validation before allocation. Reuse would still require auditing those contracts. |
 | [Audio::Data](https://metacpan.org/pod/Audio::Data) | Audio 1.029, 2004-06-02 | Metadata license/minimum unknown | Not selected. Its sample storage uses XS, and related playback builds inspect native audio systems. It conflicts with a pure-Perl reference implementation. |
-| [PDL](https://metacpan.org/pod/PDL) | 2.106, 2026-08-18 | Perl terms; 5.16 | Not required. Excellent numerical capabilities, but native compilation and its dependency tree are disproportionate for this reference path. A future optional acceleration layer needs benchmarks. |
+| [PDL](https://metacpan.org/pod/PDL) | 2.106, 2026-08-18 | Perl terms; 5.16 | Optional acceleration backend, selected explicitly with `backend => pdl` or via `auto`. The default Perl backend needs no native dependencies. See `maint/benchmark.pl` for local measurements. |
 | [Math::FFT](https://metacpan.org/pod/Math::FFT) | 1.36, 2020-10-17 | Perl terms; 5.8 | Not selected. FFT/XS is unnecessary for the initial narrow-band candidate bank. No speed advantage is claimed without measurement. |
 | [MIDI](https://metacpan.org/pod/MIDI) | MIDI-Perl 0.84, 2023-10-17 | Perl terms in POD; release metadata license/minimum Perl/dependencies not specified | No runtime dependency. This release only exports a bounded type-0 track with tempo, program and note events; the small encoder preserves the project event-rounding/error contracts. General MIDI editing, import and device I/O remain outside its scope. Candidate tests, transitive dependencies and portability were not independently verified. |
 
@@ -37,7 +37,7 @@ verbatim, as permitted by that license.
 The public CPAN package index `02packages.details.txt.gz` and public PAUSE
 permissions snapshot `06perms.txt.gz` contained no `Ham::CW` or `Ham::CW::*`
 entries at the time of the check. `https://fastapi.metacpan.org/v1/module/Ham::CW`
-returned 404. The GitHub endpoint for `gpicchiarelli/ham-cw` returned 404 before
+returned 404. The GitHub endpoint for `gipidevdor/ham-cw` returned 404 before
 repository creation. GitHub names are owner-scoped, not globally reserved.
 
 These checks are a dated snapshot, not a reservation or a PAUSE upload test.
@@ -46,9 +46,13 @@ The additional exporter uses `Ham::CW::MIDI` within the same checked prefix.
 
 ## Runtime footprint
 
-Only core modules are required: Carp, Exporter, Hash::Util, Scalar::Util and
-Storable, plus strict/warnings and Perl itself. Test::More, File::Temp and
+Only core modules are required: Carp, Exporter, Hash::Util, Scalar::Util,
+Storable, Fcntl, File::Basename and File::Temp, plus strict/warnings and Perl
+itself. File::Temp provides temporary output for safe file replacement. Test::More and
 JSON::PP are test requirements. ExtUtils::MakeMaker builds the distribution.
 Perl::Critic, Perl::Tidy, Devel::Cover and metadata/POD checkers are author-only.
-There is no Text::Morse, MIDI, Audio::Wav, PDL, compiler or external player
-requirement at runtime.
+The default backend requires no Text::Morse, MIDI, Audio::Wav, PDL, compiler
+or external player. The optional PDL backend requires PDL 2.081 or later,
+which is declared as a runtime recommendation in the CPAN metadata. PDL 2.106
+and its required dependencies were built locally for the PDL verification;
+this does not extend the audit to PDL's optional scientific or device modules.

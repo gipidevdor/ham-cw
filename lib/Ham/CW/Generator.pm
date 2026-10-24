@@ -4,17 +4,22 @@ use strict;
 use warnings;
 use Ham::CW::Events              qw(validate_events to_samples);
 use Ham::CW::_Internal::Validate qw(fail number integer options named_arguments);
+use Ham::CW::_Internal::Backend;
 our $VERSION = '0.001';
 my $PI = 4 * atan2(1, 1);
 
 sub new {
     my ($class, @pairs) = @_;
     my %args = named_arguments(@pairs);
-    options(\%args, qw(sample_rate frequency amplitude attack_ms release_ms max_samples));
+    options(\%args, qw(sample_rate frequency amplitude attack_ms release_ms max_samples backend));
     my $rate = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
     my $self = bless {
         sample_rate => $rate,
-        frequency   => number('frequency',  $args{frequency}  // 700, 1, $rate / 2 - 1),
+        backend     => Ham::CW::_Internal::Backend::resolve($args{backend}),
+        frequency   => number(
+            'frequency', $args{frequency} // ($rate / 2 - 1 >= 700 ? 700 : $rate / 4),
+            1,           $rate / 2 - 1
+        ),
         amplitude   => number('amplitude',  $args{amplitude}  // 0.8, 0, 1),
         attack_ms   => number('attack_ms',  $args{attack_ms}  // 5,   0, 1000),
         release_ms  => number('release_ms', $args{release_ms} // 5,   0, 1000),
@@ -25,29 +30,38 @@ sub new {
 
 sub reset {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
     my ($s) = @_;
-    $s->{position} = 0;
     $s->{state}    = 'READY';
     $s->{produced} = 0;
     return $s;
 }
 sub state { my ($self) = @_; return $self->{state} }    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 
-sub stream {
-    my ($self, $events, $block_size) = @_;
-    integer('block_size', $block_size //= 4096, 1, 1000000);
-    fail('CW_E_STATE', 'Reset generator before starting another stream')
-        unless $self->{state} eq 'READY';
+sub _segments {
+    my ($self, $events) = @_;
     my $field   = validate_events($events);
     my $sampled = $field eq 'duration' ? to_samples($events, $self->{sample_rate}) : $events;
     fail('CW_E_ARGUMENT', 'Sample rate mismatch')
         unless $sampled->{sample_rate} == $self->{sample_rate};
     my @segments = map { +{%{$_}} } @{$sampled->{segments}};
-    my ($si, $offset, $absolute) = (0, 0, 0);
-    my $total = 0;
+    my $total    = 0;
     $total += $_->{samples} for @segments;
-    fail('CW_E_RESOURCE', 'Generation exceeds max_samples') if $total > $self->{max_samples};
+    fail('CW_E_RESOURCE',
+        'Generation exceeds max_samples; increase max_samples or generate a shorter message')
+        if $total > $self->{max_samples};
+    return \@segments;
+}
+
+sub stream {
+    my ($self, $events, $block_size) = @_;
+    integer('block_size', $block_size //= 4096, 1, 1000000);
+    fail('CW_E_STATE', 'Reset generator before starting another stream')
+        unless $self->{state} eq 'READY';
+    my @segments = @{$self->_segments($events)};
+    my ($si, $offset, $absolute) = (0, 0, 0);
     $self->{state} = 'ACTIVE';
     my $generation = ++$self->{generation};
+    return $self->_pdl_stream(\@segments, $block_size, $generation)
+        if $self->{backend} eq 'pdl';
     return sub {
         fail('CW_E_STATE', 'Generator stream was reset or replaced')
             if $generation != ($self->{generation} // 0) || $self->{state} eq 'READY';
@@ -80,6 +94,29 @@ sub stream {
     };
 }
 
+sub _pdl_stream {
+    my ($self, $segments, $block_size, $generation) = @_;
+    my ($si, $offset, $absolute) = (0, 0, 0);
+    return sub {
+        fail('CW_E_STATE', 'Generator stream was reset or replaced')
+            if $generation != ($self->{generation} // 0) || $self->{state} eq 'READY';
+        if ($si > $#{$segments}) { $self->{state} = 'FINISHED'; return }
+        my @out;
+        while (@out < $block_size && $si <= $#{$segments}) {
+            my $seg   = $segments->[$si];
+            my $count = $seg->{samples} - $offset;
+            $count = $block_size - @out if $count > $block_size - @out;
+            push @out, @{Ham::CW::_Internal::PDL::tone($self, $seg, $offset, $absolute, $count)};
+            $absolute += $count;
+            $offset   += $count;
+            if ($offset == $seg->{samples}) { ++$si; $offset = 0 }
+        }
+        $self->{produced} = $absolute;
+        $self->{state}    = 'FINISHED' if $si > $#{$segments};
+        return \@out;
+    };
+}
+
 sub generate {
     my ($self, $events) = @_;
     my $next = $self->stream($events);
@@ -106,9 +143,17 @@ Ham::CW::Generator - deterministic, block-independent sinusoidal synthesis
 
 =head1 METHODS
 
+=head2 new
+
+C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
+2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
+arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for PDL usage.
+
 C<new> accepts C<sample_rate> (16000), C<frequency> (700 Hz, strictly below
-Nyquist), C<amplitude> (0.8 in 0..1), C<attack_ms> and C<release_ms> (5 each),
+Nyquist; the default is one quarter of the rate when 700 Hz is unavailable), C<amplitude> (0.8 in 0..1), C<attack_ms> and C<release_ms> (5 each),
 and C<max_samples> (10000000). Rates are integers from 1000 to 384000.
+
+=head2 stream
 
 C<stream(events, block_size)> validates and copies events, then returns an
 iterator producing normalized floating-point sample arrays, or undef at EOF.
@@ -116,6 +161,8 @@ Default block size is 4096; valid sizes are 1..1000000. Samples depend on the
 absolute sample index, so block boundaries do not change phase or output.
 Phase advances through silence. Raised-cosine ramps remain inside each mark;
 ramps are shortened for marks smaller than twice their configured duration.
+
+=head2 generate
 
 C<generate(events)> collects a stream in memory. Both methods enforce the total
 sample limit before output. TimedEvents are explicitly converted; SampledEvents

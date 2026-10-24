@@ -6,13 +6,19 @@
    an authorized PAUSE account; repository ownership does not confer PAUSE rights.
 3. Run the ordinary suite, author checks, formatter check and coverage. Inspect
    failures and the untested paths. Targets: 95% statement and 90% branch coverage.
-4. Require the Linux Perl 5.20 job and the macOS/Windows jobs to succeed on the
-   exact candidate commit. A configured matrix is not a test result.
+4. Require every configured check on the exact candidate commit: the six
+   ordinary Perl jobs, the three PDL platform jobs and the author/distribution
+   job. Keep these ten job names in main's required status checks. A configured
+   matrix is not a test result.
 5. Run `make dist`, `make disttest` and `make distcheck`. Inspect META.json,
    META.yml, MANIFEST and the archive contents. Check the archive
    with `perl maint/check-dist.pl Ham-CW-VERSION.tar.gz`. Verify installation
    with `perl maint/check-install.pl Ham-CW-VERSION.tar.gz`; it builds, tests,
-   installs to a temporary prefix and runs all three installed examples.
+   installs to a temporary prefix and runs the three installed command-line
+   examples and the workflow tour. Coverage collection must include every
+   production module, including the optional PDL implementation. Install PDL
+   for author verification; missing modules fail the gate. Collect one source
+   tree per database so duplicated lib/blib paths cannot inflate the summary.
 6. Review documented limitations. In particular, do not advertise field-proven
    DSP reception until an independently sourced, licensed recording corpus
    with expected text and signal conditions has passed.

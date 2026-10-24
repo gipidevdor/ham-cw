@@ -8,11 +8,17 @@ use ExtUtils::Manifest qw(maniread);
 
 my ($output, $directory) = @ARGV;
 die "Usage: perl maint/archive.pl OUTPUT.tar DIST_DIRECTORY\n"
-    unless defined($directory) && -d $directory;
+    unless defined($output) && defined($directory) && -d $directory;
+croak "Missing distribution MANIFEST" unless -f "$directory/MANIFEST";
 my $manifest = maniread("$directory/MANIFEST");
 my @files    = map { "$directory/$_" } sort keys %{$manifest};
-my $archive  = Archive::Tar->new;
-$archive->add_files(@files);
+croak "Empty distribution MANIFEST" unless @files;
+for my $path (@files) {
+    croak "Missing or unreadable distribution file: $path" unless -f $path && -r $path;
+}
+my $archive = Archive::Tar->new;
+my @added   = $archive->add_files(@files);
+croak "Incomplete distribution archive: " . $archive->error unless @added == @files;
 for my $file ($archive->get_files) {
     $file->uid(0);
     $file->gid(0);

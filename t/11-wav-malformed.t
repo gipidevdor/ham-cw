@@ -12,21 +12,27 @@ my @cases = (
     [riff($fmt),                                    'CW_E_WAV_FORMAT'],
     [riff($data),                                   'CW_E_WAV_FORMAT'],
     [riff(pack('a4V', 'fmt ', 2) . "\0\0" . $data), 'CW_E_WAV_FORMAT'],
-    [riff($fmt . $data) . 'x',                      'CW_E_WAV_FORMAT'],
     ['RIFF' . pack('V', 0) . 'WAVE',                'CW_E_WAV_FORMAT'],
 );
 
 for my $case (@cases) {
     open my $fh, '<', \$case->[0] or die $!;
     eval { Ham::CW::Audio->new->reader($fh) };
-    is(ref($@) && $@->code, $case->[1], 'reject malformed chunk structure');
+    is(ref($@) && (ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
+        $case->[1], 'reject malformed chunk structure');
 }
+my $trailing = riff($fmt . $data) . 'x';
+open my $tail, '<', \$trailing or die $!;
+my $accepted = Ham::CW::Audio->new->read($tail);
+is_deeply($accepted->{samples}, [0], 'trailing bytes leave PCM intact');
+is($accepted->{warnings}[0]{code}, 'CW_W_WAV_TRAILING', 'trailing bytes warn');
 my $reordered = riff($data . $fmt);
 open my $in, '<', \$reordered or die $!;
 is_deeply(Ham::CW::Audio->new->read($in)->{samples}, [0], 'data before format is supported');
 my $wave   = riff($fmt . $data);
 my $seed   = 19;
 my $errors = 0;
+
 for (1 .. 300) {
     my $mutant = $wave;
     $seed = (1664525 * $seed + 1013904223) % 4294967296;

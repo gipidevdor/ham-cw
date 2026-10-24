@@ -51,15 +51,15 @@ for my $input (
 }
 my $d = Ham::CW::Detector->new(sample_rate => 8000, frequency => 650, max_frames => 10);
 eval { $d->feed([(0) x 401]) };
-is($@->code,  'CW_E_RESOURCE', 'bounded feature history');
-is($d->state, 'READY',         'resource validation atomic');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_RESOURCE', 'bounded feature history');
+is($d->state,                                      'READY',         'resource validation atomic');
 eval { $d->feed([0, 'NaN']) };
-is($@->code,  'CW_E_ARGUMENT', 'reject nonfinite input');
-is($d->state, 'READY',         'invalid sample atomic');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_ARGUMENT', 'reject nonfinite input');
+is($d->state,                                      'READY',         'invalid sample atomic');
 $d->feed([(0) x 100]);
 $d->finish;
 eval { $d->feed([]) };
-is($@->code, 'CW_E_STATE', 'post-finish feed');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_STATE', 'post-finish feed');
 $d->reset;
 is($d->state, 'READY', 'detector reset');
 done_testing;
