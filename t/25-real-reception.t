@@ -24,6 +24,17 @@ for my $case (@{$cases}) {
     close $audio or die $!;
     is(sha256_hex($bytes), $case->{sha256},
         "$case->{name} fixture matches attributed source derivative");
+    open my $header, '<:raw', \$bytes or die $!;
+    my $info = Ham::CW::Audio->new->reader($header);
+    close $header or die $!;
+    is(
+        $info->{sample_count},
+        int(($case->{end_seconds} - $case->{start_seconds}) * $case->{sample_rate} + 0.5),
+        "$case->{name} sample count matches its source crop"
+    );
+    is($info->{sample_rate}, $case->{sample_rate},
+        "$case->{name} retains the documented sample rate");
+
     for my $backend (@backends) {
         my $result =
             Ham::CW->new(backend => $backend)->decode_wav_bytes($bytes, wpm => $case->{wpm});

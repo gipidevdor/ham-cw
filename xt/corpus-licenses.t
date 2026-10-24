@@ -59,6 +59,16 @@ for my $case (@{$cases}) {
     my $record = $by_source{$case->{source}};
     ok($record, "$name source license evidence is retained");
     next unless $record;
+    my @derivatives = grep { $_->{file} eq $case->{file} } @{$record->{derivatives} // []};
+    is(scalar(@derivatives), 1, "$name has one pinned derivative record");
+    is_deeply(
+        $derivatives[0],
+        {
+            map { ($_ => $case->{$_}) }
+                qw(file sha256 source_sha256 start_seconds end_seconds sample_rate reference wpm transformation)
+        },
+        "$name derivative evidence matches the source crop and transformation"
+    );
     is(
         $record->{license_metadata}{LicenseShortName},
         $reviewed_licenses{$case->{license}},
