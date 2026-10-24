@@ -123,7 +123,8 @@ print $SIG{PIPE}, "\n";
 CHILD
 
     # A script file avoids platform-specific quoting of multiline -e arguments.
-    my ($source, $path) = tempfile('ham-cw-pipe-test-XXXX', SUFFIX => '.pl', UNLINK => 1);
+    my ($source, $path) =
+        tempfile('ham-cw-pipe-test-XXXX', SUFFIX => '.pl', TMPDIR => 1, UNLINK => 1);
     print {$source} $program or die $!;
     close $source            or die $!;
     open my $child, '-|', $^X, '-Ilib', $path or die $!;
