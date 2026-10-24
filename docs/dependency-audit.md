@@ -53,6 +53,9 @@ uses core Getopt::Long, Encode and JSON::PP rather than a CLI framework.
 File::Temp provides safe replacement output and bounded seekable WAV stdin.
 Test::More is a test requirement. ExtUtils::MakeMaker installs the executable,
 its manual and the Windows batch launcher alongside the library.
+The configure prerequisite is ExtUtils::MakeMaker 7.00 or later: its 6.99
+development series added support for installation paths containing spaces.
+This is a build-tool requirement; the CLI adds no non-core runtime module.
 Perl::Critic, Perl::Tidy, Devel::Cover and metadata/POD checkers are author-only.
 The default backend requires no Text::Morse, MIDI, Audio::Wav, PDL, compiler
 or external player. The optional PDL backend requires PDL 2.081 or later,

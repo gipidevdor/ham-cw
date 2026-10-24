@@ -7,6 +7,7 @@ Revision history for Ham-CW
       stable CLI exit statuses, JSON reception and strict warning handling.
     - Verify the installed command on every ordinary CI platform, plus
       subprocess I/O, binary output, malformed UTF-8 and broken pipes.
+    - Require MakeMaker 7.00 or later for space-containing installation paths.
     - Initial development release for Morse text, timing, PCM WAV and MIDI.
     - International symbols, operational prosigns and Farnsworth generation.
     - Collecting, streaming and path-based APIs with bounded resource use,
