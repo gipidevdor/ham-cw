@@ -196,3 +196,32 @@ The five `benchmark-*` artifacts on the [run page](https://github.com/gipidevdor
 contain absolute rates and the underlying iteration counts, elapsed times
 and environment metadata. They allow the ratios to be checked without
 copying console logs into the release notes.
+
+## Message length and elapsed time (local, 2026-10-24)
+
+A separate local measurement used the default 16000 Hz sample rate,
+20 WPM and one, five, ten, twenty or forty repetitions of `PARIS`.
+These are standard five-letter timing words; arbitrary prose can have
+different durations. No terminal word gap is appended.
+The machine was macOS ARM64 with Perl 5.44.0 and PDL 2.106.
+Each cell below is the median of three runs, in seconds.
+
+| Standard words | Audio duration | Generate, Perl | Generate, PDL | Analyze, Perl | Analyze, PDL |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 2.58 | 0.030 | 0.005 | 0.142 | 0.020 |
+| 5 | 14.58 | 0.149 | 0.023 | 0.785 | 0.114 |
+| 10 | 29.58 | 0.299 | 0.049 | 1.784 | 0.233 |
+| 20 | 59.58 | 0.611 | 0.100 | 3.297 | 0.474 |
+| 40 | 119.58 | 1.198 | 0.204 | 6.391 | 0.974 |
+
+Generation measures sample synthesis, including generator construction.
+Analysis measures 4096-sample feeds and finalization with the default
+frequency search grid; detector construction is outside that timer.
+The audio is already available in memory. PCM conversion, file I/O and
+live reception time are excluded. These are measured cases, not estimates
+extrapolated from the short CI benchmark.
+
+Default reception retains at most 24000 frames, approximately 120 seconds
+including silence. Longer recordings require a larger explicit `max_frames`
+and more retained memory. The time needed to transmit or receive the audio
+in real time remains its full audio duration.
