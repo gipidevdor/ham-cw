@@ -39,8 +39,8 @@ for my $pair (@punct) {
     is($cw->decode($pair->[1]), $pair->[0], 'decode punctuation');
 }
 is(
-    $cw->encode("  cq\tde\nIU0HFJ  "),
-    '-.-. --.- / -.. . / .. ..- ----- .... ..-. .---',
+    $cw->encode("  cq\tde\nTESTCALL  "),
+    '-.-. --.- / -.. . / - . ... - -.-. .- .-.. .-..',
     'normalize whitespace'
 );
 is($cw->encode('AR'),    '.- .-.', 'letters stay separate');
@@ -71,7 +71,7 @@ for my $bad ('/ ...', '... /', '... // ---', '... x', '------') {
     eval { $cw->decode($bad) };
     is(ref($@) && $@->code, 'CW_E_SYMBOL', 'reject malformed Morse');
 }
-for my $text ('HELLO WORLD', 'CQ CQ DE IU0HFJ', '0123456789', 'TEST (A/B)?') {
+for my $text ('HELLO WORLD', 'CQ CQ DE TESTCALL', '0123456789', 'TEST (A/B)?') {
     is($cw->decode($cw->encode($text)), $text, 'text round trip');
 }
 done_testing;
