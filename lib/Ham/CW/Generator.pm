@@ -139,36 +139,121 @@ sub result {
 
 =head1 NAME
 
-Ham::CW::Generator - deterministic, block-independent sinusoidal synthesis
+Ham::CW::Generator - synthesize keyed mono tones from events
+
+=head1 SYNOPSIS
+
+    use strict;
+    use warnings;
+    use Ham::CW::Encoder;
+    use Ham::CW::Generator;
+
+    my $events = Ham::CW::Encoder->new(wpm => 20)->events('SOS');
+    my $generator = Ham::CW::Generator->new(
+        sample_rate => 8000, frequency => 650);
+    my $samples = $generator->generate($events);
+    print scalar(@{$samples}), " samples\n";
+
+=head1 DESCRIPTION
+
+Produces normalized mono Perl sample arrays from timed or sampled ON/OFF
+events. It does not play audio or write WAV headers. Use L<Ham::CW::Audio>
+for PCM files or L<Ham::CW/samples> to start with text.
 
 =head1 METHODS
 
 =head2 new
 
-C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
-2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
-arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for PDL usage.
+    my $generator = Ham::CW::Generator->new(%options);
 
-C<new> accepts C<sample_rate> (16000), C<frequency> (700 Hz, strictly below
-Nyquist; the default is one quarter of the rate when 700 Hz is unavailable), C<amplitude> (0.8 in 0..1), C<attack_ms> and C<release_ms> (5 each),
-and C<max_samples> (10000000). Rates are integers from 1000 to 384000.
+Returns a generator in C<READY> state. Options and inclusive ranges:
+
+=over 4
+
+=item * C<sample_rate>: 16000 Hz; integer 1000..384000.
+
+=item * C<frequency>: 700 Hz when valid, otherwise C<sample_rate / 4>. Valid range is 1..C<sample_rate / 2 - 1> Hz.
+
+=item * C<amplitude>: 0.8; finite number 0..1.
+
+=item * C<attack_ms>, C<release_ms>: 5 each; finite number 0..1000 milliseconds.
+
+=item * C<max_samples>: 10000000; integer 1..100000000.
+
+=item * C<backend>: C<perl> (default), C<pdl> or C<auto>. See L<Ham::CW/OPTIONAL PDL BACKEND>.
+
+=back
+
+Optional undefined values use defaults. Invalid, duplicate or unknown options
+raise C<CW_E_ARGUMENT>. Speed is determined by input events, not generator
+options; C<wpm> is an Encoder option.
 
 =head2 stream
 
-C<stream(events, block_size)> validates and copies events, then returns an
-iterator producing normalized floating-point sample arrays, or undef at EOF.
-Default block size is 4096; valid sizes are 1..1000000. Samples depend on the
-absolute sample index, so block boundaries do not change phase or output.
-Phase advances through silence. Raised-cosine ramps remain inside each mark;
-ramps are shortened for marks smaller than twice their configured duration.
+    my $next = $generator->stream($events, $block_size);
+    while (my $block = $next->()) {
+        # Consume the normalized samples in this array reference.
+    }
+
+Requires C<READY>. Validates and copies the complete event sequence before
+returning an iterator. TimedEvents are converted to samples; SampledEvents
+must match the configured rate. C<block_size> defaults to 4096 and is an
+integer in 1..1000000. The iterator returns arrays of at most that length,
+then C<undef> at EOF; the final block may be shorter. Empty events produce
+immediate EOF. The whole-message sample ceiling includes silence and is
+checked before output. Streaming bounds sample-buffer size, not event history.
+
+The generator becomes C<ACTIVE> when the stream starts and C<FINISHED> when
+it is exhausted. Consume the stream before starting another generation.
 
 =head2 generate
 
-C<generate(events)> collects a stream in memory. Both methods enforce the total
-sample limit before output. TimedEvents are explicitly converted; SampledEvents
-must match the configured rate. C<result> reports sample count and C<state>.
-C<reset> starts a new generation and invalidates old iterators. States are
-READY, ACTIVE and FINISHED. Consume a stream before resetting its generator.
+    my $samples = $generator->generate($events);
+
+Collects C<stream> into one sample array and returns it. Subject to the same
+validation, READY-state requirement and total sample limit. Collected Perl
+arrays can require substantially more memory than packed PCM.
+
+=head2 result
+
+    my $progress = $generator->result;
+
+Returns a fresh hash with C<state>, C<samples> (number produced so far) and
+C<sample_rate>. It contains progress, not generated sample values.
+
+=head2 state
+
+    my $state = $generator->state;
+
+Returns C<READY>, C<ACTIVE> or C<FINISHED>.
+
+=head2 reset
+
+    $generator->reset;
+
+Discards progress, preserves configuration, returns the object and restores
+C<READY>. All existing iterators become invalid; calling them raises
+C<CW_E_STATE>. Previously returned sample arrays remain usable.
+
+=head1 WAVEFORM
+
+ON runs use a sine wave; OFF runs are zero. Amplitude is a fraction of full
+scale, with 0 producing silence. Attack is the fade-in at a mark start; release
+is the fade-out at its end. Phase is based on the absolute
+sample index and advances through silence. Raised-cosine attack/release
+ramps lie inside each mark and are independently shortened to at most half
+the mark length. They add no extra samples.
+
+Within one backend and configuration, changing block boundaries does not
+change sample values. Optional PDL calculations can differ slightly from
+the Perl backend; see L<Ham::CW/OPTIONAL PDL BACKEND>.
+
+=head1 ERRORS
+
+Invalid options, samples/rate mismatch or arguments raise C<CW_E_ARGUMENT>.
+Invalid event timing/resolution raises C<CW_E_TIMING>; excessive events or
+sample counts raise C<CW_E_RESOURCE>. Reuse without reset and invalidated
+iterators raise C<CW_E_STATE>. Validation errors preserve generator state.
 
 =head1 LICENSE
 

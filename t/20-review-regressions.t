@@ -80,8 +80,7 @@ for my $backend (@backends) {
     is($final->text, 'SOS', 'mismatch keeps usable text');
 }
 eval { Ham::CW::Detector->new(effective_wpm => 61) };
-is(ref($@) ? (ref($@) ? $@->code : "$@") : "$@",
-    'CW_E_ARGUMENT', 'effective reception speed capped at 60');
+is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'effective reception speed capped at 60');
 my $cw     = Ham::CW->new;
 my $events = $cw->events('SOS');
 unshift @{$events->{segments}}, {state => 'off', duration => 30000000};
@@ -105,15 +104,13 @@ for my $format (qw(wav midi)) {
     my $before;
     { open my $in, '<:raw', $file or die $!; local $/; $before = <$in>; close $in or die $!; }
     eval { $cw->$method('!', $file, overwrite => 1) };
-    is(ref($@) ? (ref($@) ? $@->code : "$@") : "$@",
-        'CW_E_SYMBOL', "$format overwrite reports generation failure");
+    is(ref($@) ? $@->code : "$@", 'CW_E_SYMBOL', "$format overwrite reports generation failure");
     my $after;
     { open my $in, '<:raw', $file or die $!; local $/; $after = <$in>; close $in or die $!; }
     is($after, $before, "$format failure preserves existing bytes");
     ok($cw->$method('CQ TEST', $file, overwrite => 1), "$format explicit replacement succeeds");
     eval { $cw->$method('SOS', $file, overwrite => 2) };
-    is(ref($@) ? (ref($@) ? $@->code : "$@") : "$@",
-        'CW_E_ARGUMENT', "$format overwrite validates boolean");
+    is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', "$format overwrite validates boolean");
 }
 is($cw->read_wav(File::Spec->catfile($root, 'message.wav'))->text,
     'CQ TEST', 'replacement WAV contains new message');

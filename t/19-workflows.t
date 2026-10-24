@@ -117,7 +117,7 @@ eval { $cw->decode_wav_bytes('not a WAV') };
 ok(ref($@) && $@->isa('Ham::CW::Error'), 'malformed WAV bytes structured error');
 is_deeply($cw->samples('SOS'), $values, 'generation overrides leave defaults intact');
 eval { $cw->decode_wav_bytes("\x{2603}") };
-is($@->code, 'CW_E_ARGUMENT', 'Unicode text is not binary WAV data');
+is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'Unicode text is not binary WAV data');
 $audio->write_file($path, $values, sample_rate => 8000, bits => 16, overwrite => 1);
 is($audio->read_file($path)->{bits}, 16, 'raw WAV explicit replacement');
 $smf->write_file($midi, $base, overwrite => 1);

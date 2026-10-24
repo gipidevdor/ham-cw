@@ -1,7 +1,7 @@
 # Dependency and namespace audit
 
-Checked on 2026-10-24. Exact release metadata and declared dependencies for the initial text/audio
-candidates are preserved in [cpan-audit.json](cpan-audit.json). The metadata comes from the
+Checked on 2026-10-24. Exact release metadata and declared dependencies for
+the initial text/audio candidates are preserved in [cpan-audit.json](cpan-audit.json). The metadata comes from the
 [MetaCPAN API](https://fastapi.metacpan.org/). Release age alone is not evidence
 of a defect. Third-party test suites were inspected where listed in the JSON,
 but were not executed; their coverage and platform results are not independently
@@ -41,15 +41,21 @@ returned 404. The GitHub endpoint for `gipidevdor/ham-cw` returned 404 before
 repository creation. GitHub names are owner-scoped, not globally reserved.
 
 These checks are a dated snapshot, not a reservation or a PAUSE upload test.
-Recheck index and permissions immediately before the first CPAN upload.
+Recheck index and permissions immediately before a CPAN upload.
 The additional exporter uses `Ham::CW::MIDI` within the same checked prefix.
 
 ## Runtime footprint
 
 Only core modules are required: Carp, Exporter, Hash::Util, Scalar::Util,
-Storable, Fcntl, File::Basename and File::Temp, plus strict/warnings and Perl
-itself. File::Temp provides temporary output for safe file replacement. Test::More and
-JSON::PP are test requirements. ExtUtils::MakeMaker builds the distribution.
+Storable, Fcntl, File::Basename, File::Temp, Encode, Getopt::Long, IO::Handle
+and JSON::PP, plus strict/warnings and Perl itself. The command-line frontend
+uses core Getopt::Long, Encode and JSON::PP rather than a CLI framework.
+File::Temp provides safe replacement output and bounded seekable WAV stdin.
+Test::More is a test requirement. ExtUtils::MakeMaker installs the executable,
+its manual and the Windows batch launcher alongside the library.
+The configure prerequisite is ExtUtils::MakeMaker 7.00 or later: its 6.99
+development series added support for installation paths containing spaces.
+This is a build-tool requirement; the CLI adds no non-core runtime module.
 Perl::Critic, Perl::Tidy, Devel::Cover and metadata/POD checkers are author-only.
 The default backend requires no Text::Morse, MIDI, Audio::Wav, PDL, compiler
 or external player. The optional PDL backend requires PDL 2.081 or later,

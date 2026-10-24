@@ -33,7 +33,7 @@ for my $size (1, 7, 80, 257, 4096) {
     is_deeply(\@got, $whole, "identical samples in blocks of $size");
     is($g->state, 'FINISHED', 'iterator lifecycle');
     eval { $g->generate($events) };
-    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_STATE', 'reset required');
+    is((ref($@) ? $@->code : "$@"), 'CW_E_STATE', 'reset required');
     $g->reset;
     is($g->state, 'READY', 'reset');
 }
@@ -47,9 +47,9 @@ my $g    = Ham::CW::Generator->new;
 my $next = $g->stream($events);
 $g->reset;
 eval { $next->() };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_STATE', 'old stream invalidated');
+is((ref($@) ? $@->code : "$@"), 'CW_E_STATE', 'old stream invalidated');
 eval { Ham::CW::Generator->new(max_samples => 10)->generate($events) };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_RESOURCE', 'generation limit');
+is((ref($@) ? $@->code : "$@"), 'CW_E_RESOURCE', 'generation limit');
 
 for my $args (
     {frequency   => 8000},
@@ -60,7 +60,6 @@ for my $args (
     )
 {
     eval { Ham::CW::Generator->new(%{$args}) };
-    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
-        'CW_E_ARGUMENT', 'validate synthesis options');
+    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'validate synthesis options');
 }
 done_testing;

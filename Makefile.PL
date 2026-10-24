@@ -1,7 +1,7 @@
 use 5.020;
 use strict;
 use warnings;
-use ExtUtils::MakeMaker;
+use ExtUtils::MakeMaker 7.00;
 my %provides;
 for my $module (
     qw(Ham::CW Ham::CW::Encoder Ham::CW::Decoder Ham::CW::Events
@@ -20,7 +20,8 @@ WriteMakefile(
     AUTHOR             => 'Giacomo Picchiarelli',
     LICENSE            => 'artistic_2',
     MIN_PERL_VERSION   => '5.020',
-    CONFIGURE_REQUIRES => {'ExtUtils::MakeMaker' => '6.64'},
+    EXE_FILES          => ['bin/ham-cw'],
+    CONFIGURE_REQUIRES => {'ExtUtils::MakeMaker' => '7.00'},
     PREREQ_PM          => {
         'Carp'           => 0,
         'Exporter'       => 0,
@@ -29,7 +30,11 @@ WriteMakefile(
         'Hash::Util'     => 0,
         'File::Basename' => 0,
         'File::Temp'     => 0,
-        'Fcntl'          => 0
+        'Fcntl'          => 0,
+        'Encode'         => 0,
+        'Getopt::Long'   => 0,
+        'IO::Handle'     => 0,
+        'JSON::PP'       => 0
     },
     TEST_REQUIRES => {
         'Test::More' => '0.98',

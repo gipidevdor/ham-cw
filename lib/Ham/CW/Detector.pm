@@ -5,6 +5,7 @@ use warnings;
 use Ham::CW::_Internal::Validate qw(fail number integer options samples named_arguments);
 use Ham::CW::Decoder;
 use Ham::CW::Result;
+use Ham::CW::_Internal::Result;
 use Ham::CW::_Internal::Backend;
 our $VERSION = '0.001';
 my $PI = 4 * atan2(1, 1);
@@ -221,7 +222,8 @@ sub _analyze {
     my @frames = @{$self->{frames}};
     my $empty  = sub {
         my ($code, $message, $diagnostics) = @_;
-        return Ham::CW::Result->new(
+        return Ham::CW::_Internal::Result->from_owned(
+            'Ham::CW::Result',
             complete    => $complete,
             events      => {sample_rate => $self->{sample_rate}, segments => []},
             warnings    => [{code => $code, message => $message}],
@@ -269,7 +271,7 @@ sub _analyze {
         analyzed_samples       => $self->{total_samples},
         frequency_grid_step_hz => defined($self->{frequency}) ? 0 : ($self->{frequency_step} // 50)
     };
-    return Ham::CW::Result->new(%{$h});
+    return Ham::CW::_Internal::Result->from_owned('Ham::CW::Result', %{$h});
 }
 
 sub result {
@@ -293,68 +295,160 @@ sub finish {
 
 =head1 NAME
 
-Ham::CW::Detector - bounded Goertzel CW detector
+Ham::CW::Detector - incremental detection of a keyed CW audio tone
 
 =head1 SYNOPSIS
 
-    my $detector = Ham::CW::Detector->new(sample_rate => 16000);
-    $detector->feed($normalized_mono_samples);
+    use strict;
+    use warnings;
+    use Ham::CW;
+    use Ham::CW::Detector;
+
+    my $cw = Ham::CW->new(sample_rate => 8000, frequency => 650, wpm => 20);
+    my $next = $cw->stream_samples('SOS', block_size => 1024);
+    my $detector = Ham::CW::Detector->new(
+        sample_rate => 8000, frequency => 650, wpm => 20);
+    while (my $block = $next->()) { $detector->feed($block) }
     my $result = $detector->finish;
+    print $result->text, "\n";
+    warn "Inspect reception warnings\n" if $result->has_warnings;
+
+=head1 DESCRIPTION
+
+Accepts normalized mono samples and returns cumulative decoding snapshots.
+The sample rate must match the incoming audio; no resampling is performed.
+For a WAV path or bytes, use L<Ham::CW/read_wav> or L<Ham::CW/decode_wav_bytes>
+so the header supplies the rate.
+
+Reception is experimental. The detector selects one tone; it does not
+separate overlapping transmitters, correct large frequency drift or validate
+the linguistic meaning of decoded text. Short messages may need tone/speed
+hints. At least three detected keyed marks are required, so isolated E or T
+cannot be identified as CW by this detector even with speed supplied.
 
 =head1 METHODS
 
 =head2 new
 
-C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
-2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
-arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for PDL usage.
+    my $detector = Ham::CW::Detector->new(%options);
 
-C<new> accepts C<sample_rate> (16000), optional C<frequency> and C<wpm>,
-C<effective_wpm>, C<min_frequency> (300), C<max_frequency> (1500),
-C<frequency_step> (50 Hz), C<min_contrast> (0.60, minimum envelope contrast),
-C<min_purity> (0.20, minimum spectral purity),
-and C<max_frames> (24000, about 120 seconds). Configure a valid search band
-below Nyquist; the default upper edge is clipped below Nyquist for low rates. Search grids contain
-at most 256 candidates. Reception accepts explicit WPM from 1 to 60; automatic estimation covers 5..60.
-The encoder and event decoder also support higher speeds.
+Returns a detector in C<READY>. Options and inclusive ranges:
+
+=over 4
+
+=item * C<sample_rate>: 16000 Hz; integer 1000..384000.
+
+=item * C<frequency>: optional known tone, 1..C<sample_rate / 2 - 1> Hz. Undefined/omitted means search the frequency grid.
+
+=item * C<min_frequency>: 300 Hz; range 1..C<sample_rate / 2 - 1>.
+
+=item * C<max_frequency>: the smaller of 1500 and C<sample_rate / 2 - 1> Hz; must be at least C<min_frequency> and at most C<sample_rate / 2 - 1>.
+
+=item * C<frequency_step>: 50 Hz; range 10..500. Grid candidates start at the minimum and advance by this step without exceeding the maximum. At most 256 candidates are allowed.
+
+=item * C<wpm>: optional explicit character speed, range 1..60. Undefined/omitted means estimate within 5..60 WPM.
+
+=item * C<effective_wpm>: optional spacing speed, range 1..WPM when WPM is explicit, otherwise 1..60. Omitted/undefined uses ordinary spacing; specify it for Farnsworth reception.
+
+=item * C<min_contrast>: 0.60; range 0.01..1, minimum keyed-envelope contrast.
+
+=item * C<min_purity>: 0.20; range 0.01..1, minimum projected narrow-band energy ratio. This ratio is not normalized to 1 for a pure tone.
+
+=item * C<max_frames>: 24000; integer 1..1000000, including frames representing recording silence.
+
+=item * C<backend>: C<perl> (default), C<pdl> or C<auto>. See L<Ham::CW/OPTIONAL PDL BACKEND>.
+
+=back
+
+Frequency search settings are still validated when a known tone is given.
+Other undefined optional values use defaults. Unknown/duplicate names and
+invalid ranges raise C<CW_E_ARGUMENT>; too many candidates raise
+C<CW_E_RESOURCE>. Explicit effective speed must not exceed explicit WPM.
 
 =head2 feed
 
-C<feed(array)> validates normalized mono samples and processes fixed 5 ms
-Hann-windowed, DC-removed Goertzel frames. Chunk boundaries do not affect the
-frame grid. Only one pending frame of raw samples is retained. Per-frame
-energies are retained up to C<max_frames>; exceeding it is a recoverable
-validation error. C<result> returns a provisional cumulative snapshot without
-flushing the partial frame. Repeated snapshots are cached until a successful
-feed or reset; reference-valued accessors still return copies. C<finish> flushes it once and returns the final
-L<Ham::CW::Result>. C<reset> discards history; C<state> reports READY, ACTIVE or
-FINISHED. Feed after finish is rejected. Invalid input does not change state.
+    $detector->feed($samples);
 
-Analysis selects the strongest candidate across frames and seeds a noise floor
-from percentiles. Its peak seed is the maximum of a five-frame median,
-which retains sparse marks without letting a single 5 ms impulse set the scale. Segmentation tracks signal peaks with a one-second decay,
-updates the noise estimate during OFF frames, and applies hysteresis. A bounded
-peak update limits the influence of impulses. It merges short interior impulses and fits Morse
-timing. Spectral purity, envelope contrast and at least three keyed marks are
-required. Silence, unkeyed tones and rejected timing produce structured
-warnings. Frequency is a grid estimate, not a precision measurement.
-C<frequency_grid_step_hz> is the candidate spacing, not spectral resolution.
-The 5 ms Hann window has a bandwidth of roughly 300 Hz. Spectral purity
-is the ratio of projected tone energy to windowed broadband energy; a pure
-matched tone is approximately 0.67, not 1.
-Snapshot text and estimates may change as evidence arrives; use final output
-for decisions. An empty result with complete true still needs warning review.
+Accepts an array reference of finite numbers in [-1,1], at most 1000000
+samples per call, and returns the object. Empty blocks are valid. Accepted
+feeds set C<ACTIVE> and invalidate the preview cache. Validation/resource
+errors preserve history, buffer and state. Feed after finish raises
+C<CW_E_STATE>.
 
-=head1 LIMITATIONS
+Frames have C<int(sample_rate * 0.005 + 0.5)> samples, approximately 5 ms.
+A partial frame is carried between feeds; chunk boundaries do not change the
+frame grid. Raw audio retention is limited to this partial frame, but frame
+powers are retained for the entire accepted recording up to C<max_frames>.
+A pending partial frame also counts against that limit.
 
-This initial detector targets isolated, reasonably stable CW with adequate
-signal-to-noise ratio and mark lengths above roughly 20 ms. It does not
-separate overlapping transmitters or track large frequency drift. Candidate
-selection and threshold seeds use the retained recording; envelope tracking
-adapts within that recording. Reception remains limited to the configured history.
-Severe fading, sparse marks, long leading silence and Farnsworth without
-known spacing can cause rejection or ambiguity. Field performance has not
-been established. No confidence probability is claimed.
+=head2 result
+
+    my $preview = $detector->result;
+
+Returns a provisional L<Ham::CW::Result> with C<complete> 0 without flushing
+the partial frame. It analyzes all retained complete frames. Earlier text,
+tone, timing and diagnostics may change after more audio. Unchanged previews
+are cached. After finish, this returns the cached final Result.
+
+=head2 finish
+
+    my $final = $detector->finish;
+
+Processes any partial frame once, finalizes decoding, sets C<FINISHED> and
+returns a complete Result. Repeated calls return the cached Result. No-signal
+or uncertain input can still finish successfully with empty text and warnings.
+
+=head2 reset
+
+    $detector->reset;
+
+Discards audio features, partial input, progress and snapshots; preserves
+configuration, restores C<READY> and returns the object. Previous Results
+remain independent.
+
+=head2 state
+
+    my $state = $detector->state;
+
+Returns C<READY>, C<ACTIVE> or C<FINISHED>.
+
+=head1 ANALYSIS AND DIAGNOSTICS
+
+Frames are DC-removed and Hann-windowed. The Perl backend uses a Goertzel
+bank; PDL uses equivalent sinusoidal projections. Accumulated candidate
+energy chooses a tone. A lower percentile seeds the noise floor, while the
+peak seed uses the maximum of a five-frame median to reduce sensitivity to
+isolated 5 ms impulses without excluding sparse messages.
+
+Segmentation tracks keyed peaks with one-second decay, updates noise during
+OFF frames and uses hysteresis. Short interior runs are merged before event
+decoding. This does not guarantee rejection of every kind of interference.
+
+C<contrast> is C<(peak - floor) / peak>. C<purity> compares projected tone
+energy with windowed broadband energy; a well-resolved matched pure tone is
+approximately 0.67, not 1. C<frequency_grid_step_hz> reports candidate spacing
+(0 for a supplied tone), not frequency accuracy or filter bandwidth. The
+short analysis window has broad response, roughly 300 Hz full half-power
+bandwidth; nearby tones are not independently resolved by a 50 Hz grid.
+L<Ham::CW::Result/diagnostics> describes the other diagnostic fields.
+
+=head1 LIMITS AND WARNINGS
+
+Maximum retained seconds are approximately
+C<max_frames * frame_samples / sample_rate>, about 120 seconds by default.
+Increase C<max_frames> explicitly for longer recordings and budget more
+memory. Large arrays have their own per-feed limit. Streaming input does not
+make this an unlimited-duration receiver.
+
+The design targets reasonably stable, isolated CW and mark lengths of about
+20 ms or longer. Severe fading, sustained static, competing tones and unknown
+Farnsworth spacing can cause wrong, partial or empty text. Field accuracy on
+off-air recordings has not been established by the synthetic tests.
+
+A single-length mark pattern remains ambiguous without WPM; the detector
+suppresses its guessed text and reports warnings. Individual damaged groups
+otherwise use replacement characters while retaining other text. Review
+L<Ham::CW::Result/WARNINGS>; completion is not a confidence estimate.
 
 =head1 LICENSE
 

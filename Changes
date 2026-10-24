@@ -1,6 +1,15 @@
 Revision history for Ham-CW
 
 0.001  2026-10-24
+    - Complete per-method POD and standalone examples; clarify installation,
+      data types, timing, file ownership, errors and reception diagnostics.
+    - Install ham-cw with encode, decode, event JSON, WAV, MIDI and receive
+      commands, including a Windows launcher and command manual.
+    - Bound UTF-8 and piped WAV input, preserve existing outputs and expose
+      stable CLI exit statuses, JSON reception and strict warning handling.
+    - Verify the installed command on every ordinary CI platform, plus
+      subprocess I/O, binary output, malformed UTF-8 and broken pipes.
+    - Require MakeMaker 7.00 or later for space-containing installation paths.
     - Initial development release for Morse text, timing, PCM WAV and MIDI.
     - International symbols, operational prosigns and Farnsworth generation.
     - Collecting, streaming and path-based APIs with bounded resource use,
@@ -10,15 +19,16 @@ Revision history for Ham-CW
     - Robust envelope seeding for sparse messages and isolated 5 ms impulses.
     - Catchable broken-pipe errors, direct sampled-event MIDI tick rounding,
       canonical decoder segment limits and validated result/error payloads.
-    - Complete-source coverage gates, archive completeness checks and
-      phase-integrated independent drift fixtures.
     - Optional PDL acceleration, selected explicitly or through auto fallback;
       the default Perl backend uses only core dependencies.
     - Explicit overwrite for WAV and MIDI file output; failed replacements
       preserve existing files.
     - Independent signal fixtures, reception matrix, backend comparisons and
       regression tests. Benchmark tooling reports local workload measurements.
-    - Consolidate the quality-review and FAST branches, retaining both workload
-      and cross-platform PCM benchmark tools.
+    - Correct automatic speed estimates for long recordings and shaped marks;
+      repeated short marks no longer exclude dash evidence.
+    - Preserve regular-file permissions during replacement and reject symlink
+      destinations. New replacement paths respect the process umask.
+    - Avoid repeated validation and deep copies of internal decoding snapshots.
     - Verify the minimum PDL version and macOS Intel; use Strawberry Perl
       for Windows native builds and retain downloadable timing evidence.

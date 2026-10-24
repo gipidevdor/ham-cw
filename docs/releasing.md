@@ -1,34 +1,56 @@
 # Release procedure
 
-1. Review open bugs and API changes. Update the version consistently in public
-   modules, Changes and documented examples. Check the changelog date.
-2. Recheck CPAN index and PAUSE permissions for every public namespace. Obtain
-   an authorized PAUSE account; repository ownership does not confer PAUSE rights.
-3. Run the ordinary suite, author checks, formatter check and coverage. Inspect
-   failures and the untested paths. Targets: 95% statement and 90% branch coverage.
-4. Require every configured check on the exact candidate commit: the six
-   ordinary Perl jobs, the three PDL platform jobs and the author/distribution
-   job. Keep these ten job names in main's required status checks. A configured
-   matrix is not a test result.
-5. Run `make dist`, `make disttest` and `make distcheck`. Inspect META.json,
-   META.yml, MANIFEST and the archive contents. Check the archive
-   with `perl maint/check-dist.pl Ham-CW-VERSION.tar.gz`. Verify installation
-   with `perl maint/check-install.pl Ham-CW-VERSION.tar.gz`; it builds, tests,
-   installs to a temporary prefix and runs the three installed command-line
-   examples and the workflow tour. Coverage collection must include every
-   production module, including the optional PDL implementation. Install PDL
-   for author verification; missing modules fail the gate. Collect one source
-   tree per database so duplicated lib/blib paths cannot inflate the summary.
-6. Review documented limitations. In particular, do not advertise field-proven
-   DSP reception until an independently sourced, licensed recording corpus
-   with expected text and signal conditions has passed.
-7. Review CI results and the verification record. Do not substitute a CPANTS-like
-   local check for a remote CPANTS or CPAN Testers report.
-8. Obtain the maintainer's explicit approval for a CPAN upload. Upload manually
-   or with the approved PAUSE tool; no workflow in this repository uploads.
-9. After an accepted release, tag the tested commit, attach the distribution and
-   checksum to a GitHub release, then monitor real CPAN Testers reports. Correct
-   any attributable failures with regression tests and a subsequent release.
+Run from a clean source checkout using the candidate Perl environment. Use
+its make program (`gmake` on some Windows installations). Publication is a
+separate maintainer action; no repository workflow uploads to CPAN.
 
-Do not place upload credentials in the repository. Development tools belong
-in the author environment, not the runtime prerequisite list.
+1. Set the intended version in public modules and `Changes`. Check the release
+   date and make sure the notes describe shipped behavior. Review README, task
+   recipes and POD together. Confirm example filenames, option defaults and
+   supported formats against the candidate code.
+2. Check CPAN index/PAUSE permissions for every public namespace with an
+   authorized PAUSE account. Repository ownership does not grant upload rights.
+   Store credentials outside the repository.
+3. Follow [contributing](../CONTRIBUTING.md) to install ordinary and author
+   dependencies. Run `perl Makefile.PL`, `make`, `make distmeta` and
+   `prove -lr t xt`. This includes syntax/style checks and independently
+   executed documentation examples. Review rendered `perldoc` output as well.
+4. Collect production coverage with PDL installed. Require every expected
+   module and one source path per module, with at least 95% statement and
+   90% branch coverage. Use a fresh database after changing source. The
+   configured commands are in `.github/workflows/test.yml`; validate the
+   result with `perl maint/coverage.pl COVERAGE_DIRECTORY`.
+5. Review every configured CI job on the exact candidate commit, including
+   ordinary Perl, current/minimum PDL combinations and author/distribution
+   checks, plus any separately configured security workflow. Derive the job list from the current workflow; do not rely on an
+   older job count. Review pending/failing checks before publication. Update
+   any branch protection configuration separately if job names change.
+6. Run `make distcheck`, `make disttest` and `make dist`. Inspect the archive,
+   `MANIFEST`, `META.json` and `META.yml`. The resulting archive is named
+   `Ham-CW-VERSION.tar.gz`; replace `VERSION` with the actual release version
+   in the commands below. It must include public POD, task recipes, tests
+   and author configurations, while excluding GitHub configuration and build
+   output.
+
+   ```sh
+   perl maint/check-dist.pl Ham-CW-VERSION.tar.gz
+   perl maint/check-install.pl Ham-CW-VERSION.tar.gz
+   ```
+
+   The installation check extracts/builds/tests in a temporary directory,
+   installs to a temporary prefix and runs the installed CLI, command-line examples
+   and workflow tour. It does not publish anything. Rerun `make distmeta`
+   before author metadata checks if distribution commands removed staging data.
+7. Update [verification](verification.md) with the source revision, commands,
+   environment and actual outcomes. Distinguish current results from historical
+   benchmark observations. A synthetic corpus does not establish off-air
+   accuracy; local archive indicators are not CPAN Testers or remote CPANTS.
+8. Obtain the maintainer's approval to upload the checked archive to CPAN.
+   Use the authorized PAUSE process. Record the uploaded archive checksum and
+   verify that it corresponds to the reviewed source.
+9. After acceptance, tag the tested commit and publish the distribution and
+   checksum through the project's release process. Review CPAN Testers reports;
+   fix attributable failures with regressions and a subsequent release.
+
+The ordinary platform matrix also runs `maint/check-cli-install.pl` to verify
+the installed executable and Windows launcher, including paths with spaces.

@@ -21,37 +21,34 @@ close $in or die $!;
 is($header, 'MThd', 'write MIDI by path');
 my $size = -s $wav;
 eval { $cw->write_wav('TEST', $wav) };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_IO', 'existing file rejected');
-is(-s $wav,                                        $size,     'existing file preserved');
-is($cw->read_wav($wav)->text,                      'SOS',     'existing content preserved');
+is((ref($@) ? $@->code : "$@"), 'CW_E_IO', 'existing file rejected');
+is(-s $wav,                     $size,     'existing file preserved');
+is($cw->read_wav($wav)->text,   'SOS',     'existing content preserved');
 
 for my $path (undef, '', [], "bad\0path") {
     eval { $cw->read_wav($path) };
-    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_ARGUMENT', 'invalid input path');
+    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'invalid input path');
     eval { $cw->write_wav('SOS', $path) };
-    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_ARGUMENT', 'invalid output path');
+    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'invalid output path');
 }
 my $missing = File::Spec->catfile($root, 'missing.wav');
 eval { $cw->read_wav($missing) };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),  'CW_E_IO', 'missing file structured error');
-is((ref($@) ? $@->context->{path}         : undef), $missing,  'I/O error includes path');
+is((ref($@) ? $@->code            : "$@"),  'CW_E_IO', 'missing file structured error');
+is((ref($@) ? $@->context->{path} : undef), $missing,  'I/O error includes path');
 for my $method (qw(write_wav write_midi)) {
     my $bad = File::Spec->catfile($root, "$method.bad");
     eval { $cw->$method('!', $bad) };
-    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
-        'CW_E_SYMBOL', "$method propagates symbol error");
+    is((ref($@) ? $@->code : "$@"), 'CW_E_SYMBOL', "$method propagates symbol error");
     ok(!-e $bad, "$method removes unsuccessful output");
     eval { $cw->$method('SOS', $bad, typo => 1) };
-    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
-        'CW_E_ARGUMENT', "$method rejects unknown option");
+    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', "$method rejects unknown option");
     ok(!-e $bad, "$method leaves no output on option error");
 }
 eval { $cw->read_wav($wav, typo => 1) };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
-    'CW_E_ARGUMENT', 'reader delegates option validation');
+is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'reader delegates option validation');
 my $reject = File::Spec->catfile($root, 'limited.wav');
 eval { $cw->write_wav('SOS', $reject, max_bytes => 44) };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_RESOURCE', 'resource error preserved');
+is((ref($@) ? $@->code : "$@"), 'CW_E_RESOURCE', 'resource error preserved');
 ok(!-e $reject, 'resource failure cleans output');
 my $empty = File::Spec->catfile($root, 'empty.wav');
 $cw->write_wav('', $empty);
@@ -103,7 +100,7 @@ is($cw->read_wav($pcm24)->text, 'SOS', 'file methods forward bit depth');
         Ham::CW::Error->throw(code => 'CW_E_WAV_FORMAT', message => 'Injected read failure');
     };
     eval { $cw->read_wav($wav) };
-    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_WAV_FORMAT', 'read error preserved');
+    is((ref($@) ? $@->code : "$@"), 'CW_E_WAV_FORMAT', 'read error preserved');
     ok(!openhandle($captured), 'failed reader closes owned handle');
     ok(-s $wav,                'failed reader preserves input');
 }

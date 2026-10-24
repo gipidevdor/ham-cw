@@ -5,9 +5,11 @@
 ^Makefile(?:\.old)?$
 ^MYMETA\.
 ^pm_to_blib$
+^cli-install tools/
 ^Ham-CW-[^/]+(?:/|\.tar(?:\.gz)?$)
 \.(?:bak|tdy|ERR)$
 ^examples/.*\.wav$
 (^|/)\.DS_Store$
 ^\.github/
 ^\.(?:gitignore|gitattributes|editorconfig)$
+^local/
