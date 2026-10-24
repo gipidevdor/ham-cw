@@ -1,6 +1,8 @@
 Revision history for Ham-CW
 
 0.001  2026-10-24
+    - Complete per-method POD and standalone examples; clarify installation,
+      data types, timing, file ownership, errors and reception diagnostics.
     - Initial development release for Morse text, timing, PCM WAV and MIDI.
     - International symbols, operational prosigns and Farnsworth generation.
     - Collecting, streaming and path-based APIs with bounded resource use,

@@ -50,26 +50,88 @@ sub as_string { my ($self) = @_; return $self->{code} . ': ' . $self->{message} 
 
 =head1 NAME
 
-Ham::CW::Error - structured CW exceptions
+Ham::CW::Error - structured exceptions for argument, timing and I/O failures
 
 =head1 SYNOPSIS
 
-    eval { $cw->encode("\x{2603}") };
-    if (ref $@ && $@->isa('Ham::CW::Error')) {
-        warn $@->code . ': ' . $@->message;
+    use strict;
+    use warnings;
+    use Ham::CW;
+
+    my $cw = Ham::CW->new;
+    my $ok = eval { $cw->encode('CQ!'); 1 };
+    if (!$ok) {
+        my $error = $@;
+        if (ref($error) && $error->isa('Ham::CW::Error')) {
+            warn $error->code . ': ' . $error->message . "\n";
+            my $context = $error->context;
+        }
+        else { die $error; }
     }
+
+=head1 DESCRIPTION
+
+Fatal library failures throw Error objects. Catch them using C<eval> and save
+C<$@> immediately; later evals or destructors can change that variable.
+Branch on C<code> instead of parsing prose or a stack-location suffix.
+Recoverable reception uncertainty is returned as Result warnings instead.
 
 =head1 METHODS
 
 =head2 new
 
-C<new(code =E<gt> ..., message =E<gt> ..., context =E<gt> {})> constructs an
-exception. C<throw> constructs and dies with it. C<code>, C<message>, and
-C<context> expose its fields; context is copied. C<as_string> also supplies
-string overloading. Public codes are listed in L<Ham::CW/ERRORS>.
-Code and message must be defined scalars. Context must be an unblessed hash
-containing acyclic arrays/hashes with scalar leaves, at most 64 levels deep.
-Unknown/duplicate options and invalid payloads raise C<CW_E_ARGUMENT>.
+    my $error = Ham::CW::Error->new(
+        code => 'CW_E_ARGUMENT', message => 'Invalid input', context => {});
+
+Constructs and returns an exception without throwing it. C<code> defaults to
+C<CW_E_INTERNAL>, C<message> to C<Unspecified error> and C<context> to an empty
+hash. Explicit code/message values must be defined scalars. Context must be
+an unblessed hash containing plain scalar leaves and unblessed arrays/hashes,
+with no cycles and depth at most 64. It is copied on construction.
+Unknown/duplicate options and invalid payloads throw C<CW_E_ARGUMENT>.
+
+=head2 throw
+
+    Ham::CW::Error->throw(code => 'CW_E_ARGUMENT', message => 'Invalid input');
+
+Class method accepting C<new> options. Constructs and throws the object using
+Carp; normal execution does not return from this call.
+
+=head2 code
+
+    my $code = $error->code;
+
+Returns the machine-readable code. Public library codes and suggested checks
+are listed in L<Ham::CW/ERRORS>.
+
+=head2 message
+
+    my $message = $error->message;
+
+Returns the human-readable explanation without requiring string parsing.
+Message wording is descriptive; use the code for program decisions.
+
+=head2 context
+
+    my $context = $error->context;
+
+Returns a deep copy of the context hash. Fields are optional and depend on
+the failure. Unsupported encoding symbols provide C<symbol> and one-based
+C<position> in the original character string. Path open/close/replacement
+errors provide C<path>, C<action> and C<reason>. Processing errors propagated
+through a path helper can retain their original context instead.
+
+=head2 as_string
+
+    my $description = $error->as_string;
+
+Returns C<code: message>. The same conversion is used when the object is
+interpolated or stringified. Carp can add a call location when throwing it;
+that formatted representation should not be parsed as a protocol.
+
+=head1 SEE ALSO
+
+L<Ham::CW/ERRORS>, L<Ham::CW::Result/WARNINGS>.
 
 =head1 LICENSE
 
