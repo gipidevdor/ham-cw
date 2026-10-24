@@ -39,5 +39,5 @@ run_command($^X, 'maint/check-cli-install.pl', $prefix);
 run_command($^X, 'examples/send.pl',    "$root/test.wav", 'CQ', 'DE', 'TESTCALL');
 run_command($^X, 'examples/receive.pl', "$root/test.wav");
 run_command($^X, 'examples/midi.pl',    "$root/test.mid", 'SOS');
-run_command($^X, 'examples/workflows.pl');
+run_command($^X, 'examples/run-all.pl', '--backend',      'perl');
 print "Installed distribution, CLI and examples PASS\n";
