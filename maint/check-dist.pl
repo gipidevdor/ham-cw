@@ -2,6 +2,7 @@
 use 5.020;
 use strict;
 use warnings;
+use Archive::Tar 3.10;
 use Module::CPANTS::Analyse;
 use JSON::PP;
 

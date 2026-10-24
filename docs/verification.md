@@ -197,3 +197,13 @@ strict warnings, protected output replacement and closed pipes. The installer
 checks all six commands and the Windows launcher in a path containing spaces.
 The coverage numbers at the top include the CLI implementation; all 19
 production modules must be present before the coverage gate can pass.
+
+## Security audit corrections after packaging
+
+The subsequent correction updates vulnerable build/author prerequisites and
+uses a tested discovery adapter while retaining each original scanner report.
+Installed-version matches fall from three to two; correctly scoped declared
+matches fall from the original 67 to 38. Both gates remain nonzero. See
+[security CI](security-ci.md#corrective-local-results-2026-10-24) for versions,
+remaining components and the distinction between compatibility and security.
+Runtime implementation and its earlier coverage measurements are unchanged.

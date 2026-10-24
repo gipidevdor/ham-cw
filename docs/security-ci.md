@@ -20,6 +20,26 @@ Before the declared-constraints scan, CPAN::Meta and Module::CPANfile convert
 the generated `MYMETA.json` prerequisites into a temporary `cpanfile`, the
 input format supported by `cpan-audit deps`. This preserves phase and relation
 constraints, including optional PDL. Missing/invalid metadata stops the job.
+`maint/audit-dependencies.pl` retains the unmodified scanner result under
+`stock_report` in each JSON artifact and gates the corrected report. Scanner
+errors from either report fail the job. Advisory matching still uses CPAN::Audit
+and the current CPANSA::DB; there is no advisory exclusion mechanism.
+
+The adapter corrects two independently reproduced discovery problems in
+CPAN::Audit 20261013.002. Installed package declarations with a version, such as
+`package Pod::Man v6.1.1;`, are parsed statically with PPI without executing
+the module or its version expressions. The scoped substitution preserves the scanner's installed-file
+traversal and CoreList fallback. Declared phases and requires/recommends relations
+are audited separately, so optional or author minima cannot hide vulnerable
+versions still allowed for runtime consumers. Requirements mapping to the same
+distribution within one scope are intersected. Perl's explicit minimum is
+kept separate from zero-version core-module requirements; a nonzero core-module
+or non-main-module version that cannot be mapped safely fails with an error.
+The declared scan queries only distributions actually declared, rather than
+adding unrelated modules from the runner's CoreList. Database mapping gaps
+are recorded under each scope's `unmapped_modules`, never described as a safety result.
+Unsupported relation types fail instead of being silently discarded.
+
 The generated manifest is retained with the CVE JSON artifacts for 14 days.
 Redacted Gitleaks JSON is retained for 7 days. Artifacts are attempted even after scanner failure. Scanner and
 advisory database versions appear in job logs. No `continue-on-error`,
@@ -73,7 +93,7 @@ Any future exception needs an exact advisory/fingerprint, evidence explaining
 why it does not apply, an owner and an expiry/review date. Do not add broad
 exclusions to make the pipeline green.
 
-## Local verification, 2026-10-24
+## Initial local verification, 2026-10-24
 
 actionlint 1.7.12 and zizmor 1.31.1 accept both workflows and Dependabot config.
 Gitleaks 8.30.1 found no leaks in 21 commits or the local directory scan; output
@@ -92,9 +112,44 @@ Unlike installed-version matches, a constraint scan can report historical
 vulnerable versions permitted by broad lower bounds; its matches need
 separate review. No exclusions were added. These are
 local database matches awaiting applicability review, not validated Ham::CW
-vulnerabilities or results from the GitHub runner. The complete remote workflow
-must run after these changes are pushed; its newly resolved dependency versions
-and newer advisory database can produce different results.
+vulnerabilities or results from the GitHub runner. The initial remote workflow also reported three installed-version matches and
+67 declared-range matches. Later investigation reproduced the discovery
+problems described above. These historical counts are retained as baseline
+evidence, not current adapter results.
+
+## Corrective prerequisites
+
+The build/configure minimum is ExtUtils::MakeMaker 7.22, excluding the earlier
+current-directory module-search issue. Author prerequisites now require
+Archive::Tar >=3.10 (covering known archive extraction/allocation issues),
+Perl::Tidy >=20260826, Pod::Man >=v6.1.1 and PPI >=1.291.
+Archive utilities enforce their minimum at startup; the package parser
+uses static tokens instead of evaluating version assignments. Security CI explicitly installs
+the fixed podlators release before auditing. These are author/build updates;
+the default runtime still uses the same core modules and supports Perl 5.20.
+File::Temp's advisory has no fixed version in this database, and updating tools
+does not patch the interpreter. Remaining matches must continue to fail the gate.
+
+`xt/security-audit.t` supplies vulnerable and fixed package versions, a downgrade,
+merged phase requirements, core aliases and unsupported metadata. It requires
+vulnerable versions to remain red and fixed versions to clear their advisory.
+
+## Corrective local results, 2026-10-24
+
+With CPAN::Audit 20261013.002 and CPANSA::DB 20261018.001, the corrected
+installed audit reports two matches (File::Temp and Perl), compared with three
+in its retained stock report. Fixed podlators v6.1.1 is inventoried correctly.
+The corrected declared audit reports 38 unique distribution/advisory matches;
+its stock counterpart reports 57 after the prerequisite updates (the original
+baseline was 67). It retains 29 Perl, three Encode, three Storable, two PathTools
+and one File::Temp match. Both corrected audits still exit nonzero, with no
+scanner errors. This progress does not constitute a clean security gate.
+
+The declared report retains phase/relation/version scopes and deduplicates
+only repeated occurrences of the same distribution/advisory. It does not
+let author/recommended upgrades erase weaker runtime requirements. Remaining
+legacy-version matches and the two installed matches still need remediation
+or a source-backed applicability decision; no exception is configured.
 
 ## Run the checks locally
 
@@ -104,10 +159,10 @@ nonzero exit status when advisories or errors occur:
 
 ```sh
 cpan-audit --version
-cpan-audit installed --perl --no-color --json
+perl maint/audit-dependencies.pl installed
 task_audit_dir=$(mktemp -d)
 perl -MCPAN::Meta -MModule::CPANfile -e 'my $meta = CPAN::Meta->load_file("MYMETA.json"); print Module::CPANfile->from_prereqs($meta->prereqs)->to_string' > "$task_audit_dir/cpanfile"
-cpan-audit deps "$task_audit_dir" --perl --no-color --json
+perl maint/audit-dependencies.pl declared MYMETA.json "$task_audit_dir"
 gitleaks git --redact=100
 actionlint
 zizmor --offline --no-progress .github

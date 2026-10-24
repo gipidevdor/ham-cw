@@ -47,6 +47,7 @@ lib/Ham/CW/_Internal/Symbols.pm
 lib/Ham/CW/_Internal/Validate.pm
 lib/Ham/CW/_Internal/WavWriter.pm
 maint/archive.pl
+maint/audit-dependencies.pl
 maint/benchmark-platforms.pl
 maint/benchmark.pl
 maint/build-corpus.pl
@@ -87,4 +88,5 @@ xt/kwalitee.t
 xt/metadata.t
 xt/pod.t
 xt/release-tools.t
+xt/security-audit.t
 xt/tidy.t
