@@ -17,12 +17,14 @@ for my $case (@{$cases}) {
     $signal->[$_] += $noise->[$_] + ($case->{dc} // 0) for 0 .. $#{$signal};
     my $expected = $case->{expected} // 'SOS';
     my $reference;
+    my $step = $case->{frequency_step} // 50;
     for my $backend (@backends) {
         for my $block (137, 4096) {
             my $d = Ham::CW::Detector->new(
-                sample_rate => $case->{rate},
-                wpm         => $case->{wpm},
-                backend     => $backend
+                sample_rate    => $case->{rate},
+                wpm            => $case->{wpm},
+                backend        => $backend,
+                frequency_step => $step
             );
             for (my $offset = 0; $offset < @{$signal}; $offset += $block) {
                 my $end = $offset + $block - 1;
@@ -33,7 +35,8 @@ for my $case (@{$cases}) {
             my $label = "$case->{name} / $backend / $block";
             is($r->text, $expected, "$label text");
             if (length $expected) {
-                cmp_ok(abs($r->frequency - $case->{frequency}), '<=', 50, "$label tone");
+                cmp_ok(abs($r->frequency - $case->{frequency}),
+                    '<=', $step, "$label tone within one candidate step");
             }
             else { ok(@{$r->warnings}, "$label rejection warning"); }
             my $summary = {

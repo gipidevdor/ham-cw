@@ -1,57 +1,113 @@
 # Verification
 
-The complete product was checked locally on 2026-10-24, including the installed
-command and optional PDL backend. The runtime source is commit
-`da8c80d4c6b4a28e9972d89e689761eafd8a70ee`; the final packaging changes only
-consolidate POD and record verification evidence. Historical message timings
-are kept separately below.
+The corrections below were checked locally on 2026-10-24. The table below
+predates the channelized receiver; its coverage and packaging
+figures must not be interpreted as measurements of the new DSP implementation.
+Current receiver checks are recorded in the following section.
 
-## Current local checks
+## Checks preceding the channelized receiver
 
 | Check | Result |
 | --- | --- |
-| Ordinary suite, macOS ARM64, Perl 5.44.0 with PDL 2.106 | 2,005 assertions across 25 files; PASS |
-| Ordinary suite with all Perl warnings fatal | 2,005 assertions; PASS |
-| System Perl 5.34.1 without PDL | 1,832 assertions across 25 files; PASS |
-| Author checks | 347 assertions across 7 files; PASS |
+| Ordinary suite, macOS ARM64, Perl 5.44.0 with PDL 2.106 | 2,113 assertions across 27 files; PASS |
+| Ordinary suite with all Perl warnings fatal | 2,113 assertions; PASS |
+| System Perl 5.34.1 without PDL | 1,918 assertions across 27 files; PASS |
+| Author checks | 410 assertions across 8 files; PASS |
 | Perl::Tidy 20260826 and Perl::Critic 1.156 | PASS |
 | Public POD headings, local links and executable documentation examples | PASS |
-| Production statement coverage | 99.39% (1,795/1,806); PASS |
-| Production branch coverage | 97.18% (620/638); PASS |
+| Production statement coverage | 99.40% (1,816/1,827); PASS |
+| Production branch coverage | 97.09% (633/652); PASS |
 | Distribution build/test, archive checks and isolated installation | PASS |
 
-Coverage checks require all 19 production modules, including the CLI, PDL
-implementation and internal snapshot builder. Missing or duplicate production
-paths fail the gate before percentages are considered. No path was exempted to meet the
+The coverage figures are from the preceding runtime review, before the final
+ITU symbol-table restriction. The restricted repertoire passed the ordinary,
+author and documentation checks listed above.
+
+Coverage checks require every production module, including the PDL implementation
+and the internal snapshot builder. Missing or duplicate production paths fail
+the gate before percentages are considered. No path was exempted to meet the
 95% statement and 90% branch thresholds.
+
+The corpus-license author check verifies the release inventory, audio hashes,
+retained source-license evidence, attribution and included legal texts. It
+rejects distributed audio outside the reviewed inventory. The local recording
+without provenance is ignored and excluded by MANIFEST.SKIP. See
+[NOTICE](../NOTICE) for the code/media license boundary.
+
+## Channelized receiver checks
+
+The ordinary suite passes 2,240 assertions across 28 files with Perl 5.44.0
+and optional PDL, including with all warnings fatal. System Perl 5.34.1
+without PDL passes 1,991 assertions across the same 28 files. It includes analytic biquad response and stability checks,
+arbitrary filter chunk boundaries, two independent overlapping messages,
+unequal levels with added noise, 150 Hz separation at explicit 20 WPM,
+independent 20/25 WPM timing at 250 Hz separation, cached station snapshots,
+recording-length preservation, scalar/PDL event equivalence and the all-station
+sample/WAV/CLI interfaces. Existing impulse, sparse-message, fading, timing,
+file and lifecycle regressions remain enabled.
+
+Current author checks pass 453 assertions across nine files, including POD,
+executable documentation examples, code style, metadata and media licensing.
+The distribution archive and its isolated installation, command and examples
+also pass. After integrating the existing upstream release/security changes,
+all 2,693 ordinary and author assertions pass across 37 files with warnings
+fatal. The production runtime code is identical to the measured receiver.
+Current production coverage is 99.43% of statements (2,098/2,110)
+and 96.53% of branches (724/750), above the 95%/90% gates with every production
+module included. These are statement/branch measurements; condition coverage
+is not reported. The preceding table retains the earlier revision's figures.
 
 ## Regression evidence
 
-Timing tests reproduce the discontinuity at 32 repeated shortest marks and
-cover a broad set of distinct mark widths. Independent 25 and 50 WPM SOS
-schedules run for approximately 62 and 31 seconds, with hard keying and 5 ms
-raised-cosine ramps. Both backends recover the text, estimate speed within
-five percent and avoid false spacing warnings. Additional generated-message
-probes at 20, 25, 40, 50 and 60 WPM returned the configured speeds.
+The symbol repertoire is restricted to ITU-R M.1677-1. Extended procedure
+tokens and unsupported punctuation are rejected; multiplication uses X.
+Both decoder modes resolve admitted procedures consistently. Tests also cover batched silence without
+phase changes, canonical event copies that ignore unrelated metadata, shared
+configuration validation without throwaway instances, boundary-clamped median
+seeds with independent observed-frame support and candidate-energy totals across backends/feeds/reset. Fresh previews
+still sort/resegment retained history, O(KN log N) for K candidates and N frames, and examples throttle them.
 
-File tests check permission preservation, new-file umask, ordinary and
-dangling symbolic-link rejection, existing-byte preservation on generation
-failure and temporary-file cleanup. POSIX permission assertions and symlink
-tests are skipped on systems that cannot represent those features.
+Timing tests preserve the repeated-short-mark and shaped-mark regressions.
+File tests cover permission/umask preservation and detected symlink rejection.
+Inspection and rename are separate operations; the documentation states the
+remaining concurrent-directory-change limitation. A stronger unkeyed carrier
+is explicitly tested while the weaker CW is recovered, with and without a
+frequency hint. Per-channel purity avoids counting the other tone in the
+selected channel denominator. A separate independent schedule
+varies mark/gap duration by up to 12%; it simulates irregular keying and is not
+a human-keyed recording.
 
-Snapshot tests check cache invalidation, preservation of previous snapshots
-when marks are coalesced, independent public accessors and rejection of
-unsafe caller metadata before state changes. New cumulative snapshots still
-process retained history; frequent snapshots after tiny feeds have a
-cumulative cost. The optimization removes repeated internal deep validation
-and copying, while keeping public Result construction fully validated.
-Block-callback tests also mutate warning lists and warning hashes to verify
-metadata isolation between callbacks.
+The reception matrix exercises 25, 50 and 100 Hz candidate steps. Tone error
+is checked within one configured step, an empirical synthetic-test tolerance
+rather than spectral resolution or a universal estimation bound. The receiver
+now uses 20 ms Hann windows and 5 ms hops after cascaded band-pass biquads.
 
-The full suite additionally covers fixed Morse vectors, independent synthetic
-signals, PCM/MIDI byte checks, malformed files, real closed-pipe writes,
-resource limits and path/stream workflows. The corpus is synthetic: off-air
-accuracy, overlapping transmitters and unlimited reception are not established.
+Four real clips from three radio-beacon recordings are now attributed and
+licensed in [corpus/real/LICENSES.md](../corpus/real/LICENSES.md). Their text
+references come from source descriptions. CER counts edits including spaces
+and replacement characters; it is not capped at 100%. Current observations:
+
+| Clip | CER | Quality target (25%) |
+| --- | ---: | --- |
+| 4U1UN identification | 0% | Met |
+| OH2B with calibration carriers/noise | 200% | Not met |
+| CS3B with calibration carriers/noise | 25% | Met |
+| SK6RUD reception | 50% | Not met |
+
+The ordinary suite enforces recorded regression budgets, separately from the
+quality target. Passing it does not make the two failed targets successful
+reception. `perl maint/reception-corpus.pl` emits current JSON measurements,
+warning lists, targets and target status. These are automated beacons, not
+human-keyed QSOs. Their failures and small corpus size limit accuracy claims;
+co-channel transmitters and unlimited reception remain unsupported. Synthetic
+station separation does not establish performance on arbitrary overlapping
+off-air conversations.
+
+The suite additionally covers fixed Morse vectors, independent synthetic
+signals, PCM/MIDI bytes, malformed files, closed pipes, resource limits,
+immutable snapshots and portable command-line workflows. Storable remains
+required by public result/error copies; Hash::Util remains required by the
+internal locked snapshot builder. Removing either prerequisite is unjustified.
 
 ## CI and release checks
 
@@ -71,10 +127,10 @@ See [CI runs](https://github.com/gipidevdor/ham-cw/actions/workflows/test.yml)
 for subsequent candidates. These checks are not CPAN Testers certification
 or a PAUSE upload.
 
-## Current platform measurements
+## Platform measurements before channelized reception
 
 These measurements come from the successful twelve-job run above, on the
-runtime source named at the top of this record. The checked-in
+earlier runtime commit `da8c80d4c6b4a28e9972d89e689761eafd8a70ee`. The checked-in
 [raw platform results](platform-results.json) retain the original rates,
 iteration counts, elapsed times and environment metadata from all five
 benchmark artifacts.
@@ -195,8 +251,8 @@ reception paths. The integrated tests include subprocess UTF-8/CRLF input,
 text and binary outputs, option validation, exit codes, bounded WAV stdin,
 strict warnings, protected output replacement and closed pipes. The installer
 checks all six commands and the Windows launcher in a path containing spaces.
-The coverage numbers at the top include the CLI implementation; all 19
-production modules must be present before the coverage gate can pass.
+The coverage numbers above include the CLI implementation and biquad filter;
+every production module must be present before the coverage gate can pass.
 
 ## Security audit corrections after packaging
 
@@ -206,4 +262,5 @@ Installed-version matches fall from three to two; correctly scoped declared
 matches fall from the original 67 to 38. Both gates remain nonzero. See
 [security CI](security-ci.md#corrective-local-results-2026-10-24) for versions,
 remaining components and the distinction between compatibility and security.
-Runtime implementation and its earlier coverage measurements are unchanged.
+That security-only correction did not change the runtime implementation.
+The later channelized receiver and its local measurements are described above.

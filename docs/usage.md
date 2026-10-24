@@ -79,7 +79,11 @@ print $cw->encode('CQ!', unknown => 'skip'), "\n";
 `<AR>` is one operational signal (prosign); `AR` is two letters. Shared
 waveforms lose the original spelling, so decoding uses the documented
 punctuation/prosign preference. The encoder supports A–Z, digits, accented E,
-a fixed punctuation set and explicit prosigns. Other symbols and Unicode
+only the written signs and operational signals in ITU-R M.1677-1. The
+accepted tokens are `<AR>`, `<AS>`, `<BT>`, `<CT>`, `<HH>`, `<SK>` and `<SN>`.
+The ITU multiplication sign `×` shares the X signal and decodes as X.
+Extended tokens `<BK>`, `<KN>`, `<KA>`, `<VE>` and `<SOS>` are rejected;
+ordinary `SOS` remains three letters. Other symbols and Unicode
 whitespace are rejected unless explicitly skipped. See the complete lists in
 [Encoder POD](../lib/Ham/CW/Encoder.pm) and the shared-waveform table in
 [Decoder POD](../lib/Ham/CW/Decoder.pm).
@@ -120,8 +124,9 @@ For permanent paths, replace the temporary paths with your own. Parent
 directories must exist. Output creation protects existing files; use
 `overwrite => 1` deliberately to prepare a replacement in a temporary sibling
 and rename it after successful writing. Failed generation preserves old
-contents. Existing regular-file permission bits are preserved; symbolic-link
-destinations are rejected. Replacement creates a new file identity and does
+contents. Existing regular-file permission bits are preserved; preparation
+checks reject detected symbolic-link destinations. Inspection and rename are
+separate operations, so concurrent directory-entry changes are not excluded. Replacement creates a new file identity and does
 not transfer ownership, ACLs or other hard links. Cleanup is attempted on failure.
 
 Generation calls can override defaults without changing the object. An
@@ -139,10 +144,13 @@ use Ham::CW;
 my $cw = Ham::CW->new(sample_rate => 8000, frequency => 650, wpm => 20);
 my $next = $cw->stream_samples('SOS', block_size => 1024);
 my $detector = $cw->detector(frequency => 650, wpm => 20);
+my $blocks = 0;
 while (my $block = $next->()) {
     $detector->feed($block);
-    my $preview = $detector->result;
-    # The preview is cumulative and may change; do not append it as a delta.
+    if (++$blocks % 8 == 0) {  # About once per second for this block size/rate.
+        my $preview = $detector->result;
+        # Cumulative preview: do not append it as a delta.
+    }
 }
 my $final = $detector->finish;
 print $final->text, "\n";
@@ -161,7 +169,9 @@ does not change its waveform within one backend.
 
 `finish` is idempotent and makes the object FINISHED. Feed after finish is an
 error until `reset`. Validation failures preserve history. Previews can revise
-earlier text and estimates as evidence arrives. Returned snapshots remain
+earlier text and estimates as evidence arrives. Unchanged snapshots are cached;
+a fresh preview after feed still sorts/resegments the history in O(N log N),
+so real applications should throttle preview calls instead of calling per block. Returned snapshots remain
 independent after a reset. Manual `Generator->stream` instead requires its
 own READY object; reset invalidates old iterators.
 
@@ -315,3 +325,31 @@ sender, receiver and MIDI examples accept `--help`; quote prosigns in shell
 arguments and use `--overwrite` explicitly for repeated output. The receiver
 exits 0 for nonempty text and 1 for empty text; argument/I/O errors may exit
 with another nonzero status. `--json` includes warnings alongside text.
+
+## Simultaneous stations
+
+For distinct tones in a WAV recording, request all accepted channels:
+
+```sh
+ham-cw receive --all-stations --json received.wav
+ham-cw receive --all-stations --wpm 20 --filter-bandwidth 80 received.wav
+```
+
+JSON is an array of up to eight full Results; plain output labels each line
+with its candidate frequency. An empty array means no accepted station and
+exit status 1. Ordinary `receive --json` instead returns one Result, including
+rejection diagnostics. `--strict` returns 1 if any accepted station has warnings.
+A WPM hint applies to every channel. Omit it when senders use different speeds;
+a frequency hint selects one channel. `--min-snr-db` adjusts the raw tone/guard
+power threshold (default 12 dB); it is not a calibrated receiver SNR control.
+
+The library provides `read_wav_channels($path, %options)`,
+`decode_wav_channels($seekable_handle, %options)` and
+`decode_samples_channels($samples, %options)`. They return an array reference
+of independent complete Results ordered by accumulated channel energy. The
+incremental `Detector->channels` provides provisional or final snapshots.
+These methods share the ordinary receive limits and options; see the
+[complete Detector POD](../lib/Ham/CW/Detector.pm) for spacing, bandwidth,
+latency and margin-suppression behavior. Co-channel stations cannot be
+separated. Close tones, fading and noise can still cause false or missing
+stations, even when text is present and no warning is emitted.

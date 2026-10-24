@@ -2,13 +2,11 @@ package Ham::CW::Decoder;
 use 5.020;
 use strict;
 use warnings;
-use Storable                     qw(dclone);
 use Ham::CW::Events              qw(validate_events to_timed);
-use Ham::CW::_Internal::Symbols  qw(reverse_alphabet prosigns);
+use Ham::CW::_Internal::Symbols  qw(reverse_alphabet);
 use Ham::CW::_Internal::Validate qw(fail number integer options named_arguments);
 use Ham::CW::Result;
 use Ham::CW::_Internal::Result;
-use Ham::CW::_Internal::Data qw(plain_data);
 our $VERSION = '0.001';
 
 sub new {
@@ -19,12 +17,8 @@ sub new {
     number('effective_wpm', $args{effective_wpm}, 1, $args{wpm} // 200)
         if defined $args{effective_wpm};
     integer('max_segments', $args{max_segments} // 100000, 1, 1000000);
-    my $reverse = reverse_alphabet();
-    if ($args{prefer_prosigns}) {
-        my $p = prosigns();
-        $reverse->{$p->{$_}} = "<$_>" for sort keys %{$p};
-    }
-    my $self = bless {reverse => $reverse, %args, max_segments => $args{max_segments} // 100000},
+    my $reverse = reverse_alphabet($args{prefer_prosigns});
+    my $self    = bless {reverse => $reverse, %args, max_segments => $args{max_segments} // 100000},
         $class;
     return $self->reset;
 }
@@ -69,8 +63,6 @@ sub feed {
     fail('CW_E_STATE', 'Decoder is finalized; reset before feeding')
         if $self->{state} eq 'FINISHED';
     my $kind = validate_events($events);
-    fail('CW_E_ARGUMENT', 'Event segments must contain plain, acyclic data, at most 64 levels deep')
-        unless plain_data($events->{segments});
     my $rate = $events->{sample_rate};
     fail('CW_E_ARGUMENT', 'Event units or sample rate changed')
         if defined($self->{kind})
@@ -86,7 +78,8 @@ sub feed {
     $added += $_->{$kind} for @{$events->{segments}};
     fail('CW_E_RESOURCE', 'Cumulative event duration exceeds exact integer range')
         if $self->{total_duration} + $added > 2**52;
-    my $copy = dclone($events->{segments});
+    my $copy = [map { +{state => $_->{state} eq 'on' ? 'on' : 'off', $kind => 0 + $_->{$kind}} }
+            @{$events->{segments}}];
 
     if (@{$copy} && @{$self->{segments}} && $copy->[0]{state} eq $self->{segments}[-1]{state}) {
         my $sum = $copy->[0]{$kind} + $self->{segments}[-1]{$kind};
@@ -357,7 +350,9 @@ This method remains usable independently of the event lifecycle.
 
     $decoder->feed($events);
 
-Validates and copies a TimedEvents or SampledEvents block; returns the object.
+Validates and copies the canonical fields of a TimedEvents or SampledEvents
+block; returns the object. Additional segment metadata is ignored and is not
+retained, traversed or copied.
 Each block must satisfy L<Ham::CW::Events>. Units and, for sampled events,
 sample rate must remain constant across feeds. Adjacent equal states at a
 block boundary are joined. Total retained runs must fit C<max_segments> and
@@ -427,12 +422,13 @@ Morse notation. Decoding chooses these representations:
     Waveform  Default  prefer_prosigns => 1
     .-.-.     +        <AR>
     -...-     =        <BT>
-    -.--.     (        <KN>
-    -.-.-     <CT>     <KA>
-    ...-.     <SN>     <VE>
+    -..-      X        X
 
-Other supported prosigns decode to their explicit angle-bracket tokens.
-See L<Ham::CW::Encoder/SYMBOLS> for accepted text and prosigns.
+The multiplication sign and X share a signal; X is always the canonical
+text output. CT, SN and the other admitted operational signals use their
+single documented token in both modes. The invitation to transmit is K,
+not KN. No non-ITU procedure or alias is enabled by C<prefer_prosigns>.
+See L<Ham::CW::Encoder/SYMBOLS> for the exact ITU repertoire and token table.
 
 =head1 ERRORS
 

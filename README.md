@@ -109,13 +109,27 @@ Existing output files are protected: rerunning this example raises `CW_E_IO`.
 To replace these files deliberately, add `overwrite => 1` to each writing
 call. Replacement is prepared in a temporary sibling and renamed only after
 successful generation and close. Existing regular-file permission bits are
-preserved; symbolic-link destinations are rejected. Replacement creates a
+preserved; detected symbolic-link destinations are rejected during preparation.
+Inspection and rename are separate operations, so this is not an atomic
+no-symlink guarantee against concurrent directory changes. Replacement creates a
 new file identity. A processing failure preserves the old
 contents and attempts temporary-file cleanup.
 
 `write_wav` returns a statistics hash containing `state` and `samples`;
 `write_midi` returns its byte count. `read_wav` returns a `Ham::CW::Result`.
 MIDI stores notes and timing; a separate player/synthesizer determines sound.
+
+## Symbol policy
+
+The repertoire is strictly [ITU-R M.1677-1](https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en),
+Annex 1, Part I, sections 1.1.1–1.1.3: its letters, digits, written signs and
+named operational signals.
+No amateur-radio or extended Morse alphabet is enabled. `!`, `&`, `;`, `_`
+and `$` are rejected. The accepted operational tokens are `<AR>`, `<AS>`,
+`<BT>`, `<CT>`, `<HH>`, `<SK>` and `<SN>`; these are library mnemonics for the
+ITU signals. `<BK>`, `<KN>`, `<KA>`, `<VE>` and `<SOS>` are not accepted.
+`SOS` remains valid as three letters. `×` is encoded as X and decodes as X.
+See [Encoder POD](lib/Ham/CW/Encoder.pm) for the complete table and rules.
 
 ## Speed, spacing and reception
 
@@ -201,9 +215,37 @@ decoding defaults to 100,000 retained runs. Increase the corresponding
 Streaming reduces block-buffer size but does not remove these history limits.
 Every option's range and applicable method are specified in the POD.
 
-Reception does not separate simultaneous stations. Synthetic tests do not
-establish accuracy on arbitrary off-air recordings. Very short messages,
-interference, fading and unknown spacing can produce ambiguous results.
+Reception uses independent cascaded biquad band-pass channels, Hann windows,
+and a Goertzel bank (equivalent projections with PDL). A raw spectral guard
+rejects weakly distinguished noise before envelope timing. Distinct overlapping
+CW tones can be decoded separately: `read_wav_channels`, `decode_wav_channels`
+and `decode_samples_channels` return up to eight Results, each with frequency,
+text and warnings. The ordinary methods return the strongest accepted channel.
+From the command line:
+
+```sh
+ham-cw receive --all-stations --json received.wav
+```
+
+A WPM hint applies to every station; omit it for independent estimates. A
+frequency hint selects only that tone. The tests recover two simultaneous
+messages at 150 Hz separation with 20 WPM hints and at 250 Hz separation with
+independent 20/25 WPM estimates, with unequal levels and added noise. A stronger
+continuous carrier is also tested. This does not establish arbitrary field
+accuracy: co-channel stations cannot be separated; fading, interference, short
+messages and unknown spacing can still produce wrong, partial or empty text.
+Review each Result's warnings. Two of four real-clip quality targets remain
+unmet; see [measured reception results](docs/verification.md).
+
+The default candidate spacing is 50 Hz. Synthetic reception tests allow tone
+error within one configured grid step, an empirical tolerance rather than a
+universal accuracy bound. Analysis uses approximately 20 ms Hann windows with
+5 ms hops, preceded by two biquads per candidate. The window alone has about
+70 Hz full half-power width. `filter_bandwidth` sets each biquad's width;
+`min_snr_db` sets an acquisition tone/guard threshold, not calibrated radio SNR.
+Candidate spacing, filter width and station resolving ability are distinct.
+See the [Detector POD](lib/Ham/CW/Detector.pm) for defaults, latency, memory,
+station selection, margin suppression and preview limitations.
 
 ## Development and license
 
@@ -211,5 +253,6 @@ See [contributing](CONTRIBUTING.md), [architecture](docs/architecture.md),
 [dependency decisions](docs/dependency-audit.md), [reference corpus](corpus/README.md)
 and [release procedure](docs/releasing.md) and [security reporting](SECURITY.md).
 
-Copyright © 2026 Giacomo Picchiarelli. Licensed under the
-[Artistic License 2.0](LICENSE).
+Project code and original material: copyright © 2026 Giacomo Picchiarelli,
+[Artistic License 2.0](LICENSE). Third-party audio retains its CC0 or CC BY-SA
+3.0 terms; see [NOTICE](NOTICE) and [recording licenses](corpus/real/LICENSES.md).

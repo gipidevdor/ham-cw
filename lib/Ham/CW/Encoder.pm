@@ -8,13 +8,20 @@ our $VERSION = '0.001';
 
 sub new {
     my ($class, @pairs) = @_;
+    my $self = bless $class->validate(@pairs), $class;
+    return $self;
+}
+
+sub validate {
+    my ($class, @pairs) = @_;
     my %args = named_arguments(@pairs);
-    options(\%args, qw(wpm effective_wpm unknown));
-    my $wpm       = number('wpm',           $args{wpm}           // 20,   1, 200);
-    my $effective = number('effective_wpm', $args{effective_wpm} // $wpm, 1, $wpm);
-    my $unknown   = $args{unknown} // 'error';
+    my $args = \%args;
+    options($args, qw(wpm effective_wpm unknown));
+    my $wpm       = number('wpm',           $args->{wpm}           // 20,   1, 200);
+    my $effective = number('effective_wpm', $args->{effective_wpm} // $wpm, 1, $wpm);
+    my $unknown   = $args->{unknown} // 'error';
     fail('CW_E_ARGUMENT', 'unknown must be error or skip') unless $unknown =~ /\A(?:error|skip)\z/x;
-    return bless {wpm => $wpm, effective_wpm => $effective, unknown => $unknown}, $class;
+    return {wpm => $wpm, effective_wpm => $effective, unknown => $unknown};
 }
 
 sub encode {
@@ -144,6 +151,17 @@ Returns a new encoder. Named options:
 Undefined optional values use defaults. Invalid, duplicate and unknown
 options raise C<CW_E_ARGUMENT>.
 
+=head2 validate
+
+    my $configuration = Ham::CW::Encoder->validate(%options);
+
+Validates the same options as C<new> and returns a fresh normalized
+configuration hash without constructing an instance. Unknown names, duplicate
+options and invalid values raise the same errors as C<new>. Defaults are
+resolved in the returned hash; effective WPM is an explicit numeric value there.
+Keep the original option list when later per-call overrides should retain
+omitted-default semantics.
+
 =head2 encode
 
     my $morse = $encoder->encode($text);
@@ -184,21 +202,43 @@ is not normalized automatically.
 Decode external character encodings before calling the encoder; C<use utf8>
 is needed for non-ASCII literals written in UTF-8 Perl source.
 
-Supported punctuation is:
+Supported punctuation and miscellaneous written signs are:
 
-    . , : ? ' - / ( ) " = + @
+    . , : ? ' - / ( ) " = + @ ×
 
-Exclamation, semicolon, underscore and dollar signs are unsupported.
-Operational signals (prosigns) must be enclosed in angle brackets:
+The symbol repertoire is strictly ITU-R M.1677-1 (2009), Annex 1,
+Part I, sections 1.1.1 through 1.1.3. Other Morse alphabets and amateur-radio
+extensions are not enabled. In particular C<!>, C<&>, C<;>, C<_> and C<$>
+are rejected; C<unknown =E<gt> 'skip'> can omit them but never assigns them
+an extended Morse code.
 
-    <AR> <AS> <BK> <BT> <CT> <HH> <KA> <KN> <SK> <SN> <SOS> <VE>
+The following library tokens name operational signals from that table:
 
-Prosign names are case-insensitive. C<AR> means two ordinary letters;
-C<< <AR> >> means one uninterrupted signal. Some signals share a waveform:
-C<< <AR> >>/C<+>, C<< <BT> >>/C<=>, C<< <KN> >>/C<(>,
-C<< <KA> >>/C<< <CT> >> and C<< <VE> >>/C<< <SN> >>.
-Audio/Morse decoding cannot recover which original spelling was used.
-See L<Ham::CW::Decoder/SHARED WAVEFORMS> for decoding choices.
+    Token  ITU signal                  Morse
+    <AR>   Cross/addition               .-.-.
+    <AS>   Wait                         .-...
+    <BT>   Double hyphen                -...-
+    <CT>   Starting signal              -.-.-
+    <HH>   Error                        ........
+    <SK>   End of work                  ...-.-
+    <SN>   Understood                   ...-.
+
+The token names are library mnemonics; the recommendation specifies signal
+names and waveforms, rather than these angle-bracket spellings. Prosign names
+are case-insensitive. The ITU invitation to transmit is ordinary C<K>,
+C<-.->. C<< <KN> >> is not its substitute.
+C<< <BK> >>, C<< <KN> >>, C<< <KA> >>, C<< <VE> >> and C<< <SOS> >> are
+not accepted tokens in this repertoire. Ordinary C<SOS> is still three valid
+letters, separated in the usual way; the uninterrupted nine-element signal
+is outside this recommendation's table.
+
+C<AR> is two letters; C<< <AR> >> is one signal. Shared waveforms cannot
+recover the sender's original spelling: C<< <AR> >>/C<+>, C<< <BT> >>/C<=>
+and C<×>/C<X>. Multiplication is encoded using X as specified in section 3.2;
+decoding that waveform returns C<X>. This codec does not automatically expand
+percentage, per-thousand or minute/second notation from the separate formatting
+rules in section 3; callers must prepare those as the prescribed character
+sequences. See L<Ham::CW::Decoder/SHARED WAVEFORMS>.
 
 =head1 TIMING
 
@@ -227,8 +267,9 @@ state; split messages only at intended text/prosign boundaries.
 =head1 SEE ALSO
 
 L<Ham::CW>, L<Ham::CW::Events>, L<Ham::CW::Decoder>.
-The symbol reference is ITU-R M.1677-1 (2009), Annex 1; explicit operational
-aliases are listed above.
+The normative symbol table is
+L<ITU-R M.1677-1 (2009), Annex 1|https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en>.
+Operational tokens above are library labels for its admitted signals.
 
 =head1 LICENSE
 

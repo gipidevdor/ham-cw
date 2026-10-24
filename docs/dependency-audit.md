@@ -34,15 +34,13 @@ verbatim, as permitted by that license.
 
 ## Names
 
-The public CPAN package index `02packages.details.txt.gz` and public PAUSE
-permissions snapshot `06perms.txt.gz` contained no `Ham::CW` or `Ham::CW::*`
-entries at the time of the check. `https://fastapi.metacpan.org/v1/module/Ham::CW`
-returned 404. The GitHub endpoint for `gipidevdor/ham-cw` returned 404 before
-repository creation. GitHub names are owner-scoped, not globally reserved.
-
-These checks are a dated snapshot, not a reservation or a PAUSE upload test.
-Recheck index and permissions immediately before a CPAN upload.
-The additional exporter uses `Ham::CW::MIDI` within the same checked prefix.
+On 2026-10-24, the [CPAN package index](https://www.cpan.org/modules/02packages.details.txt.gz)
+and [public PAUSE permissions export](https://www.cpan.org/modules/06perms.txt.gz)
+contained no `Ham::CW` or `Ham::CW::*` entries. The
+[MetaCPAN module endpoint](https://fastapi.metacpan.org/v1/module/Ham::CW)
+returned HTTP 404. This is a public-index snapshot, not a namespace reservation
+or an authenticated PAUSE upload/permission test. Recheck immediately before
+an upload using the maintainer's authorized PAUSE account.
 
 ## Runtime footprint
 

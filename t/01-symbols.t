@@ -3,7 +3,23 @@ use warnings;
 use utf8;
 use Test::More;
 use Ham::CW;
-my $cw = Ham::CW->new;
+use Ham::CW::_Internal::Symbols qw(alphabet prosigns);
+my $cw          = Ham::CW->new;
+my @itu_written = (
+    'A' .. 'Z',
+    '0' .. '9',
+    'É', '.', ',', ':', '?', q{'}, '-', '/', '(', ')', q{"}, '=', '+', '@', '×'
+);
+is_deeply(
+    [sort keys %{alphabet()}],
+    [sort @itu_written],
+    'written repertoire is exactly the ITU whitelist'
+);
+is_deeply(
+    [sort keys %{prosigns()}],
+    [qw(AR AS BT CT HH SK SN)],
+    'only mnemonic tokens for admitted ITU signals'
+);
 
 # Independent reference vectors, not the implementation's symbol table.
 my @letters =
@@ -49,20 +65,29 @@ is($cw->decode('.-.-.'), '+',      'punctuation preferred');
 is(Ham::CW::Decoder->new(prefer_prosigns => 1)->decode('.-.-.'),
     '<AR>', 'explicit ambiguity policy');
 my %prosigns = (
-    AR  => '.-.-.',
-    AS  => '.-...',
-    CT  => '-.-.-',
-    SK  => '...-.-',
-    HH  => '........',
-    SN  => '...-.',
-    SOS => '...---...'
+    AR => '.-.-.',
+    AS => '.-...',
+    CT => '-.-.-',
+    SK => '...-.-',
+    HH => '........',
+    SN => '...-.',
+    BT => '-...-',
 );
 for my $name (sort keys %prosigns) { is($cw->encode("<$name>"), $prosigns{$name}, "prosign $name") }
+is($cw->encode('×'),    '-..-', 'ITU multiplication uses the X signal');
+is($cw->decode('-..-'), 'X',    'shared multiplication waveform decodes deterministically as X');
+eval { $cw->decode('...---...') };
+is(ref($@) ? $@->code : "$@",
+    'CW_E_SYMBOL', 'uninterrupted SOS is outside the chosen recommendation');
 is($cw->encode(''),                                          '',          'empty text');
 is($cw->decode('  '),                                        '',          'empty Morse');
 is(Ham::CW::Encoder->new(unknown => 'skip')->encode('A! B'), '.- / -...', 'explicit skip policy');
 
-for my $bad ('!', 'ß', '<NOPE>', '<AR', "e\x{301}") {
+for my $bad (
+    '!',    '&',    ';',    '_',     '$',   'ß', '<NOPE>', '<BK>',
+    '<KN>', '<KA>', '<VE>', '<SOS>', '<AR', "e\x{301}"
+    )
+{
     eval { $cw->encode($bad) };
     isa_ok($@, 'Ham::CW::Error');
     is((ref($@) ? $@->code : "$@"), 'CW_E_SYMBOL', 'strict unknown');
