@@ -91,7 +91,7 @@ Ham::CW::Encoder - international Morse text and timing
 
     my $encoder = Ham::CW::Encoder->new(wpm => 20, effective_wpm => 12);
     my $morse = $encoder->encode('CQ <AR>');
-    my $events = $encoder->events('PARIS');
+    my $events = $encoder->events('LIGHT');
 
 =head1 METHODS
 
@@ -108,7 +108,7 @@ Ordinary C<AR> remains two letters. Shared punctuation/prosign waveforms are
 inherently ambiguous on reception; see L<Ham::CW::Decoder>.
 
 C<events(text)> returns canonical TimedEvents with integer microseconds.
-Dot length is 1,200,000/WPM. Farnsworth uses the PARIS convention: 31 units
+Dot length is 1,200,000/WPM. Farnsworth uses a 50-unit reference word: 31 units
 of marks/intra-character gaps and 19 units of extended spacing per word.
 Cumulative boundaries round to nearest integer, half upward. No terminal
 word gap is appended. Text encoding is atomic; split text only at token
