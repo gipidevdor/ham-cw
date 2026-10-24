@@ -25,7 +25,7 @@ my %COMMANDS = (
     ],
     receive => [
         qw(frequency wpm effective-wpm backend stereo max-frames min-frequency max-frequency
-            frequency-step min-contrast min-purity filter-bandwidth min-snr-db all-stations max-bytes block-samples json strict)
+            frequency-step min-contrast min-purity filter-bandwidth min-snr-db mark-snr-db all-stations max-bytes block-samples json strict)
     ],
 );
 my %FLAGS = map { $_ => 1 } qw(help version overwrite prefer-prosigns json strict all-stations);
@@ -61,6 +61,7 @@ my %DESCRIPTIONS = (
     'min-purity'      => 'Minimum spectral purity, 0.01..1 (default: 0.20).',
     'filter-bandwidth' => 'Per-section band-pass width in Hz (default: max(40, 4*WPM), or 180).',
     'min-snr-db'       => 'Acquisition tone/guard power threshold, 0..40 dB (default: 12).',
+    'mark-snr-db'      => 'Minimum mean mark/local-noise power ratio, 0..40 dB (default: 10).',
     'all-stations'     => 'Return up to eight distinct keyed stations; JSON becomes an array.',
     json               => 'Write the complete reception result, including warnings, as JSON.',
     strict             => 'Return status 1 for any reception warning, including partial text.'

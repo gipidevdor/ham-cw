@@ -109,6 +109,7 @@ t/24-alias-and-streaming.t
 t/25-real-reception.t
 t/26-channel-reception.t
 t/27-examples.t
+t/27-mark-snr.t
 t/lib/CorpusMetrics.pm
 t/lib/FaultHandle.pm
 t/lib/Reference.pm

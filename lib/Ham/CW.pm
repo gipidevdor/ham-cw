@@ -225,7 +225,7 @@ sub _decode_wav {
     my ($self, $all, $fh, @pairs) = @_;
     my %args = named_arguments(@pairs);
     options(\%args,
-        qw(frequency wpm effective_wpm stereo max_bytes min_frequency max_frequency frequency_step max_frames min_contrast min_purity backend block_samples filter_bandwidth min_snr_db)
+        qw(frequency wpm effective_wpm stereo max_bytes min_frequency max_frequency frequency_step max_frames min_contrast min_purity backend block_samples filter_bandwidth min_snr_db mark_snr_db)
     );
     $args{backend} //= $self->{generator}{backend} // 'perl';
     my %audio = map { exists($args{$_}) ? ($_ => delete $args{$_}) : () }
