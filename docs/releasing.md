@@ -7,15 +7,16 @@
 3. Run the ordinary suite, author checks, formatter check and coverage. Inspect
    failures and the untested paths. Targets: 95% statement and 90% branch coverage.
 4. Require every configured check on the exact candidate commit: the six
-   ordinary Perl jobs, the three PDL platform jobs and the author/distribution
-   job. Keep these ten job names in main's required status checks. A configured
+   ordinary Perl jobs, the five PDL configurations and the author/distribution
+   job. Keep these twelve job names in main's required status checks. A configured
    matrix is not a test result.
 5. Run `make dist`, `make disttest` and `make distcheck`. Inspect META.json,
    META.yml, MANIFEST and the archive contents. Check the archive
    with `perl maint/check-dist.pl Ham-CW-VERSION.tar.gz`. Verify installation
    with `perl maint/check-install.pl Ham-CW-VERSION.tar.gz`; it builds, tests,
-   installs to a temporary prefix and runs the three installed command-line
-   examples and the workflow tour. Coverage collection must include every
+   installs to a temporary prefix and runs the installed CLI, the three
+   examples and the workflow tour. Verify the command and Windows launcher
+   on the platform matrix too. Coverage collection must include every
    production module, including the optional PDL implementation. Install PDL
    for author verification; missing modules fail the gate. Collect one source
    tree per database so duplicated lib/blib paths cannot inflate the summary.

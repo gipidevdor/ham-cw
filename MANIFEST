@@ -8,6 +8,7 @@ MANIFEST.SKIP
 Makefile.PL
 README.md
 SECURITY.md
+bin/ham-cw
 corpus/README.md
 corpus/reception.json
 corpus/sos-650hz-20wpm.wav
@@ -34,6 +35,7 @@ lib/Ham/CW/Generator.pm
 lib/Ham/CW/MIDI.pm
 lib/Ham/CW/Result.pm
 lib/Ham/CW/_Internal/Backend.pm
+lib/Ham/CW/_Internal/CLI.pm
 lib/Ham/CW/_Internal/Data.pm
 lib/Ham/CW/_Internal/IO.pm
 lib/Ham/CW/_Internal/PDL.pm
@@ -41,8 +43,10 @@ lib/Ham/CW/_Internal/Symbols.pm
 lib/Ham/CW/_Internal/Validate.pm
 lib/Ham/CW/_Internal/WavWriter.pm
 maint/archive.pl
+maint/benchmark-platforms.pl
 maint/benchmark.pl
 maint/build-corpus.pl
+maint/check-cli-install.pl
 maint/check-dist.pl
 maint/check-install.pl
 maint/coverage.pl
@@ -68,6 +72,8 @@ t/18-easy-files.t
 t/19-workflows.t
 t/20-review-regressions.t
 t/21-review-contracts.t
+t/22-cli.t
+t/23-cli-process.t
 t/lib/FaultHandle.pm
 t/lib/Reference.pm
 xt/critic.t
@@ -76,4 +82,3 @@ xt/metadata.t
 xt/pod.t
 xt/release-tools.t
 xt/tidy.t
-maint/benchmark-platforms.pl

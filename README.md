@@ -12,6 +12,29 @@ read the diagnostics before accepting a decoded message.
 
 ## Start here
 
+Installing the distribution also installs the `ham-cw` command on Linux,
+macOS and Windows (including a Windows `.bat` launcher):
+
+```sh
+ham-cw encode "CQ TEST"
+ham-cw decode "... --- ..."
+ham-cw events --sample-rate 8000 "SOS"
+ham-cw wav --wpm 20 --output cq.wav "CQ TEST"
+ham-cw midi --output cq.mid "CQ TEST"
+ham-cw receive --json cq.wav
+ham-cw help receive
+```
+
+`--input FILE` reads UTF-8 text from a file; omitting text reads stdin.
+`--output FILE` writes a file and protects existing contents. Use `--overwrite`
+for explicit replacement. Binary stdout requires `--output -`; diagnostics
+use stderr. For Windows shell portability, prefer named binary output files.
+`--strict` makes reception warnings return a nonzero status even with text.
+Run `ham-cw --help` or `perldoc ham-cw` for options, limits and exit statuses.
+From an uninstalled checkout, use `perl -Ilib bin/ham-cw` instead of `ham-cw`.
+
+The same operations are available through the Perl API:
+
 ```perl
 use Ham::CW;
 

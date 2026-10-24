@@ -1,26 +1,36 @@
 # Verification
 
-The current review candidate was checked locally on 2026-10-24. Results below
+The current library and CLI candidate was checked locally on 2026-10-24. Results below
 refer to the reviewed source snapshot, including the optional PDL backend and
 workflow APIs. They do not certify unreviewed changes in another checkout.
 
 | Check | Result |
 | --- | --- |
-| Ordinary suite, macOS ARM64, Perl 5.44 with PDL 2.106 | 1,674 assertions across 22 files; PASS |
-| Ordinary suite with all Perl warnings fatal | 1,674 assertions; PASS |
-| System Perl 5.34 without PDL | 1,513 assertions across 22 files; PASS |
-| Author checks | 203 assertions across 6 files; PASS |
+| Ordinary suite, macOS ARM64, Perl 5.44 with PDL 2.106 | 1,959 assertions across 24 files; PASS |
+| Ordinary suite with all Perl warnings fatal | 1,959 assertions; PASS |
+| System Perl 5.34 without PDL, warnings fatal | 1,798 assertions across 24 files; PASS |
+| Author checks | 221 assertions across 6 files; PASS |
 | Perl::Tidy 20260826 and Perl::Critic 1.156 | PASS |
 | POD, metadata and local kwalitee | PASS |
-| Production statement coverage | 99.15% (1,514/1,527); PASS |
-| Production branch coverage | 97.47% (501/514); PASS |
+| Production statement coverage | 99.26% (1,737/1,750); PASS |
+| Production branch coverage | 97.58% (605/620); PASS |
 | Distribution build/test, archive checks and isolated install | PASS |
 
-Coverage requires all 17 production modules, including the optional PDL
+Coverage requires all 18 production modules, including the optional PDL
 implementation. Missing, unexpected or duplicated production paths fail the
 gate before percentages are considered. Author regressions verify that a
 100% summary for an incomplete module subset cannot pass. An incomplete
 MANIFEST also prevents release archive construction.
+
+The CLI adds 285 assertions covering its six commands, strict UTF-8 input,
+JSON and raw binary output, option errors, exit statuses, bounded WAV stdin,
+existing-file protection, replacement failures and injected stream errors.
+Real Perl subprocesses exercise command arguments, CRLF/UTF-8 stdin and
+closed pipes without risking test-runner termination. The executable and
+POD are included in style and documentation checks. The release installer
+checks all six installed commands in a path containing spaces; the ordinary
+platform matrix also checks installation and the Windows batch launcher.
+Remote results for this addition must be confirmed on its candidate commit.
 
 Tests use fixed Morse vectors, independently generated audio, a synthetic
 WAV fixture, independent PCM/MIDI byte checks and injected I/O failures.

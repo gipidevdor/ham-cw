@@ -1,5 +1,44 @@
 # Ham::CW by task
 
+## Command-line use
+
+Installation supplies `ham-cw` and its manual. The command is a frontend to
+the same library, with core-only dependencies and an optional PDL backend.
+
+| Task | Command |
+| --- | --- |
+| Text to Morse | `ham-cw encode "CQ TEST"` |
+| Morse to text | `ham-cw decode -- "-.. ."` |
+| Timed events as JSON | `ham-cw events "SOS"` |
+| Sampled events as JSON | `ham-cw events --sample-rate 8000 "SOS"` |
+| WAV practice file | `ham-cw wav --wpm 20 --effective-wpm 12 --output practice.wav "CQ TEST"` |
+| MIDI file | `ham-cw midi --note 77 --output practice.mid "CQ TEST"` |
+| Read a recording | `ham-cw receive recording.wav` |
+| Receive with hints | `ham-cw receive --frequency 650 --wpm 20 recording.wav` |
+| Machine-readable reception | `ham-cw receive --json recording.wav` |
+| Fail on reception warnings | `ham-cw receive --strict recording.wav` |
+
+Use `--input FILE` for UTF-8 text files or omit positional text to read stdin.
+Receive stdin is spooled to a temporary seekable file with a byte limit.
+Use `--output FILE` for named text, JSON, WAV or MIDI output. Existing outputs
+are preserved unless `--overwrite` is explicit; failed replacements retain
+the previous file. `--output -` explicitly selects raw stdout for binary data.
+Named binary files avoid shell-specific redirection behavior on Windows.
+Options are case-sensitive, unabbreviated and may appear before or after
+positional arguments; repeats are errors. Use `--` before dash-leading Morse.
+Quote shell metacharacters and prosigns; the examples use double quotes.
+
+Exit codes are 0 for success, 1 for empty reception or strict warnings,
+2 for invalid usage/options, 3 for invalid data, resource limits or I/O errors,
+and 4 for an unexpected internal failure. Text warnings and errors use stderr;
+receive JSON includes its warnings in the result object. Partial text remains
+available with `--strict`, but a nonzero status tells automation to inspect it.
+`--help`, `--version` and `ham-cw help COMMAND` provide installed guidance.
+The default text-input limit is 8192 bytes; `--max-input-bytes` may explicitly
+raise it to at most 1048576. Generation and reception retain their own limits.
+
+## Perl API
+
 Start with `use Ham::CW; my $cw = Ham::CW->new;`. File paths are strings,
 text is a Perl character string, WAV/MIDI bytes are binary scalars, samples
 are mono array references of numbers in [-1, 1], and events describe keyed

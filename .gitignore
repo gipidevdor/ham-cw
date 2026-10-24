@@ -5,6 +5,7 @@
 /Makefile.old
 /MYMETA.*
 /pm_to_blib
+/cli-install tools/
 /Ham-CW-*/
 /Ham-CW-*.tar
 /Ham-CW-*.tar.gz

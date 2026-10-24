@@ -1,6 +1,12 @@
 Revision history for Ham-CW
 
 0.001  2026-10-24
+    - Install ham-cw with encode, decode, event JSON, WAV, MIDI and receive
+      commands, including a Windows launcher and command manual.
+    - Bound UTF-8 and piped WAV input, preserve existing outputs and expose
+      stable CLI exit statuses, JSON reception and strict warning handling.
+    - Verify the installed command on every ordinary CI platform, plus
+      subprocess I/O, binary output, malformed UTF-8 and broken pipes.
     - Initial development release for Morse text, timing, PCM WAV and MIDI.
     - International symbols, operational prosigns and Farnsworth generation.
     - Collecting, streaming and path-based APIs with bounded resource use,
