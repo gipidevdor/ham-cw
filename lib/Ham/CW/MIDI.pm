@@ -84,48 +84,106 @@ sub write {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 
 =head1 NAME
 
-Ham::CW::MIDI - standard MIDI file export without external modules
+Ham::CW::MIDI - export keyed events to standard MIDI files
 
 =head1 SYNOPSIS
 
+    use strict;
+    use warnings;
+    use Ham::CW::Encoder;
+    use Ham::CW::MIDI;
+
+    my $events = Ham::CW::Encoder->new(wpm => 20)->events('SOS');
     my $midi = Ham::CW::MIDI->new(note => 77, program => 80);
-    open my $out, '>:raw', 'cq.mid' or die $!;
-    $midi->write($out, $encoder->events('CQ'));
-    close $out or die $!;
+    my $bytes = $midi->encode($events);
+    print length($bytes), " MIDI bytes\n";
+
+To save instead, call C<< $midi->write_file('midi-demo.mid', $events) >>.
+The path must be new unless C<overwrite =E<gt> 1> is explicitly selected.
+
+=head1 DESCRIPTION
+
+Exports one keyed note at a time in Standard MIDI File (SMF) type 0 format,
+with one track, tempo, program change, note-on/off and end-of-track events.
+It does not render sound or send events to a MIDI device. No external MIDI
+module is required. To start with ordinary text, use L<Ham::CW/write_midi>.
 
 =head1 METHODS
 
 =head2 new
 
-C<new> accepts C<note> (77, range 0..127), C<velocity> (100, 1..127),
-C<channel> (1, 1..16), C<program> (80, zero-based 0..127), C<bpm> (120,
-4..1000), C<ppqn> (480, 1..32767) and C<max_bytes> (8000000).
-General MIDI program 80 is a square lead; note 77 is about 698.46 Hz under
-standard A440 tuning. Channel 10 is normally percussion; use a melodic
-channel for a sustained CW tone. Actual sound and envelope depend on the
-player and synthesizer, not on the file.
+    my $midi = Ham::CW::MIDI->new(%options);
+
+Options and inclusive ranges:
+
+=over 4
+
+=item * C<note>: 77; integer 0..127.
+
+=item * C<velocity>: 100; integer 1..127, used for note-on events.
+
+=item * C<channel>: 1; integer 1..16. Public channels are one-based.
+
+=item * C<program>: 80; integer 0..127. Program numbers are zero-based.
+
+=item * C<bpm>: 120; finite number 4..1000, controlling the encoded tempo.
+
+=item * C<ppqn>: 480; integer 1..32767, pulses (ticks) per quarter note.
+
+=item * C<max_bytes>: 8000000; integer 64..64000000, bounding encoded output.
+
+=back
+
+Undefined optional values use defaults. Unknown/duplicate names or invalid
+ranges raise C<CW_E_ARGUMENT>. Note and program are independent of the audio
+frequency setting in Ham::CW. Under standard A440 tuning note 77 is about
+698.46 Hz; General MIDI program 80 denotes a square lead. A player may use
+other sounds or tuning. Channel 10 is normally percussion; choose a melodic
+channel when a sustained pitch is desired.
 
 =head2 encode
 
-C<encode(events)> returns a binary SMF type 0 file, with one track, a tempo
-event, program change, explicit note-on/off events and end-of-track. It accepts
-TimedEvents or SampledEvents. Cumulative boundaries round to nearest tick,
-halves upward, using the encoded integer tempo and the original event units
-without intermediate microsecond rounding. Leading/trailing silence is
-preserved. Zero-tick notes or deltas above the SMF four-byte limit raise
-C<CW_E_TIMING>. Output size is bounded; this is an atomic file exporter rather
-than a live MIDI device interface. No synth, hardware, audio driver or MIDI
-module is needed. C<write(handle, events)> validates/encodes before writing
-and returns the number of bytes. The caller owns the handle.
+    my $bytes = $midi->encode($events);
+
+Validates TimedEvents or SampledEvents and returns a complete binary SMF
+scalar. Leading/trailing silence is preserved. ON runs become notes; OFF
+runs become elapsed ticks. Source event durations determine real-time Morse
+speed. Changing BPM changes tick mapping, not the requested source timing.
+Playback sound and envelopes depend on the player/synthesizer.
+
+Cumulative event boundaries round to nearest integer tick, with halves
+upward, using the encoded integer-microsecond tempo. Sampled events retain
+their original units until this boundary calculation. Round trips through
+other resolutions may lose precision. A note rounding to zero ticks raises
+C<CW_E_TIMING>; increase PPQN or lengthen events. Deltas exceeding the
+four-byte SMF limit also raise that code. This operation collects the track
+in memory and is bounded by C<max_bytes>.
+
+=head2 write
+
+    my $count = $midi->write($handle, $events);
+
+Encodes/validates the whole file before writing binary bytes. Returns the
+number of bytes written. The handle must be open for output, need not seek,
+and remains owned by the caller. Check C<close> errors. An I/O failure can
+leave partial output.
 
 =head2 write_file
 
-C<write_file(path, events, overwrite =E<gt> 0)> exports custom timed or sampled events, closes
-the owned file and returns the number of bytes. Existing paths are rejected
-and preserved. Errors close the handle and attempt to remove newly created
-output. Set C<overwrite =E<gt> 1> to explicitly replace an existing file via
-a temporary sibling file; failed generation preserves the old contents.
-For ordinary text, use L<Ham::CW/write_midi> instead.
+    my $count = $midi->write_file($path, $events, overwrite => 0);
+
+Owns and closes the file; returns its byte count. The only additional option
+is C<overwrite> (integer 0 or 1, default 0). Default output uses exclusive
+creation. Explicit replacement uses a temporary sibling and rename, preserving
+the old destination if generation fails. See
+L<Ham::CW/FILE OWNERSHIP AND REPLACEMENT> for cleanup and replacement limits.
+
+=head1 ERRORS
+
+Invalid options/event shape raise C<CW_E_ARGUMENT>; invalid alternation or
+tick resolution raises C<CW_E_TIMING>; event/file size limits raise
+C<CW_E_RESOURCE>; file/handle failures raise C<CW_E_IO>. There is no
+incremental object state or C<finish> method.
 
 =head2 Replacement file semantics
 

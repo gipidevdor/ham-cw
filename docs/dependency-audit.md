@@ -1,7 +1,7 @@
 # Dependency and namespace audit
 
-Checked on 2026-10-24. Exact release metadata and declared dependencies for the initial text/audio
-candidates are preserved in [cpan-audit.json](cpan-audit.json). The metadata comes from the
+Checked on 2026-10-24. Exact release metadata and declared dependencies for
+the initial text/audio candidates are preserved in [cpan-audit.json](cpan-audit.json). The metadata comes from the
 [MetaCPAN API](https://fastapi.metacpan.org/). Release age alone is not evidence
 of a defect. Third-party test suites were inspected where listed in the JSON,
 but were not executed; their coverage and platform results are not independently
@@ -41,7 +41,7 @@ returned 404. The GitHub endpoint for `gipidevdor/ham-cw` returned 404 before
 repository creation. GitHub names are owner-scoped, not globally reserved.
 
 These checks are a dated snapshot, not a reservation or a PAUSE upload test.
-Recheck index and permissions immediately before the first CPAN upload.
+Recheck index and permissions immediately before a CPAN upload.
 The additional exporter uses `Ham::CW::MIDI` within the same checked prefix.
 
 ## Runtime footprint

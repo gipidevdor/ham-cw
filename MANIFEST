@@ -14,6 +14,7 @@ corpus/sos-650hz-20wpm.wav
 corpus/vectors.json
 docs/architecture.md
 docs/benchmark-results.json
+docs/benchmarks.md
 docs/cpan-audit.json
 docs/dependency-audit.md
 docs/releasing.md
@@ -74,6 +75,7 @@ t/22-review-fixes.t
 t/lib/FaultHandle.pm
 t/lib/Reference.pm
 xt/critic.t
+xt/documentation.t
 xt/kwalitee.t
 xt/metadata.t
 xt/pod.t

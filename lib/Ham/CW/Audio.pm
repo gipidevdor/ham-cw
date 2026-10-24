@@ -253,81 +253,209 @@ sub write {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 
 =head1 NAME
 
-Ham::CW::Audio - bounded RIFF PCM input and output
+Ham::CW::Audio - read and write bounded PCM WAV samples
 
 =head1 SYNOPSIS
 
-    my $audio = Ham::CW::Audio->new(stereo => 'mix');
-    open my $in, '<:raw', 'cq.wav' or die $!;
-    my $reader = $audio->reader($in);
-    while (my $samples = $reader->{next}->()) { $detector->feed($samples) }
+    use strict;
+    use warnings;
+    use Ham::CW;
+    use Ham::CW::Audio;
+
+    my $cw = Ham::CW->new(sample_rate => 8000, frequency => 650);
+    my $audio = Ham::CW::Audio->new;
+    $audio->write_file('raw-demo.wav', $cw->samples('SOS'),
+        sample_rate => 8000);
+    my $recording = $audio->read_file('raw-demo.wav');
+    print scalar(@{$recording->{samples}}), " samples\n";
+
+The destination must be new, or use C<overwrite =E<gt> 1> explicitly.
+No Morse decoding or sound playback occurs in this class.
+
+=head1 FORMATS
+
+Input is seekable RIFF/WAVE with PCM encoding 1: unsigned 8-bit or signed
+little-endian 16/24-bit, one or two channels, and integer rate 1000..384000 Hz.
+Output is mono PCM at a supported bit depth. Sample arrays contain finite
+normalized values in [-1,1]; raw WAV bytes are a separate binary format.
+
+Stereo C<left>/C<right> selects one channel. C<mix> averages both; this can
+cancel opposite-phase audio. Reading always returns mono samples, while the
+metadata C<channels> field records the original number of channels.
+
+Unknown chunks and odd-byte chunk padding are skipped. Duplicate fmt/data
+chunks, compressed/float/extensible WAV, RF64, WAVE64 and inconsistent sizes
+are rejected. Streaming placeholder RIFF lengths are not supported. A complete
+WAV with an empty data chunk is legal. Extra bytes outside the RIFF boundary
+are ignored with C<CW_W_WAV_TRAILING> in metadata; file size limits include
+them. Reading rewinds the handle to file offset zero.
 
 =head1 METHODS
 
 =head2 new
 
-C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
-2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
-arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for PDL usage.
+    my $audio = Ham::CW::Audio->new(%options);
 
-C<new> accepts C<max_bytes> (64000000), C<block_samples> (4096), and
-C<stereo> (C<left>, C<right>, C<mix>; default mix). Mix averages both channels.
-C<reader(handle)> requires a readable seekable handle positioned at a complete
-WAV file. It validates the entire RIFF/chunk structure before returning a hash
-with C<sample_rate>, C<bits>, C<channels>, C<sample_count> and C<next> iterator.
-The iterator returns normalized mono arrays or undef at EOF. Keep the handle
-open and do not reposition it while reading. C<read(handle)> collects the
-same data into a hash with C<samples>. It can use substantially more memory
-than the byte size; prefer C<reader> for large files.
+Returns an Audio helper. Options:
 
-PCM unsigned 8-bit and signed little-endian 16/24-bit, mono/stereo, are
-supported. Unknown chunks and odd-byte padding are skipped without loading
-them. Duplicate fmt/data chunks, compressed formats, inconsistent sizes,
-and misalignment are rejected. Trailing bytes outside RIFF are ignored with
-a C<CW_W_WAV_TRAILING> entry in the returned C<warnings> array. RF64, WAVE64 and
-extensible WAV are unsupported. Empty data is legal.
+=over 4
 
-=head2 read_file, write_file
+=item * C<max_bytes>: 64000000; integer 44..4294967295. Bounds input file size or complete output including header and padding.
 
-C<read_file(path)> returns the same samples/metadata as C<read(handle)> and
-owns the input handle. C<write_file(path, samples, %options)> accepts the same
-options as C<write(handle, samples, %options)>, owns the output handle and
-returns writer statistics. Existing output files are preserved and rejected.
-On failure handles close and removal of newly created output is attempted.
-C<overwrite =E<gt> 1> explicitly replaces an existing destination using a
-temporary sibling file, preserving old contents on generation failure.
+=item * C<block_samples>: 4096; integer 1..1000000. Number of mono sample frames per reader block, before/after stereo selection.
 
-=head2 read_blocks, write_blocks
+=item * C<stereo>: C<mix> (default), C<left> or C<right>.
 
-C<read_blocks(path, callback)> reads one bounded block at a time, calling
-C<callback(samples, metadata)> for each. Metadata is a fresh copy containing
-C<sample_rate>, C<bits>, C<channels>, C<sample_count> and C<warnings>.
-The method closes the input and returns metadata at EOF; callback exceptions
-also close it and propagate. Constructor C<block_samples> controls block size.
+=item * C<backend>: C<perl> (default), C<pdl> or C<auto>. See L<Ham::CW/OPTIONAL PDL BACKEND>.
 
-C<write_blocks(path, next, sample_rate =E<gt> ..., sample_count =E<gt> ...,
-bits =E<gt> 16)> pulls sample arrays from the C<next> code reference until
-it returns undef. The declared count must exactly match the stream. It owns
-the output, returns writer statistics and uses the same new-file/failure
-rules as C<write_file>, including optional C<overwrite>. These methods work with PCM, without Morse decoding.
+=back
 
-=head2 writer
+Undefined optional values use defaults. Unknown/duplicate options or invalid
+values raise C<CW_E_ARGUMENT>. The input rate is read from the WAV header;
+the output rate is supplied to a writing method.
 
-C<writer(handle, sample_rate =E<gt> ..., sample_count =E<gt> ..., bits =E<gt> 16)>
-returns a bounded mono writer. C<feed(array)> writes normalized samples in
-[-1,1]. Positive full scale clips to the largest representable PCM integer;
-other values round to nearest, halves away from zero. C<finish> checks the
-exact declared count and writes padding. It is idempotent. C<state> and
-C<result> report progress. Validation failures leave the writer usable; I/O
-failures set FAILED. Feed after finish/failure is rejected. A failed writer
-must be replaced with a new writer and fresh output handle; it cannot reset.
+=head2 read_file
+
+    my $recording = $audio->read_file($path);
+
+Opens, reads and closes a WAV path. Returns the same collecting hash as
+L</read>. The full sample array is retained; use L</read_blocks> for large
+files. The input is preserved on processing failure.
+
+=head2 read_blocks
+
+    my $metadata = $audio->read_blocks($path, sub {
+        my ($samples, $info) = @_;
+        # Process this block; $info describes the original recording.
+    });
+
+Opens a WAV, invokes the callback once per nonempty normalized mono block,
+closes input and returns metadata. Empty data means no callback invocations.
+Callback exceptions propagate after handle closure. The callback must be a
+code reference and its return value is ignored. Each metadata argument is a
+fresh copy with C<sample_rate>, C<bits>, C<channels>, C<sample_count> and
+C<warnings>. The sample count is the total original mono/stereo frame count,
+not the current block length. Reader block size is C<block_samples>.
+
+=head2 reader
+
+    my $reader = $audio->reader($handle);
+    while (my $samples = $reader->{next}->()) {
+        # Consume the next normalized mono block.
+    }
+
+Requires an open readable, seekable handle holding a complete WAV. Validates
+RIFF/chunk structure, selects the data region and returns an unblessed hash
+with C<sample_rate>, C<bits>, C<channels>, C<sample_count>, C<warnings> and
+C<next>. C<next> is a code reference yielding arrays, then C<undef> at EOF.
+It reads samples only as requested. Do not reposition or close the handle
+until finished; the library does not close caller-owned handles.
+
+=head2 read
+
+    my $recording = $audio->read($handle);
+
+Collects L</reader> into a hash with C<sample_rate>, C<bits>, C<channels>,
+C<warnings> and C<samples>. It does not include C<next> or C<sample_count>;
+use the array length for the collected count. The caller still owns the
+handle. Perl arrays can use much more memory than the WAV byte length.
+
+=head2 write_file
+
+    my $stats = $audio->write_file($path, $samples,
+        sample_rate => 8000, bits => 16, overwrite => 0);
+
+Opens, writes and closes a mono WAV. Accepts L</write> options and
+C<overwrite> (integer 0 or 1; default 0). Returns writer statistics. Existing
+paths are protected by default; see L<Ham::CW/FILE OWNERSHIP AND REPLACEMENT>
+for replacement, permissions and cleanup behavior.
+
+=head2 write_blocks
+
+    my $stats = $audio->write_blocks($path, $next,
+        sample_rate => 8000, sample_count => $total_count, bits => 16);
+
+Requires a code reference returning sample arrays and C<undef> at EOF.
+Accepts L</writer> options plus C<overwrite>. The exact total count is required
+for the header; streaming does not allow an unknown-length WAV. Empty blocks
+are accepted and the source must eventually return C<undef>. Too few or too
+many samples are errors. Owns and closes the output handle, returning writer
+statistics. Callback/processing failure attempts output cleanup using the
+same rules as C<write_file>.
 
 =head2 write
 
-C<write(handle, samples, sample_rate =E<gt> ..., bits =E<gt> ...)>
-is the collecting convenience method. Handles remain owned by the caller;
-check close errors when writing files. Output streams need not seek because
-the sample count is known before writing. Limits include header and padding.
+    my $stats = $audio->write($handle, $samples,
+        sample_rate => 8000, bits => 16);
+
+Collecting convenience writer. The supplied array is validated and limited
+to 100000000 samples, then written in blocks of at most 4096. Sample count is
+derived from the array; do not supply C<sample_count>. Options are
+C<sample_rate> (16000 by default; integer 1000..384000) and C<bits>
+(8, 16 or 24; default 16). Returns writer statistics. The output handle must
+be open for binary writing and remains owned by the caller.
+
+=head2 writer
+
+    my $writer = $audio->writer($handle,
+        sample_rate => 8000, sample_count => $total_count, bits => 16);
+
+Writes the header immediately and returns an internal writer object with the
+public operations below. C<sample_count> is required (integer 0..4294967295).
+Rate and bit-depth options match L</write>. Both C<max_bytes> and RIFF size
+limits apply before header output. An output handle need not seek because
+the total count is known. Keep it open and close it yourself after finish.
+
+=head1 WRITER OPERATIONS
+
+The concrete writer package is internal; obtain it through L</writer>.
+The following methods form its returned-object interface.
+
+=head2 feed
+
+    $writer->feed($samples);
+
+Writes a block of at most 1000000 normalized mono samples and returns the
+writer. Count must not exceed the declared total. Invalid input preserves
+state/counters. Successful feeds set C<ACTIVE>. Quantization rounds to nearest
+integer, with halves away from zero; +1 clips to the largest positive PCM
+integer, while -1 maps to negative full scale (0 for unsigned 8-bit storage).
+
+=head2 result
+
+    my $stats = $writer->result;
+
+Returns a fresh C<< {state => ..., samples => $written_count} >> hash.
+The count excludes header and padding bytes.
+
+=head2 finish
+
+    my $stats = $writer->finish;
+
+Requires the exact declared sample count, writes any required final padding,
+sets C<FINISHED> and returns statistics. It is idempotent. If the count is too
+small, C<CW_E_ARGUMENT> is thrown and missing samples can still be fed.
+
+=head2 state
+
+    my $state = $writer->state;
+
+Returns C<READY>, C<ACTIVE>, C<FINISHED> or C<FAILED>. I/O failure sets FAILED;
+after that, discard the writer and partial output. It has no reset operation.
+Feed after finish/failure raises C<CW_E_STATE>.
+
+=head1 ERRORS
+
+Invalid options/sample values/counts raise C<CW_E_ARGUMENT>; unsupported
+formats raise C<CW_E_WAV_FORMAT>; incomplete declared data raises
+C<CW_E_WAV_TRUNCATED>; size limits raise C<CW_E_RESOURCE>; handle failures
+raise C<CW_E_IO>. Input and output handles supplied directly are never closed
+by this class. A failed direct write can leave partial output.
+
+=head1 SEE ALSO
+
+L<Ham::CW> for text-to-WAV and WAV decoding, L<Ham::CW::Generator> for sample
+generation, L<Ham::CW::Result/WARNINGS> for the trailing-byte warning.
 
 =head2 Replacement file semantics
 

@@ -10,8 +10,9 @@ to this source revision; historical timings are kept separately below.
 | Ordinary suite, macOS ARM64, Perl 5.44.0 with PDL 2.106 | 1,720 assertions across 23 files; PASS |
 | Ordinary suite with all Perl warnings fatal | 1,720 assertions; PASS |
 | System Perl 5.34.1 without PDL | 1,547 assertions across 23 files; PASS |
-| Author checks | 212 assertions across 6 files; PASS |
+| Author checks | 332 assertions across 7 files; PASS |
 | Perl::Tidy 20260826 and Perl::Critic 1.156 | PASS |
+| Public POD headings, local links and executable documentation examples | PASS |
 | Production statement coverage | 99.31% (1,573/1,584); PASS |
 | Production branch coverage | 97.00% (518/534); PASS |
 | Distribution build/test, archive checks and isolated installation | PASS |

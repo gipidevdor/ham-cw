@@ -1,97 +1,16 @@
 # Ham::CW
 
-Morse text, timing, audio and MIDI tools in pure Perl.
+Morse text, keying events, WAV audio and MIDI files for Perl.
 
-`Ham::CW` keeps text decoding inside the distribution. It needs no audio
-programs, native extensions, network connection or non-core runtime modules.
-The distribution name is **Ham-CW**; the GitHub repository is **ham-cw**.
+Ham::CW generates Morse and decodes notation, event timing and suitable audio.
+The default backend uses only core Perl modules. An optional PDL backend
+accelerates numerical work. The library creates data and files; it does not
+play audio, record a microphone, operate a radio or send MIDI to a device.
+Audio reception is experimental and targets one reasonably stable CW tone.
 
-This is an initial development version. The symbolic codec and file formats
-have explicit contracts and independent tests. Audio reception is experimental;
-read the diagnostics before accepting a decoded message.
+## Requirements and installation
 
-## Start here
-
-```perl
-use Ham::CW;
-
-my $cw = Ham::CW->new(wpm => 20);
-
-print $cw->encode('CQ TEST'), "\n";
-print $cw->decode('... --- ...'), "\n";  # SOS
-
-$cw->write_wav('CQ TEST', 'cq.wav');
-$cw->write_midi('CQ TEST', 'cq.mid');
-
-my $result = $cw->read_wav('cq.wav');
-print $result->text, "\n";
-if ($result->has_warnings) {
-    warn "$_->{code}: $_->{message}\n" for @{$result->warnings};
-}
-```
-
-File methods open and close files for you. By default, an
-existing output file raises `CW_E_IO` and is preserved. They do not play audio.
-`write_wav` returns writer statistics; `write_midi` returns its byte count;
-`read_wav` returns a `Ham::CW::Result`.
-
-Use `overwrite => 1` with `write_wav` or `write_midi` to replace an existing
-file. The examples accept `--overwrite`; failed generation preserves the old file.
-
-## Common tasks
-
-| Task | Call |
-| --- | --- |
-| Text to Morse | `$cw->encode('CQ TEST')` |
-| Morse to text | `$cw->decode('... --- ...')` |
-| Save audio | `$cw->write_wav('CQ TEST', 'cq.wav')` |
-| Save MIDI | `$cw->write_midi('CQ TEST', 'cq.mid')` |
-| Read audio | `$cw->read_wav('input.wav')` |
-| Help reception with a known tone/speed | `$cw->read_wav('input.wav', frequency => 650, wpm => 20)` |
-| Farnsworth practice | `Ham::CW->new(wpm => 20, effective_wpm => 12)` |
-
-Constructor timing and tone configure **generation**. Reception estimates them
-unless you supply hints to `read_wav`; a recording may come from another
-sender. The backend preference applies to both operations. For Farnsworth
-reception, also supply `effective_wpm` explicitly.
-
-Use `$result->has_text` to check whether any text was decoded, and
-`$result->has_warnings` to decide whether to inspect its warnings. Text can be
-partial, and `complete` only means processing finished; neither certifies
-correct reception. File/argument errors throw `Ham::CW::Error`, while uncertain
-reception is described in result warnings. Unsupported text errors identify
-the symbol and its one-based character position. `unknown => 'skip'` is an
-explicit option for omitting unsupported symbols; the default rejects them.
-
-For caller-managed handles and in-memory files, keep using `generate_wav`,
-`generate_midi`, and `decode_wav`. The file methods accept the same operation
-options and per-call generation overrides: for example `bits => 24` for WAV or `note => 77` for MIDI.
-
-## Every workflow
-
-The [task guide](docs/usage.md) covers all supported uses with examples:
-text and prosigns, Farnsworth practice, events and conversions, sample arrays,
-streaming, incremental reception, raw WAV processing, MIDI, binary data,
-caller-owned handles, backends, resource limits, results and errors.
-
-```perl
-my $samples = $cw->samples('SOS', sample_rate => 8000);
-my $decoded = $cw->decode_samples($samples, sample_rate => 8000, wpm => 20);
-my $next = $cw->stream_samples('CQ TEST', block_size => 1024);
-my $wav = $cw->wav_bytes('SOS');
-my $result = $cw->decode_wav_bytes($wav);
-my $events = $cw->sampled_events('SOS', sample_rate => 8000);
-my $detector = $cw->detector(sample_rate => 8000);  # feed/result/finish/reset
-```
-
-Generation options can be overridden per call without changing the object.
-Run `perl -Ilib examples/workflows.pl` for a complete tour with temporary files.
-Sender, receiver and MIDI examples all support `--help` and named options.
-
-## Install and test
-
-Perl 5.20 or later is declared. See [verification](docs/verification.md) for
-actual interpreter and platform results.
+You need Perl 5.20 or later. From an extracted distribution or repository root:
 
 ```sh
 perl Makefile.PL
@@ -100,119 +19,168 @@ make test
 make install
 ```
 
-For a source checkout, `prove -lr t` runs the ordinary tests without installing.
-`perl -Ilib examples/send.pl cq.wav CQ DE TESTCALL` writes a recording;
-`perl -Ilib examples/receive.pl cq.wav` attempts automatic reception.
+Use the make program supplied with your Perl installation (`gmake` on some
+Windows installations). The final command needs write permission to Perl's
+library directory. For a user-owned destination, configure with
+`perl Makefile.PL INSTALL_BASE=/your/install/directory` and include its
+`lib/perl5` directory in `PERL5LIB` when running applications.
 
-## Optional Perl Data Language backend
+To use a checkout without installing, run scripts from the repository root
+with `perl -Ilib script.pl`. The CPAN distribution name is `Ham-CW`, the Perl
+package is `Ham::CW`, and this repository is named `ham-cw`.
 
-Install PDL (`cpanm PDL`), then select the backend once:
+## First example
+
+Save this as `demo.pl`. Run `perl -Ilib demo.pl` from the checkout root,
+or `perl demo.pl` after installation. It creates no files.
 
 ```perl
-my $cw = Ham::CW->new(backend => 'pdl', wpm => 20, frequency => 700);
-$cw->generate_wav('CQ DE TESTCALL', $wav_handle);
-my $result = $cw->decode_wav($input_handle);
+use 5.020;
+use strict;
+use warnings;
+use Ham::CW;
+
+my $cw = Ham::CW->new(wpm => 20, frequency => 700);
+print $cw->encode('SOS'), "\n";             # ... --- ...
+print $cw->decode('... --- ...'), "\n";      # SOS
+
+my $bytes = $cw->wav_bytes('SOS');
+my $result = $cw->decode_wav_bytes($bytes, frequency => 700, wpm => 20);
+print $result->text, "\n";                  # SOS
+for my $warning (@{$result->warnings}) {
+    warn "$warning->{code}: $warning->{message}\n";
+}
 ```
 
-`backend => 'perl'` remains the default, with no non-core dependencies.
-`'pdl'` requires PDL 2.081 or later and fails with `CW_E_ARGUMENT` when
-unavailable. `'auto'` selects PDL when loadable and otherwise uses Perl.
-Generator, Detector and Audio accept the same option independently;
-`decode_wav` also accepts an override. Text, timing and MIDI share the existing
-implementation. Public samples remain ordinary Perl array references.
+Text is a Perl character string. Morse notation uses dots/dashes, spaces
+between letters and `/` between words. WAV/MIDI bytes are binary scalars;
+sample arrays are normalized mono numbers from -1 to 1. An event sequence
+instead describes alternating ON/OFF durations. The [task guide](docs/usage.md)
+explains these representations with complete examples.
 
-PDL vectorizes the oscillator, ramps, PCM normalization and quantization.
-Detection batches at most 128 frames and computes the equivalent spectral
-power using cached sine/cosine projections in double precision. Fixed frame
-grid, streaming limits, partial frames, lifecycle and diagnostics are retained.
-Floating-point results can differ slightly; PCM samples extremely close to a
-rounding boundary may differ by one integer unit. Benchmark your workload with
-`perl maint/benchmark.pl`: short blocks and single-frequency reception can
-spend more time converting arrays than they save in vector operations.
+## Save and receive files
 
-The PDL CI jobs test Linux, macOS ARM/Intel and Windows with Strawberry
-Perl. A legacy Linux job checks Perl 5.20 with PDL 2.081. PDL itself
-contains native code; installation requires a compatible PDL build or a C
-build toolchain. No operating-system-specific audio or external DSP command
-is used. Platform results must be confirmed by CI before claiming validation.
+```perl
+use strict;
+use warnings;
+use Ham::CW;
 
-The benchmark also measures complete WAV generation/reception and cached
-snapshot reads. Use `--rate`, `--block`, `--repeat`, `--iterations`,
-`--known-frequency`, and `--json` to compare workloads; without PDL it measures
-the Perl backend alone. For example:
+my $cw = Ham::CW->new(wpm => 20, frequency => 700);
+$cw->write_wav('CQ TEST', 'cw-demo.wav');
+$cw->write_midi('CQ TEST', 'cw-demo.mid');
+my $result = $cw->read_wav('cw-demo.wav', frequency => 700, wpm => 20);
+print $result->text, "\n";
+for my $warning (@{$result->warnings}) {
+    warn "$warning->{code}: $warning->{message}\n";
+}
+```
+
+The path methods open and close their files. Parent directories must exist.
+Existing output files are protected: rerunning this example raises `CW_E_IO`.
+To replace these files deliberately, add `overwrite => 1` to each writing
+call. Replacement is prepared in a temporary sibling and renamed only after
+successful generation and close. Existing regular-file permission bits are
+preserved; symbolic-link destinations are rejected. Replacement creates a
+new file identity. A processing failure preserves the old
+contents and attempts temporary-file cleanup.
+
+`write_wav` returns a statistics hash containing `state` and `samples`;
+`write_midi` returns its byte count. `read_wav` returns a `Ham::CW::Result`.
+MIDI stores notes and timing; a separate player/synthesizer determines sound.
+
+## Speed, spacing and reception
+
+WPM means words per minute on a 50-unit reference scale. A dot lasts `1.2 / wpm`
+seconds; actual message duration depends on its characters. Farnsworth practice
+uses faster characters and longer gaps, for example `wpm => 20,
+effective_wpm => 12`.
+
+Constructor speed, spacing and tone configure **generation**. Supply known
+`frequency`, `wpm` and Farnsworth `effective_wpm` on receiving calls separately.
+WAV input supplies its own sample rate; raw sample input requires the actual
+rate. Audio reception accepts explicit 1–60 WPM and estimates within 5–60 WPM.
+The encoder and event decoder accept explicit speeds up to 200 WPM.
+
+A nonempty `text` value can still be wrong, partial or contain replacement
+characters. `has_text` checks presence only; `complete` means finalization.
+Inspect `warnings` even when both are true. Argument, file, state and resource
+failures throw `Ham::CW::Error`; uncertain reception produces Result warnings.
+The [Result reference](lib/Ham/CW/Result.pm) explains every warning and diagnostic.
+
+## Choose an interface
+
+| Task | Interface | Reference |
+| --- | --- | --- |
+| Ordinary text, samples and files | `Ham::CW` convenience methods | [POD](lib/Ham/CW.pm) |
+| Text symbols and Farnsworth events | `Ham::CW::Encoder` | [POD](lib/Ham/CW/Encoder.pm) |
+| Strict notation or incremental events | `Ham::CW::Decoder` | [POD](lib/Ham/CW/Decoder.pm) |
+| Event validation and unit conversion | `Ham::CW::Events` | [POD](lib/Ham/CW/Events.pm) |
+| Tone generation from custom events | `Ham::CW::Generator` | [POD](lib/Ham/CW/Generator.pm) |
+| Incremental sample reception | `Ham::CW::Detector` | [POD](lib/Ham/CW/Detector.pm) |
+| Raw PCM WAV without Morse decoding | `Ham::CW::Audio` | [POD](lib/Ham/CW/Audio.pm) |
+| MIDI export from custom events | `Ham::CW::MIDI` | [POD](lib/Ham/CW/MIDI.pm) |
+| Snapshots and exceptions | `Ham::CW::Result`, `Ham::CW::Error` | [Results](lib/Ham/CW/Result.pm), [errors](lib/Ham/CW/Error.pm) |
+
+The API reference is POD, Perl's documentation format, embedded in each public
+module and installed with it. Read it using `perldoc Ham::CW` after installation,
+or `perldoc lib/Ham/CW.pm` from the checkout. Use the corresponding module name
+or file path for other references. Each public method has its own section.
+
+## Command-line examples
+
+Run these from the checkout root. The sender creates `cw-example.wav`; the
+receiver reads that same file. `--overwrite` explicitly permits repeated runs.
 
 ```sh
-perl maint/benchmark.pl --iterations 10 --json
-perl maint/benchmark.pl --block 137 --known-frequency
-perl -Ilib examples/receive.pl --frequency 650 --wpm 20 --json input.wav
+perl -Ilib examples/send.pl --overwrite --wpm 20 --frequency 650 cw-example.wav 'CQ TEST'
+perl -Ilib examples/receive.pl --frequency 650 --wpm 20 --json cw-example.wav
+perl -Ilib examples/midi.pl --overwrite cw-example.mid 'CQ TEST'
+perl -Ilib examples/workflows.pl
 ```
 
-The receiver example accepts `--effective-wpm`, `--stereo`, `--backend`, and
-`--max-frames` too. JSON contains the complete result, including warnings;
-exit status is 0 for nonempty decoded text and 1 for empty text.
+Sender, receiver and MIDI scripts support `--help`. Quote prosigns such as
+`'CQ <AR>'` so the shell does not interpret angle brackets. The receiver exits
+0 for nonempty text and 1 for empty text; errors can terminate with another
+nonzero status. Its JSON includes the full Result and warnings. The workflow
+tour uses temporary files and removes them automatically.
 
-The platform benchmark separately measures streaming reception and PCM WAV
-reading/writing at 8, 16 and 24 bits. CI saves its environment and timing
-results as artifacts:
+## Optional PDL backend
 
-```sh
-perl maint/benchmark-platforms.pl --seconds 1 --json benchmark.json
-```
+Install PDL 2.081 or later into the Perl environment running your application,
+then select `backend => 'pdl'` in the constructor or supported operation.
+`backend => 'perl'` is the default. `backend => 'auto'` selects PDL when loadable,
+otherwise Perl; it does not benchmark the workload. PDL needs a compatible
+native build and can be slower for small blocks or a single known tone.
 
-Ratios below 1 identify slower PDL cases; compatibility tests do not impose
-a speed threshold. See [verification](docs/verification.md) for dated results.
+Both backends use the same public arrays and file/event formats. Floating-point
+values can differ slightly, including one PCM unit near a rounding boundary.
+Use `perl maint/benchmark.pl --help` and `perl maint/benchmark-platforms.pl --help`
+for workload measurements. [Verification](docs/verification.md) separates
+local checks, historical platform results and benchmark observations.
 
-## Interfaces
+## Practical limits
 
-| Module | Responsibility |
-| --- | --- |
-| `Ham::CW` | Text, event, WAV and MIDI convenience methods |
-| `Ham::CW::Encoder` | International symbols, explicit prosigns, WPM and Farnsworth |
-| `Ham::CW::Decoder` | Public text and incremental event decoder |
-| `Ham::CW::Events` | Validated microsecond/sample conversion |
-| `Ham::CW::Generator` | Deterministic sine oscillator and bounded sample iterator |
-| `Ham::CW::Detector` | Incremental Goertzel analysis and reception diagnostics |
-| `Ham::CW::Audio` | Bounded RIFF PCM reader and writer |
-| `Ham::CW::MIDI` | Standard MIDI file type 0 export |
-| `Ham::CW::Result` | Cumulative decoding snapshots with copied fields |
-| `Ham::CW::Error` | Exceptions with stable machine-readable codes |
+WAV input supports mono/stereo PCM 8/16/24-bit; output is mono. Stereo `mix`
+averages channels and may cancel opposite-phase audio; `left` or `right` selects
+one. Compressed, float, extensible WAV and unknown-length streaming headers
+are unsupported. MIDI output is standard file type 0.
 
-Run `perldoc Ham::CW` after installing, or `perldoc lib/Ham/CW.pm` in the
-checkout. Each public module documents its options, limits and lifecycle.
+Generation defaults to 10,000,000 total samples. Audio detection defaults to
+24,000 retained frames, approximately 120 seconds including silence; event
+decoding defaults to 100,000 retained runs. Increase the corresponding
+`max_samples`, `max_frames` or `max_segments` explicitly when appropriate.
+Streaming reduces block-buffer size but does not remove these history limits.
+Every option's range and applicable method are specified in the POD.
 
-Morse text uses spaces between characters and ` / ` between words. Operational
-tokens use angle brackets: `AR` is two letters; `<AR>` is one signal. Some
-signals share a waveform with punctuation, so reception cannot recover the
-sender's original token choice. ASCII case is normalized; there is no implicit
-Unicode transliteration. The symbol set follows ITU-R M.1677-1, with accented E
-supported explicitly.
+Reception does not separate simultaneous stations. Synthetic tests do not
+establish accuracy on arbitrary off-air recordings. Very short messages,
+interference, fading and unknown spacing can produce ambiguous results.
 
-WAV input accepts unsigned 8-bit and signed 16/24-bit PCM, mono or stereo.
-Stereo selection is explicit (`left`, `right`, or the default `mix`). Output
-is mono. MIDI carries keyed notes and timing, not rendered sound; instrument
-choice and envelopes depend on the synthesizer.
+## Development and license
 
-## Limits that matter
-
-Reception targets one reasonably stable CW signal. It does not separate
-simultaneous stations. The initial detector uses percentile-seeded adaptive
-thresholds, a frequency grid and a fixed frame size. It is not yet a validated
-receiver for arbitrary off-air recordings. Short or ambiguous signals produce
-warnings or empty text.
-
-Generation and I/O stream samples in bounded blocks. The detector retains
-bounded frame statistics, and the event decoder retains bounded event history.
-They reject streams that exceed their configured limits rather than grow
-without a bound. This release does not claim unlimited-duration reception.
-
-## Development
-
-[Contributing](CONTRIBUTING.md) explains the quality checks.
-[Architecture](docs/architecture.md) specifies event and streaming contracts.
-[Dependency audit](docs/dependency-audit.md) records the reuse decisions.
-[Release procedure](docs/releasing.md) lists the publication gates.
-[Verification](docs/verification.md) records measured results and outstanding
-checks. No CPAN Testers or coverage badge is claimed without evidence.
+See [contributing](CONTRIBUTING.md), [architecture](docs/architecture.md),
+[dependency decisions](docs/dependency-audit.md), [reference corpus](corpus/README.md)
+and [release procedure](docs/releasing.md) and [security reporting](SECURITY.md).
 
 Copyright © 2026 Giacomo Picchiarelli. Licensed under the
 [Artistic License 2.0](LICENSE).

@@ -56,25 +56,227 @@ sub as_hash      { my ($self) = @_; return dclone({%{$self}}) }
 
 =head1 NAME
 
-Ham::CW::Result - immutable decoding snapshot
+Ham::CW::Result - a cumulative decoding snapshot with text and diagnostics
+
+=head1 SYNOPSIS
+
+    use strict;
+    use warnings;
+    use Ham::CW;
+
+    my $cw = Ham::CW->new;
+    my $result = $cw->decode_events($cw->events('SOS'), wpm => 20);
+    print $result->text, "\n";
+    for my $warning (@{$result->warnings}) {
+        warn "$warning->{code}: $warning->{message}\n";
+    }
+    my $copy = $result->as_hash;
+
+=head1 DESCRIPTION
+
+Decoder and Detector return Results. A Result represents all accepted input
+at one point, not just newly decoded characters. Previews can change after
+further input; do not append successive full snapshots as if they were deltas.
+
+C<complete> means processing was finalized. C<has_text> means a nonempty
+string exists. Neither proves the decoded text is correct. Inspect warnings,
+including on complete/nonempty Results. Diagnostic numbers are not confidence
+probabilities. Treat object internals as private; reference-valued accessors
+return independent copies.
 
 =head1 METHODS
 
 =head2 new
 
-C<new> accepts C<text>, C<morse>, C<events>, C<frequency> (Hz), C<wpm>,
-C<warnings> (array of code/message hashes), C<complete> (boolean), and
-C<diagnostics> (hash). Each field has an accessor of the same name.
-Text and Morse must be defined scalars; frequency and WPM are nonnegative
-finite numbers or undefined. Events must satisfy L<Ham::CW::Events>.
-Warnings require scalar code and message fields. Reference-valued payloads
-must be unblessed, acyclic arrays/hashes with scalar leaves, at most 64 levels
-deep. Invalid field types raise C<CW_E_ARGUMENT> before copying.
-C<has_text> returns true when text is nonempty. C<has_warnings> returns true
-when at least one warning is present. Neither is a confidence or success
-score. C<as_hash> returns all fields. Inputs and reference-valued outputs are deep
-copies, and the top-level object hash is locked. Treat object internals as
-private. Completion means finalization, not guaranteed signal confidence.
+    my $result = Ham::CW::Result->new(%fields);
+
+Normally called by the library; constructs a snapshot from these fields:
+
+=over 4
+
+=item * C<text>, C<morse>: defined scalar strings, default empty.
+
+=item * C<events>: canonical event hash, default C<< {unit => 'us', segments => []} >>. See L<Ham::CW::Events>.
+
+=item * C<frequency>, C<wpm>: undefined by default; otherwise finite numbers in 0..C<2**52>.
+
+=item * C<warnings>: array of hashes with defined scalar C<code> and C<message>; default empty array.
+
+=item * C<complete>: integer 0 or 1; default 0. Explicit C<undef> is invalid.
+
+=item * C<diagnostics>: hash, default empty.
+
+=back
+
+Reference payloads must contain only unblessed arrays/hashes and scalar
+leaves, with no cycles and depth at most 64. Input references are copied.
+Invalid, unknown or duplicate fields raise C<CW_E_ARGUMENT> before copying.
+The top-level object hash is locked; direct nested-field mutation is outside
+the public interface.
+
+=head2 text
+
+    my $text = $result->text;
+
+Returns the decoded Perl character string. It may be empty or partial.
+Unknown event groups become U+FFFD replacement characters while other text
+is retained. A replacement character still makes the string nonempty. Use
+UTF-8 output encoding when displaying non-ASCII text, for example
+C<binmode STDOUT, ':encoding(UTF-8)'>.
+
+=head2 morse
+
+    my $morse = $result->morse;
+
+Returns dot/dash groups with spaces between letters and C</> between words.
+An implausible event mark may appear as C<?> for diagnostic purposes;
+therefore this field is not always valid input for strict textual decoding.
+
+=head2 events
+
+    my $events = $result->events;
+
+Returns a deep copy of the retained canonical event sequence. Event decoding
+preserves its input representation; audio detection produces SampledEvents.
+An empty/rejected result may contain an empty sequence.
+
+=head2 frequency
+
+    my $hz = $result->frequency;
+
+Returns the detector's selected tone in Hz, or C<undef> if absent. For a
+supplied tone this is that configured candidate, not an independent
+measurement. Event-only decoding has no tone estimate.
+
+=head2 wpm
+
+    my $wpm = $result->wpm;
+
+Returns character speed, configured or estimated, or C<undef> if unavailable.
+This is not effective Farnsworth speed. See diagnostics for timing source.
+
+=head2 complete
+
+    my $complete = $result->complete;
+
+Returns 0 for a provisional snapshot or 1 after finalization. Empty and
+rejected input can also be complete.
+
+=head2 warnings
+
+    my $warnings = $result->warnings;
+
+Returns a deep copy of an array of code/message hashes. See L</WARNINGS>.
+
+=head2 diagnostics
+
+    my $details = $result->diagnostics;
+
+Returns a deep copy of the diagnostics hash. Fields depend on how far
+analysis progressed and can be absent. Current producer fields are:
+
+=over 4
+
+=item * C<dot_us>: configured/estimated dot duration in microseconds.
+
+=item * C<timing_source>: C<configured> or C<estimated> for character timing.
+
+=item * C<contrast>: keyed-envelope separation, C<(peak - floor) / peak>.
+
+=item * C<purity>: projected tone energy divided by windowed broadband energy. A matched, well-resolved pure Hann-windowed tone is about 0.67; this is not a probability or a scale normalized to 1.
+
+=item * C<frame_samples>: full detector frame length in samples.
+
+=item * C<analyzed_samples>: total accepted input sample count. In a preview, a partial frame can still be pending and excluded from spectral analysis.
+
+=item * C<frequency_grid_step_hz>: search candidate step, or 0 for a configured tone. This is not spectral resolution or an error bound.
+
+=back
+
+Rejected input may contain only the diagnostic that explained rejection.
+Applications should check field existence rather than assuming a fixed set.
+
+=head2 has_text
+
+    my $present = $result->has_text;
+
+Returns 1 when text has nonzero length, otherwise 0. Does not classify accuracy,
+replacement characters or warning severity.
+
+=head2 has_warnings
+
+    my $present = $result->has_warnings;
+
+Returns 1 when at least one warning exists, otherwise 0. An empty warning list
+is not evidence of error-free radio reception.
+
+=head2 as_hash
+
+    my $fields = $result->as_hash;
+
+Returns a deep copy of all eight stored fields: C<text>, C<morse>, C<events>,
+C<frequency>, C<wpm>, C<warnings>, C<complete> and C<diagnostics>.
+Predicate methods are not extra stored fields. The hash can be serialized
+with a suitable encoder such as JSON::PP.
+
+=head1 WARNINGS
+
+Warnings describe reception evidence and are separate from thrown errors:
+
+=over 4
+
+=item C<CW_W_NO_SIGNAL>
+
+No usable frames or insufficient energy. Check the recording, input rate,
+selected channel and tone/search band.
+
+=item C<CW_W_NOT_CW>
+
+Envelope contrast, spectral purity or mark count did not meet detector
+criteria. Noise, an unkeyed tone and very short messages can produce this.
+Changing thresholds does not establish that the input is Morse.
+
+=item C<CW_W_NO_TIMING>
+
+No usable mark timing was found. Check event units and supply WPM if known.
+
+=item C<CW_W_TIMING_AMBIGUOUS>
+
+One mark length cannot distinguish dots from dashes. Supply character WPM.
+The event decoder can retain a provisional interpretation; the audio
+detector suppresses text for this ambiguity.
+
+=item C<CW_W_UNRELIABLE>
+
+The detector suppressed text because automatic mark timing was ambiguous.
+Review the accompanying timing warning and provide a speed hint if known.
+
+=item C<CW_W_TIMING>
+
+A mark is outside timing tolerance. Text can contain a replacement character.
+
+=item C<CW_W_SYMBOL>
+
+An event-derived group has no unambiguous symbol. That group becomes U+FFFD.
+
+=item C<CW_W_SPACING_AMBIGUOUS>
+
+Repeated internal long gaps may indicate unknown Farnsworth spacing, or
+C<effective_wpm> exceeds estimated character speed and ordinary spacing was
+used. Read the message for the applicable case; supply correct timing hints.
+Leading/trailing silence alone does not produce this warning.
+
+=item C<CW_W_WAV_TRAILING>
+
+Bytes after the RIFF boundary were ignored. Audio within RIFF was processed;
+check the file's source if the extra data was unexpected. Raw Audio readers
+expose this in metadata; facade reception propagates it into the Result.
+
+=back
+
+=head1 SEE ALSO
+
+L<Ham::CW::Decoder>, L<Ham::CW::Detector>, L<Ham::CW::Error>.
 
 =head1 LICENSE
 

@@ -1,318 +1,279 @@
-# Ham::CW by task
+# Task guide
 
-Start with `use Ham::CW; my $cw = Ham::CW->new;`. File paths are strings,
-text is a Perl character string, WAV/MIDI bytes are binary scalars, samples
-are mono array references of numbers in [-1, 1], and events describe keyed
-ON/OFF durations. No method plays sound, records a microphone, controls a
-radio or sends MIDI to a device.
+The installed API reference is POD embedded in the public modules. From a
+checkout, run `perldoc lib/Ham/CW.pm`; after installation, run `perldoc Ham::CW`.
+This guide provides runnable recipes. Each Perl block is a separate script;
+run it from the repository root with `perl -Ilib your-script.pl`, or without
+`-Ilib` after installing Ham::CW. No external audio program is required.
 
-## Choose the operation
+## Choose the data representation
 
-| You have | You want | Method | Returns |
-| --- | --- | --- | --- |
-| Text | Morse notation | `encode($text, %timing)` | String |
-| Morse notation | Text | `decode($morse, %decoding)` | String |
-| Text | Microsecond events | `events($text, %timing)` | Event hash |
-| Text | Sample-count events | `sampled_events($text, %options)` | Event hash |
-| Events | Text and diagnostics | `decode_events($events, %decoding)` | Result |
-| Text | Audio samples in memory | `samples($text, %generation)` | Array reference |
-| Text | Audio samples in blocks | `stream_samples($text, %generation)` | Iterator |
-| Audio samples | Text and diagnostics | `decode_samples($samples, %reception)` | Result |
-| Text | New WAV file | `write_wav($text, $path, %generation)` | Writer statistics |
-| Text | New MIDI file | `write_midi($text, $path, %midi)` | Byte count |
-| WAV path | Text and diagnostics | `read_wav($path, %reception)` | Result |
-| Text | WAV bytes | `wav_bytes($text, %generation)` | Binary scalar |
-| WAV bytes | Text and diagnostics | `decode_wav_bytes($bytes, %reception)` | Result |
-| Text | MIDI bytes | `midi_bytes($text, %midi)` | Binary scalar |
-| Text | WAV/MIDI on your handle | `generate_wav` / `generate_midi` | Statistics / byte count |
-| WAV handle | Text and diagnostics | `decode_wav($handle, %reception)` | Result |
+| Representation | Meaning | Example |
+| --- | --- | --- |
+| Text | Perl character string | `'SOS'` |
+| Morse | Dot/dash groups; spaces for letters, `/` for words | `'... --- ...'` |
+| Timed events | ON/OFF integer microseconds | `{unit => 'us', segments => [...]}` |
+| Sampled events | ON/OFF integer sample counts at one rate | `{sample_rate => 8000, segments => [...]}` |
+| Samples | Mono numbers in [-1,1]; no embedded rate | `[0, 0.1, -0.1]` |
+| WAV/MIDI bytes | A complete binary file in a scalar | Returned by `wav_bytes` / `midi_bytes` |
+| Result | Decoded text plus events, warnings and diagnostics | Returned by reception methods |
 
-`new` stores generation defaults. Per-call generation options override those
-defaults for that call only. Reception estimates tone and timing independently;
-pass known `frequency`, `wpm` and `effective_wpm` on the receiving call.
-Raw samples have no rate metadata: `decode_samples` and `detector` use the
-object's sample rate unless overridden. WAV reception gets the rate from the
-file. Backend preference is shared and can be overridden per call.
+External text bytes must be decoded to characters first. `use utf8` enables
+non-ASCII literals in Perl source; it does not decode files automatically.
+Binary WAV/MIDI output must not pass through a text encoding. For text output
+containing accented/replacement characters, configure the output encoding,
+for example `binmode STDOUT, ':encoding(UTF-8)'`.
 
-## Text, punctuation and prosigns
+## Text and prosigns
 
 ```perl
-my $morse = $cw->encode('CQ <AR>');
-my $text = $cw->decode('... --- ... / - . ... -');  # SOS TEST
-my $operational = $cw->decode('.-.-.', prefer_prosigns => 1);  # <AR>
-my $filtered = $cw->encode('CQ!', unknown => 'skip');
+use strict;
+use warnings;
+use Ham::CW;
+
+my $cw = Ham::CW->new;
+print $cw->encode('CQ <AR>'), "\n";
+print $cw->decode('... --- ... / - . ... -'), "\n";  # SOS TEST
+print $cw->decode('.-.-.', prefer_prosigns => 1), "\n";  # <AR>
+print $cw->encode('CQ!', unknown => 'skip'), "\n";
 ```
 
-Spaces separate Morse letters; `/` separates words. `<AR>` is one prosign,
-whereas `AR` is two letters. Shared punctuation/prosign waveforms lose their
-original spelling; `prefer_prosigns` chooses the operational interpretation.
-ASCII case is normalized. Accented E is supported; other unsupported symbols
-and Unicode whitespace are rejected by default. `unknown => 'skip'` explicitly
-omits unsupported tokens. Errors include the symbol and its one-based
-character position; no implicit transliteration is performed.
+`<AR>` is one operational signal (prosign); `AR` is two letters. Shared
+waveforms lose the original spelling, so decoding uses the documented
+punctuation/prosign preference. The encoder supports A–Z, digits, accented E,
+a fixed punctuation set and explicit prosigns. Other symbols and Unicode
+whitespace are rejected unless explicitly skipped. See the complete lists in
+[Encoder POD](../lib/Ham/CW/Encoder.pm) and the shared-waveform table in
+[Decoder POD](../lib/Ham/CW/Decoder.pm).
 
-## Speed and Farnsworth spacing
+## Farnsworth practice and files
 
-```perl
-my $practice = Ham::CW->new(wpm => 20, effective_wpm => 12);
-$practice->write_wav('CQ TEST', 'practice.wav');
-my $received = $practice->read_wav('practice.wav', wpm => 20, effective_wpm => 12);
-my $faster = $cw->samples('SOS', wpm => 30);
-```
-
-`wpm` controls character speed. `effective_wpm` slows spacing and cannot
-exceed character speed. Generation defaults to 20 WPM; absent effective speed
-uses character speed. An explicitly configured effective speed remains in
-force when overriding WPM, so override both when necessary. Generation/event
-decoding accepts configured speeds up to 200 WPM; audio reception up to 60.
-Automatic timing estimation covers 5..60 WPM and can be ambiguous on short
-messages. Give hints when you know them.
-
-## Files and bytes
+This recipe creates files in a temporary directory, so it can be run repeatedly.
 
 ```perl
-$cw->write_wav('CQ TEST', 'cq.wav', bits => 24, frequency => 650);
-$cw->write_midi('CQ TEST', 'cq.mid', note => 77, program => 80);
-my $wav = $cw->wav_bytes('SOS', sample_rate => 8000);
-my $result = $cw->decode_wav_bytes($wav);
-my $midi = $cw->midi_bytes('SOS', note => 60);
-```
+use strict;
+use warnings;
+use File::Temp qw(tempdir);
+use File::Spec;
+use Ham::CW;
 
-Path methods own and close their handles. By default output paths must be new; existing
-files are preserved and cause `CW_E_IO`. Pass `overwrite => 1` explicitly to
-replace a file. Replacement is generated in a temporary sibling file and
-renamed after successful generation and closure; failed generation preserves
-the previous contents. On a processing error, a newly created
-output is closed and removal is attempted. Byte methods collect output in
-memory; prefer file methods for large messages. MIDI export is type 0 and
-includes note events, not rendered sound. MIDI notes/programs are separate
-from audio frequency; programs are zero-based, channels are 1..16. WPM sets
-Morse timing; BPM/PPQN set MIDI tick representation. Playback timbre depends
-on the synthesizer.
-
-For handles you own:
-
-```perl
-open my $out, '>:raw', 'handle.wav' or die $!;
-$cw->generate_wav('SOS', $out);
-close $out or die $!;
-open my $in, '<:raw', 'handle.wav' or die $!;
-my $result = $cw->decode_wav($in);
-close $in or die $!;
-```
-
-These methods leave caller-owned handles open. WAV reading needs a complete,
-seekable file. Output handles need not seek because the sample count is known.
-
-## Audio arrays and bounded generation
-
-```perl
-my $samples = $cw->samples('SOS', sample_rate => 8000, amplitude => 0.5);
-my $result = $cw->decode_samples($samples, sample_rate => 8000, wpm => 20);
-my $next = $cw->stream_samples('CQ TEST', block_size => 1024);
-while (my $block = $next->()) {
-    # Pass this normalized mono block to your application's audio sink.
-}
-```
-
-The iterator returns array references, then `undef` at EOF. Each call to
-`stream_samples` owns an independent generator, so starting another stream
-does not reset the first. Blocks preserve the same waveform as collecting
-`samples`. `block_size` controls samples per output block; `max_samples`
-limits the entire message even when streaming. Attack/release ramps default
-to 5 ms and prevent abrupt keyed edges. Collected Perl arrays consume more
-memory than packed PCM bytes.
-
-## Incremental reception and event decoding
-
-```perl
-my $detector = $cw->detector(sample_rate => 8000, wpm => 20);
-# Repeat as blocks arrive from your own audio source:
-$detector->feed($samples);
-my $preview = $detector->result;
-my $final = $detector->finish;
-$detector->reset;
-
-my $decoder = $cw->decoder(wpm => 20);
-$decoder->feed($cw->events('SOS'));
-my $decoded = $decoder->finish;
-```
-
-Factories return fresh public objects. `encoder` and `generator` inherit
-generation defaults; `decoder` receives explicit decoding options; `detector`
-inherits sample rate/backend, with tone and timing still estimated unless
-specified. `feed` takes arrays for the detector and canonical event hashes
-for the decoder. Split canonical events at any boundary; adjacent equal
-states across feeds are merged. Do not split text/prosign tokens arbitrarily.
-
-`result` is a cumulative snapshot, not a delta to append. Previews can change
-with more evidence; even fixed-WPM event decoding waits for closed gaps.
-`finish` confirms the final group and is idempotent. Feed after finish is an
-error. `reset` allows reuse; earlier snapshots remain independent. Invalid
-input preserves incremental state. Sample/event histories are bounded;
-streaming is not unlimited-duration radio reception.
-
-## Read or write raw WAV samples
-
-```perl
-use Ham::CW::Audio;
-my $audio = Ham::CW::Audio->new(stereo => 'left', block_samples => 1024);
-my $recording = $audio->read_file('input.wav');
-my $samples = $recording->{samples};
-my $rate = $recording->{sample_rate};
-$audio->write_file('copy.wav', $samples, sample_rate => $rate, bits => 16);
-
-$audio->read_blocks('input.wav', sub {
-    my ($block, $metadata) = @_;
-    # Process $block here. $metadata includes sample_rate and warnings.
-});
-```
-
-`read_file` collects normalized mono samples and metadata without decoding
-Morse. `read_blocks` holds one block at a time, closes the input after the
-callback loop and returns metadata. A callback exception stops reading and
-closes the file. Metadata passed to callbacks is copied. The reader supports
-PCM 8/16/24-bit, mono/stereo; choose `left`, `right`, or default `mix`. Mixing
-can cancel opposite-phase stereo signals. Output is mono. File-level warnings,
-including ignored trailing bytes, are available in metadata.
-
-For bounded output from an iterator, declare the exact sample count for the
-WAV header:
-
-```perl
-my $events = $cw->sampled_events('SOS', sample_rate => 8000);
-my $count = 0;
-$count += $_->{samples} for @{$events->{segments}};
-my $next = $cw->stream_samples('SOS', sample_rate => 8000, block_size => 1024);
-$audio->write_blocks('stream.wav', $next, sample_rate => 8000, sample_count => $count);
-```
-
-The source returns sample arrays and then `undef`. Raw `write_file`,
-`write_blocks`, and MIDI `write_file` also accept `overwrite => 1`. Too few/many samples are
-errors; failed output is closed and removal attempted. `Audio->reader($fh)`
-provides manual pull iteration through `$reader->{next}->()` if you need
-control over when blocks are read. `Audio->writer($fh, sample_count => ...)`
-provides `feed`, `result`, `state` and `finish` for manual writing; keep and
-close the handle yourself. After an I/O failure, replace the writer and output;
-a failed writer cannot reset.
-
-## Custom ON/OFF sequences and conversion
-
-```perl
-use Ham::CW::Events qw(to_samples to_timed validate_events);
-my $timed = $cw->events('SOS');
-my $sampled = to_samples($timed, 8000);
-my $again = to_timed($sampled);
-validate_events($again);
-my $result = $cw->decode_events($sampled, wpm => 20);
-my $generator = $cw->generator(sample_rate => 8000);
-my $samples = $generator->generate($sampled);
-```
-
-Timed events contain `{unit => 'us', segments => [...]}`; sampled events
-contain `{sample_rate => 8000, segments => [...]}`. Segments alternate
-`state => 'on'|'off'` with positive integer `duration` or `samples`.
-Empty events and leading/trailing OFF are legal. Conversions return copies
-and round cumulative boundaries to prevent accumulated drift. Too coarse a
-sample resolution can produce a zero-length segment and is rejected. Use a
-higher rate in that case. Sampled events must match the generator's rate.
-
-The manual generator offers `stream($events, $block_size)`, `result`, `state`
-and `reset`. Reset invalidates an older iterator. The facade's `stream_samples`
-handles ownership automatically for ordinary text generation.
-
-Custom events can also be exported directly:
-
-```perl
-use Ham::CW::MIDI;
-my $midi = Ham::CW::MIDI->new(note => 77);
-$midi->write_file('custom.mid', $timed);
-my $bytes = $midi->encode($timed);
-```
-
-## Results and failures
-
-```perl
-my $result = $cw->read_wav('input.wav');
-print $result->text if $result->has_text;
+my $directory = tempdir(CLEANUP => 1);
+my $wav = File::Spec->catfile($directory, 'practice.wav');
+my $midi = File::Spec->catfile($directory, 'practice.mid');
+my $cw = Ham::CW->new(wpm => 20, effective_wpm => 12, frequency => 650);
+$cw->write_wav('CQ TEST', $wav, bits => 24);
+$cw->write_midi('CQ TEST', $midi, note => 77, program => 80);
+my $result = $cw->read_wav($wav,
+    frequency => 650, wpm => 20, effective_wpm => 12);
+print $result->text, "\n";
 for my $warning (@{$result->warnings}) {
     warn "$warning->{code}: $warning->{message}\n";
 }
-my $details = $result->as_hash;
+```
+
+WPM measures character speed on a 50-unit reference scale. Effective WPM
+lengthens letter/word gaps. Generation defaults to 20 WPM and ordinary spacing.
+Constructor settings configure generation; reception hints must be supplied
+separately. A recording can come from a different sender. WAV files supply
+their rate in the header. MIDI notes/programs are independent of audio frequency;
+channels are 1–16, programs 0–127. Playback sound depends on the synthesizer.
+
+For permanent paths, replace the temporary paths with your own. Parent
+directories must exist. Output creation protects existing files; use
+`overwrite => 1` deliberately to prepare a replacement in a temporary sibling
+and rename it after successful writing. Failed generation preserves old
+contents. Existing regular-file permission bits are preserved; symbolic-link
+destinations are rejected. Replacement creates a new file identity and does
+not transfer ownership, ACLs or other hard links. Cleanup is attempted on failure.
+
+Generation calls can override defaults without changing the object. An
+explicit effective speed remains in force when overriding only `wpm`, so
+change both when necessary. The encoder/event decoder accept explicit 1–200
+WPM; audio reception accepts 1–60 WPM and automatic estimation covers 5–60.
+
+## Samples, streaming and incremental reception
+
+```perl
+use strict;
+use warnings;
+use Ham::CW;
+
+my $cw = Ham::CW->new(sample_rate => 8000, frequency => 650, wpm => 20);
+my $next = $cw->stream_samples('SOS', block_size => 1024);
+my $detector = $cw->detector(frequency => 650, wpm => 20);
+while (my $block = $next->()) {
+    $detector->feed($block);
+    my $preview = $detector->result;
+    # The preview is cumulative and may change; do not append it as a delta.
+}
+my $final = $detector->finish;
+print $final->text, "\n";
+$detector->reset;
+
+my $samples = $cw->samples('SOS');
+my $collected = $cw->decode_samples($samples, sample_rate => 8000, wpm => 20);
+print $collected->text, "\n";
+```
+
+The iterator yields sample arrays, then `undef`. The detector rate must match
+the array's actual rate; raw arrays carry no rate metadata. The factory inherits
+sample rate/backend, but not generation tone or speed. A known tone is optional.
+Each facade stream owns an independent generator; changing block boundaries
+does not change its waveform within one backend.
+
+`finish` is idempotent and makes the object FINISHED. Feed after finish is an
+error until `reset`. Validation failures preserve history. Previews can revise
+earlier text and estimates as evidence arrives. Returned snapshots remain
+independent after a reset. Manual `Generator->stream` instead requires its
+own READY object; reset invalidates old iterators.
+
+`max_samples` bounds complete generation, `max_frames` bounds retained detector
+features and `max_segments` bounds retained event-decoder runs. The defaults are
+10,000,000 samples, 24,000 frames (about 120 seconds) and 100,000 runs. These are
+separate limits, including silence. Streaming controls block-buffer size; it
+does not provide unlimited-duration reception. See each module's POD for ranges.
+
+## Custom events and MIDI export
+
+```perl
+use strict;
+use warnings;
+use Ham::CW;
+use Ham::CW::Events qw(validate_events to_samples to_timed);
+use Ham::CW::MIDI;
+
+my $cw = Ham::CW->new;
+my $timed = $cw->events('SOS');
+my $sampled = to_samples($timed, 8000);
+my $again = to_timed($sampled);
+print validate_events($again), "\n";  # duration
+my $decoder = $cw->decoder(wpm => 20);
+$decoder->feed($sampled);
+print $decoder->finish->text, "\n";
+my $samples = $cw->generator(sample_rate => 8000)->generate($sampled);
+my $midi_bytes = Ham::CW::MIDI->new(note => 77)->encode($timed);
+print length($midi_bytes), " MIDI bytes\n";
+```
+
+Timed events use `unit => 'us'` and positive integer `duration` fields;
+sampled events use `sample_rate` and positive integer `samples` fields.
+Runs alternate `state => 'on'` and `state => 'off'`. Empty sequences and
+leading/trailing OFF runs are valid. Across event-decoder feeds, equal states
+at a block boundary are merged. Within each block, states must alternate.
+
+Conversions round cumulative boundaries, avoiding per-segment drift. They
+return fresh hashes but a round trip can lose resolution. Zero-length converted
+runs are rejected; choose a higher rate or longer events. Sampled events must
+match a generator's rate. Converting event units does not resample audio.
+
+## Raw WAV processing and caller-owned handles
+
+```perl
+use strict;
+use warnings;
+use File::Temp qw(tempdir);
+use File::Spec;
+use Ham::CW;
+use Ham::CW::Audio;
+
+my $directory = tempdir(CLEANUP => 1);
+my $path = File::Spec->catfile($directory, 'raw.wav');
+my $cw = Ham::CW->new(sample_rate => 8000);
+my $audio = Ham::CW::Audio->new(block_samples => 1024);
+my $samples = $cw->samples('SOS');
+my $next = $cw->stream_samples('SOS', block_size => 1024);
+$audio->write_blocks($path, $next,
+    sample_rate => 8000, sample_count => scalar(@{$samples}), bits => 16);
+my $metadata = $audio->read_blocks($path, sub {
+    my ($block, $info) = @_;
+    # Process normalized mono samples using $info->{sample_rate}.
+});
+print "$metadata->{sample_count} frames\n";
+open my $in, '<:raw', $path or die $!;
+my $recording = $audio->read($in);
+close $in or die $!;
+print scalar(@{$recording->{samples}}), " samples\n";
+```
+
+Audio methods do not decode Morse. Input supports seekable mono/stereo PCM
+8/16/24-bit WAV. Stereo selection is `left`, `right` or default `mix`; mixing
+opposite-phase signals can cancel them. Output is mono. Unsupported formats
+include float/compressed/extensible WAV and placeholder streaming lengths.
+Trailing bytes outside RIFF produce a metadata warning. Collecting readers
+return a full sample array; block readers call your callback and return metadata.
+
+`Audio->writer($handle, sample_count => ...)` returns a writer with `feed`,
+`result`, `state` and `finish`. It requires the exact total count for the WAV
+header. A failed writer has no reset: discard it and its partial output.
+`Audio->reader($handle)` returns a hash with a `next` code reference for manual
+pull reading. Keep caller-owned handles open while iterating and close them
+yourself. Reading rewinds seekable input to zero. Output handles need not seek.
+
+Path methods own and close handles. Callback exceptions also close owned
+handles before propagating. Direct handle methods leave them open even on
+failure. Opening output with `>:raw` truncates existing content immediately;
+use path methods when existing-file protection is needed.
+
+## Binary data and structured failures
+
+```perl
+use strict;
+use warnings;
+use Ham::CW;
+
+my $cw = Ham::CW->new;
+my $wav = $cw->wav_bytes('SOS');
+my $result = $cw->decode_wav_bytes($wav, wpm => 20);
+print $result->text, "\n";
+for my $warning (@{$result->warnings}) {
+    warn "$warning->{code}: $warning->{message}\n";
+}
+my $all_fields = $result->as_hash;
+my $midi = $cw->midi_bytes('SOS');
 
 my $ok = eval { $cw->encode('CQ!'); 1 };
 if (!$ok) {
     my $error = $@;
     if (ref($error) && $error->isa('Ham::CW::Error')) {
-        warn $error->code . ': ' . $error->message;
-        my $context = $error->context;
+        warn $error->code . ': ' . $error->message . "\n";
     }
     else { die $error; }
 }
 ```
 
-Result accessors include `text`, `morse`, `events`, `frequency`, `wpm`,
-`warnings`, `diagnostics` and `complete`. Arrays/hashes are copies; treat
-object internals as private. `has_text` means nonempty text, `has_warnings`
-means warnings exist, and `complete` means finalized. None is a confidence
-probability. Rejected or ambiguous audio can return empty text and warnings;
-argument, file, lifecycle and resource failures throw structured exceptions.
-Noise and overlapping stations are not guaranteed to decode. Inspect warnings
-before accepting a message.
+Byte methods collect complete binary files in memory; file/block methods are
+preferable for large data. Capture `$@` immediately after `eval`. Library error
+codes identify invalid arguments/symbols/timing, WAV format/truncation, I/O,
+resource limits and lifecycle errors; [Error POD](../lib/Ham/CW/Error.pm) and
+[main POD](../lib/Ham/CW.pm) describe them and optional context.
 
-| Error | What to check |
-| --- | --- |
-| `CW_E_ARGUMENT` | Parameter name/type/range, rate, declared sample count |
-| `CW_E_SYMBOL` | Unsupported character/prosign or invalid Morse grouping |
-| `CW_E_TIMING` | Event alternation or sample/MIDI resolution |
-| `CW_E_WAV_FORMAT` / `CW_E_WAV_TRUNCATED` | Supported PCM format and complete file |
-| `CW_E_IO` | Path, permissions, existing output, readable/seekable handle |
-| `CW_E_RESOURCE` | Configured ceiling or message/recording length |
-| `CW_E_STATE` | Feed after finish, reset iterator or failed writer |
-| `CW_E_INTERNAL` | Unexpected internal failure; preserve reproduction details |
+Results are cumulative snapshots. `has_text` only tests nonempty text, including
+replacement characters; `complete` only marks finalization. Neither certifies
+accuracy. Inspect warnings even if text exists. Accessor arrays/hashes are copies;
+diagnostic fields can be absent. [Result POD](../lib/Ham/CW/Result.pm) lists all
+fields, warning codes and suggested checks. No confidence probability is supplied.
 
-## Options and units
+## Option routing and next steps
 
-| Operation | Options |
-| --- | --- |
-| Text encoding/events | `wpm`, `effective_wpm`, `unknown` |
-| Sampled events | Encoding options plus `sample_rate` |
-| Samples/streaming/WAV generation | Encoding options plus `sample_rate`, `frequency`, `amplitude`, `attack_ms`, `release_ms`, `backend`, `max_samples` |
-| Sample streaming | Also `block_size` (4096 default) |
-| WAV generation | Also `bits` (16), `max_bytes` (64000000), `block_size` (4096) |
-| MIDI export | Encoding options plus `note`, `velocity`, `channel`, `program`, `bpm`, `ppqn`, `max_bytes` |
-| Event/Morse decoder | `wpm`, `effective_wpm`, `prefer_prosigns`, `max_segments` |
-| Sample reception/detector | `sample_rate`, `frequency`, `wpm`, `effective_wpm`, `min_frequency`, `max_frequency`, `frequency_step`, `min_contrast`, `min_purity`, `max_frames`, `backend` |
-| WAV reception | Detector options except `sample_rate`; also `stereo`, `max_bytes`, `block_samples` |
-| Raw Audio constructor | `stereo`, `max_bytes`, `block_samples`, `backend` |
-| Raw Audio writing | `sample_rate`, `bits`; streaming writer also requires `sample_count` |
-| All path-writing helpers | Also `overwrite` (0 or 1, default 0) |
+The constructor stores encoding/generation defaults only. Per-call WAV generation
+also accepts `bits`, `max_bytes` and `block_size`; MIDI export accepts its separate
+note/program/tempo options. `overwrite` belongs only to path-writing helpers.
+Decoder options belong on event/text decoding; detector options belong on audio
+reception. WAV reception adds `stereo`, `max_bytes` and `block_samples`, taking
+its sample rate from the header. Unknown or duplicate option names are errors.
 
-Rates/frequencies are Hz; attack/release are milliseconds. Sample rates are
-integer 1000..384000 Hz; tones must be below half the rate. `block_size` is
-for generated sample blocks; `block_samples` is for WAV reader blocks.
-`max_samples` limits total generation (10000000 default), `max_frames` limits
-retained detector frames (24000, about 120 seconds), `max_segments` limits
-decoder history (100000). Increasing these raises resource use. Frequency grid
-step is candidate spacing, not filter bandwidth. Module POD lists all ranges.
+`block_size` means generated samples per block; `block_samples` means reader
+frames per block. Rates and frequencies are Hz; attack/release values are
+milliseconds. Numeric ranges/defaults and method signatures are specified in
+the module POD, rather than repeated in a second option reference here.
 
-`backend => 'perl'` is the default and needs no external dependency. `pdl`
-requires PDL 2.081 or later; `auto` selects PDL when loadable, otherwise Perl.
-It chooses by availability, not workload speed. Small blocks/known-tone
-reception can favor Perl. See [verification](verification.md) and the benchmark.
+`backend => 'perl'` needs only core Perl. `pdl` requires PDL 2.081 or later;
+`auto` chooses PDL by availability, not speed. Small blocks can favor Perl.
+See [verification](verification.md) for evidence boundaries and
+[architecture](architecture.md) for processing/lifecycle design.
 
-## Command-line examples
-
-```sh
-perl -Ilib examples/send.pl --wpm 20 --effective-wpm 12 --frequency 650 cq.wav 'CQ <AR>'
-perl -Ilib examples/receive.pl --wpm 20 --effective-wpm 12 --frequency 650 --json cq.wav
-perl -Ilib examples/midi.pl --wpm 20 --note 77 --program 80 cq.mid 'CQ TEST'
-```
-
-All three support `--help`. Output paths must be new unless the sender/MIDI
-command receives `--overwrite`. The receiver prints
-text normally or the full result with `--json`, and exits 0 for nonempty text,
-1 for empty text. JSON includes warnings; nonempty text is not certification
-of reception. Quote prosigns so the shell does not interpret angle brackets.
-Run `perl -Ilib examples/workflows.pl` for a self-contained tour using temporary
-files. See [architecture](architecture.md) for exact event/lifecycle contracts.
+Run `perl -Ilib examples/workflows.pl` for the executable tour. Command-line
+sender, receiver and MIDI examples accept `--help`; quote prosigns in shell
+arguments and use `--overwrite` explicitly for repeated output. The receiver
+exits 0 for nonempty text and 1 for empty text; argument/I/O errors may exit
+with another nonzero status. `--json` includes warnings alongside text.
