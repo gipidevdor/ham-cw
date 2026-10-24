@@ -16,8 +16,12 @@ adding a workflow alone does not change repository rules.
 | zizmor 1.31.1 | Checks workflow permissions, expression injection, credential persistence and action pinning in offline mode. |
 | Perl::Critic security policies | Rejects string eval, two-argument open, bareword file handles and backtick shell execution in library, maintainer scripts, examples and Makefile.PL. |
 
-CVE JSON artifacts are retained for 14 days. Redacted Gitleaks JSON is retained
-for 7 days. Artifacts are attempted even after scanner failure. Scanner and
+Before the declared-constraints scan, CPAN::Meta and Module::CPANfile convert
+the generated `MYMETA.json` prerequisites into a temporary `cpanfile`, the
+input format supported by `cpan-audit deps`. This preserves phase and relation
+constraints, including optional PDL. Missing/invalid metadata stops the job.
+The generated manifest is retained with the CVE JSON artifacts for 14 days.
+Redacted Gitleaks JSON is retained for 7 days. Artifacts are attempted even after scanner failure. Scanner and
 advisory database versions appear in job logs. No `continue-on-error`,
 `--exit-zero`, vulnerability exclusion file or secret allowlist is configured.
 The existing malformed-WAV, resource-limit, I/O-failure and lifecycle tests
@@ -80,8 +84,13 @@ Distribution metadata validation also passed.
 
 CPAN::Audit 20260622.001 with CPANSA::DB 20260923.001 reported three advisory
 matches in the local developer environment: CPANSA-perl-2026-15534,
-CPANSA-File-Temp-2011-4116 and CPANSA-podlators-2026-82560. Both installed and
-declared-dependency audits exit nonzero. No exclusions were added. These are
+CPANSA-File-Temp-2011-4116 and CPANSA-podlators-2026-82560. The installed
+environment audit exits nonzero. The initial declared scan did not discover
+Makefile.PL prerequisites; the corrected scan now consumes generated cpanfile
+metadata. Its round-trip check preserves all phases/relations and PDL 2.081.
+Unlike installed-version matches, a constraint scan can report historical
+vulnerable versions permitted by broad lower bounds; its matches need
+separate review. No exclusions were added. These are
 local database matches awaiting applicability review, not validated Ham::CW
 vulnerabilities or results from the GitHub runner. The complete remote workflow
 must run after these changes are pushed; its newly resolved dependency versions
@@ -96,7 +105,9 @@ nonzero exit status when advisories or errors occur:
 ```sh
 cpan-audit --version
 cpan-audit installed --perl --no-color --json
-cpan-audit deps . --perl --no-color --json
+task_audit_dir=$(mktemp -d)
+perl -MCPAN::Meta -MModule::CPANfile -e 'my $meta = CPAN::Meta->load_file("MYMETA.json"); print Module::CPANfile->from_prereqs($meta->prereqs)->to_string' > "$task_audit_dir/cpanfile"
+cpan-audit deps "$task_audit_dir" --perl --no-color --json
 gitleaks git --redact=100
 actionlint
 zizmor --offline --no-progress .github

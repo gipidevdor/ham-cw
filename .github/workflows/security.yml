@@ -26,24 +26,31 @@ jobs:
       - name: Install full dependency set and current advisory database
         run: |
           cpanm --notest --installdeps --with-develop --with-recommends .
-          cpanm --notest CPAN::Audit CPANSA::DB PDL
+          cpanm --notest CPAN::Audit CPANSA::DB Module::CPANfile PDL
           perl Makefile.PL
           make
       - name: Record scanner, backend and database versions
         run: |
           cpan-audit --version
           perl -MPDL -MCPANSA::DB -e 'print "PDL $PDL::VERSION; CPANSA::DB $CPANSA::DB::VERSION\n"'
+      - name: Generate supported dependency metadata
+        run: |
+          mkdir -p "$RUNNER_TEMP/declared-audit"
+          perl -MCPAN::Meta -MModule::CPANfile -e 'my $meta = CPAN::Meta->load_file("MYMETA.json"); print Module::CPANfile->from_prereqs($meta->prereqs)->to_string' > "$RUNNER_TEMP/declared-audit/cpanfile"
+          test -s "$RUNNER_TEMP/declared-audit/cpanfile"
       - name: Audit installed dependencies and interpreter
         run: cpan-audit installed --perl --no-color --json > "$RUNNER_TEMP/cpan-audit-installed.json"
       - name: Audit declared dependency constraints
         if: ${{ !cancelled() }}
-        run: cpan-audit deps . --perl --no-color --json > "$RUNNER_TEMP/cpan-audit-declared.json"
+        run: cpan-audit deps "$RUNNER_TEMP/declared-audit" --perl --no-color --json > "$RUNNER_TEMP/cpan-audit-declared.json"
       - name: Save CVE evidence even on failure
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cpan-security-audit
-          path: ${{ runner.temp }}/cpan-audit-*.json
+          path: |
+            ${{ runner.temp }}/cpan-audit-*.json
+            ${{ runner.temp }}/declared-audit/cpanfile
           if-no-files-found: error
           retention-days: 14
   secrets:
