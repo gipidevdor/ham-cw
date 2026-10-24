@@ -18,7 +18,8 @@ my @cases = (
 for my $case (@cases) {
     open my $fh, '<', \$case->[0] or die $!;
     eval { Ham::CW::Audio->new->reader($fh) };
-    is(ref($@) && (ref($@) ? $@->code : "$@"), $case->[1], 'reject malformed chunk structure');
+    is(ref($@) && (ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
+        $case->[1], 'reject malformed chunk structure');
 }
 my $trailing = riff($fmt . $data) . 'x';
 open my $tail, '<', \$trailing or die $!;

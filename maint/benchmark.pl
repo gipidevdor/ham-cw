@@ -3,121 +3,146 @@ use 5.020;
 use strict;
 use warnings;
 use lib 'lib';
-use Carp qw(croak);
-use Config;
+use Carp         qw(croak);
 use Getopt::Long qw(GetOptions);
 use JSON::PP;
 use Time::HiRes qw(time);
 use Ham::CW;
 use Ham::CW::Generator;
 use Ham::CW::Detector;
-use Ham::CW::Audio;
-use Ham::CW::_Internal::PDL;
+use Ham::CW::_Internal::Validate qw(integer);
 
-sub write_wav {
-    my ($samples, $rate, $bits, $backend) = @_;
-    my $bytes = '';
-    open my $fh, '>:raw', \$bytes or croak $!;
-    Ham::CW::Audio->new(backend => $backend)->write(
-        $fh, $samples,
-        sample_rate => $rate,
-        bits        => $bits
+my ($rate, $block_size, $repeat, $iterations, $snapshots) = (8000, 4096, 1, 3, 100);
+my ($known, $json, $help);
+GetOptions(
+    'rate=i'           => \$rate,
+    'block=i'          => \$block_size,
+    'repeat=i'         => \$repeat,
+    'iterations=i'     => \$iterations,
+    'snapshots=i'      => \$snapshots,
+    'known-frequency!' => \$known,
+    'json!'            => \$json,
+    'help'             => \$help
+) or die "Invalid benchmark options\n";
+
+if ($help) {
+    print "Usage: perl maint/benchmark.pl [--rate 8000] [--block 4096] [--repeat 1]\n",
+        "  [--iterations 3] [--snapshots 100] [--known-frequency] [--json]\n";
+    exit 0;
+}
+die "Unexpected arguments\n" if @ARGV;
+integer('rate',       $rate,       1000, 384000);
+integer('block',      $block_size, 1,    1000000);
+integer('repeat',     $repeat,     1,    100);
+integer('iterations', $iterations, 1,    10000);
+integer('snapshots',  $snapshots,  1,    1000000);
+my $frequency = $rate > 1300 ? 650 : $rate / 4;
+my $cw        = Ham::CW->new(sample_rate => $rate, frequency => $frequency);
+my $text      = join ' ', ('CQ CQ DE TESTCALL') x $repeat;
+my $events    = $cw->events($text);
+my $samples =
+    Ham::CW::Generator->new(sample_rate => $rate, frequency => $frequency)->generate($events);
+my $wav = '';
+open my $out, '>:raw', \$wav or croak $!;
+$cw->generate_wav($text, $out);
+close $out or croak $!;
+my @backends      = ('perl');
+my $pdl_available = eval { require Ham::CW::_Internal::PDL; 1 };
+push @backends, 'pdl' if $pdl_available;
+my @results;
+
+for my $backend (@backends) {
+    my %detector_options = (sample_rate => $rate, backend => $backend);
+    $detector_options{frequency} = $frequency if $known;
+    my $ready = Ham::CW::Detector->new(%detector_options);
+    my $feed  = sub { feed_blocks($_[0], $samples, $block_size); };
+    $feed->($ready);
+    $ready->result;
+    my %cases = (
+        generate => sub {
+            Ham::CW::Generator->new(
+                sample_rate => $rate,
+                frequency   => $frequency,
+                backend     => $backend
+            )->generate($events);
+        },
+        detect => sub {
+            my $detector = Ham::CW::Detector->new(%detector_options);
+            $feed->($detector);
+            $detector->finish;
+        },
+        wav_generate => sub {
+            open my $handle, '>:raw', \my $bytes or croak $!;
+            Ham::CW->new(sample_rate => $rate, frequency => $frequency, backend => $backend)
+                ->generate_wav($text, $handle);
+            close $handle or croak $!;
+        },
+        wav_decode => sub {
+            open my $handle, '<:raw', \$wav or croak $!;
+            Ham::CW->new(backend => $backend)
+                ->decode_wav($handle, $known ? (frequency => $frequency) : ());
+            close $handle or croak $!;
+        },
+        snapshot_rebuild => sub { $ready->_analyze(0); },
+        snapshots        => sub { $ready->result for 1 .. $snapshots; },
     );
-    close $fh or croak $!;
-    return $bytes;
-}
-
-sub read_wav {
-    my ($bytes, $backend) = @_;
-    open my $fh, '<:raw', \$bytes or croak $!;
-    my $result = Ham::CW::Audio->new(backend => $backend)->read($fh);
-    close $fh or croak $!;
-    return $result;
-}
-
-sub detect {
-    my ($samples, $rate, $backend, $size) = @_;
-    my $detector = Ham::CW::Detector->new(sample_rate => $rate, backend => $backend);
-    for (my $i = 0; $i < @{$samples}; $i += $size) {
-        my $end = $i + $size - 1;
-        $end = $#{$samples} if $end > $#{$samples};
-        $detector->feed([@{$samples}[$i .. $end]]);
-    }
-    return $detector->finish;
-}
-
-sub cases {
-    my ($events, $samples, $rate) = @_;
-    my $pcm = [@{$samples}[0 .. $rate - 1]];
-    my %cases;
-    for my $backend (qw(perl pdl)) {
-        $cases{generate}{$backend} = sub {
-            Ham::CW::Generator->new(sample_rate => $rate, backend => $backend)->generate($events);
-        };
-        $cases{detect}{$backend} = sub { detect($samples, $rate, $backend, scalar @{$samples}) };
-        $cases{detect_stream}{$backend} = sub { detect($samples, $rate, $backend, 4096) };
-        for my $bits (8, 16, 24) {
-            my $bytes = write_wav($pcm, $rate, $bits, 'perl');
-            $cases{"wav_read_$bits"}{$backend}  = sub { read_wav($bytes, $backend) };
-            $cases{"wav_write_$bits"}{$backend} = sub { write_wav($pcm, $rate, $bits, $backend) };
-        }
-    }
-    return \%cases;
-}
-
-sub measure {
-    my ($cases, $seconds) = @_;
-    my %results;
-    for my $operation (sort keys %{$cases}) {
-        for my $backend (qw(perl pdl)) {
-            my $run = $cases->{$operation}{$backend};
-            $run->();
-            my $start = time;
-            my $count = 0;
-            do { $run->(); ++$count } while time - $start < $seconds;
-            my $elapsed = time - $start;
-            $results{$operation}{$backend} = {
-                iterations       => $count,
-                elapsed_seconds  => $elapsed,
-                calls_per_second => $count / $elapsed
+    for my $operation (sort keys %cases) {
+        my ($user_before, $system_before) = times;
+        my $start = time;
+        $cases{$operation}->() for 1 .. $iterations;
+        my $elapsed = time - $start;
+        my ($user_after, $system_after) = times;
+        my $cpu = $user_after + $system_after - $user_before - $system_before;
+        push @results,
+            {
+            backend              => $backend,
+            operation            => $operation,
+            iterations           => $iterations,
+            cpu_seconds          => $cpu,
+            wall_seconds         => $elapsed,
+            cpu_seconds_per_call => $cpu / $iterations,
             };
-        }
-        my $pure = $results{$operation}{perl}{calls_per_second};
-        my $fast = $results{$operation}{pdl}{calls_per_second};
-        $results{$operation}{speedup} = $fast / $pure;
-        printf "%s: Perl %.3f/s; PDL %.3f/s; ratio %.3fx\n", $operation, $pure, $fast,
-            $fast / $pure;
     }
-    return \%results;
 }
+my $report = {
+    perl               => "$^V",
+    pdl_available      => $pdl_available ? 1 : 0,
+    sample_rate        => $rate,
+    block_samples      => $block_size,
+    sample_count       => scalar @{$samples},
+    audio_seconds      => @{$samples} / $rate,
+    known_frequency    => $known ? 1 : 0,
+    snapshots_per_call => $snapshots,
+    results            => \@results,
+};
+print_report($report, $json);
 
-my ($seconds, $output) = (1, undef);
-GetOptions('seconds=f' => \$seconds, 'json=s' => \$output)
-    or croak "Usage: perl maint/benchmark.pl [--seconds N] [--json FILE]\n";
-croak "seconds must be between 0.1 and 60\n" if $seconds < 0.1 || $seconds > 60;
-my $rate    = 8000;
-my $events  = Ham::CW->new->events('CQ CQ DE TESTCALL');
-my $samples = Ham::CW::Generator->new(sample_rate => $rate)->generate($events);
-print "Platform: $^O / $Config{archname}; Perl $^V; PDL $PDL::VERSION\n";
-print "8000 Hz, mono; wall-clock calls/second (higher is better).\n";
-my $results = measure(cases($events, $samples, $rate), $seconds);
-
-if (defined $output) {
-    my $json = JSON::PP->new->canonical->pretty->encode(
-        {
-            platform          => $^O,
-            architecture      => $Config{archname},
-            perl              => "$^V",
-            pdl               => "$PDL::VERSION",
-            sample_rate       => $rate,
-            pcm_samples       => $rate,
-            detection_samples => scalar @{$samples},
-            seconds_per_case  => $seconds,
-            results           => $results
+sub print_report {
+    my ($data, $as_json) = @_;
+    if ($as_json) { print JSON::PP->new->canonical->pretty->encode($data); }
+    else {
+        printf "Perl %s; %d Hz; %.2f seconds audio; %d sample blocks; %s tone\n",
+            $data->{perl}, $data->{sample_rate}, $data->{audio_seconds},
+            $data->{block_samples}, $data->{known_frequency} ? 'known' : 'searched';
+        print "PDL unavailable: measuring Perl only\n" unless $data->{pdl_available};
+        for my $row (@{$data->{results}}) {
+            printf "%-5s %-17s %.6f CPU seconds/call (%d iterations)\n",
+                @{$row}{qw(backend operation cpu_seconds_per_call iterations)};
         }
-    );
-    open my $fh, '>:raw', $output or croak $!;
-    print {$fh} $json or croak $!;
-    close $fh         or croak $!;
+        print "Snapshot calls contain $data->{snapshots_per_call} cached reads; ",
+            "very short timings may round to zero.\n";
+    }
+    return;
 }
+
+sub feed_blocks {
+    my ($detector, $input_samples, $size) = @_;
+    for (my $offset = 0; $offset < @{$input_samples}; $offset += $size) {
+        my $end = $offset + $size - 1;
+        $end = $#{$input_samples} if $end > $#{$input_samples};
+        $detector->feed([@{$input_samples}[$offset .. $end]]);
+    }
+    return;
+}
+
 1;

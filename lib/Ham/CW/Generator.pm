@@ -17,7 +17,7 @@ sub new {
         sample_rate => $rate,
         backend     => Ham::CW::_Internal::Backend::resolve($args{backend}),
         frequency   => number(
-            'frequency', $args{frequency} // ($rate / 2 > 700 ? 700 : $rate / 4),
+            'frequency', $args{frequency} // ($rate / 2 - 1 >= 700 ? 700 : $rate / 4),
             1,           $rate / 2 - 1
         ),
         amplitude   => number('amplitude',  $args{amplitude}  // 0.8, 0, 1),
@@ -45,7 +45,9 @@ sub _segments {
     my @segments = map { +{%{$_}} } @{$sampled->{segments}};
     my $total    = 0;
     $total += $_->{samples} for @segments;
-    fail('CW_E_RESOURCE', 'Generation exceeds max_samples') if $total > $self->{max_samples};
+    fail('CW_E_RESOURCE',
+        'Generation exceeds max_samples; increase max_samples or generate a shorter message')
+        if $total > $self->{max_samples};
     return \@segments;
 }
 
@@ -145,7 +147,7 @@ Ham::CW::Generator - deterministic, block-independent sinusoidal synthesis
 
 C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
 2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
-arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for FAST usage.
+arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for PDL usage.
 
 C<new> accepts C<sample_rate> (16000), C<frequency> (700 Hz, strictly below
 Nyquist; the default is one quarter of the rate when 700 Hz is unavailable), C<amplitude> (0.8 in 0..1), C<attack_ms> and C<release_ms> (5 each),

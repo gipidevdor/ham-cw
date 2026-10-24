@@ -13,7 +13,8 @@ my @warnings;
     local $SIG{__WARN__} = sub { push @warnings, @_ };
     open my $fh, '>', \my $bytes or die $!;
     eval { Ham::CW::Audio->new->writer($fh, bits => 'abc', sample_count => 0) };
-    is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'invalid bits structured error');
+    is(ref($@) ? (ref($@) ? $@->code : "$@") : "$@",
+        'CW_E_ARGUMENT', 'invalid bits structured error');
 }
 is_deeply(\@warnings,                   [],                             'no raw numeric warning');
 is_deeply(Ham::CW::Result->new->events, {unit => 'us', segments => []}, 'canonical empty events');
@@ -22,10 +23,11 @@ for my $token (qw(BT KN BK KA VE)) {
 }
 for my $space ("\x{a0}", "\x{2003}") {
     eval { Ham::CW->new->encode("A${space}B") };
-    is(ref($@) ? $@->code : "$@", 'CW_E_SYMBOL', 'Unicode separators follow symbol policy');
+    is(ref($@) ? (ref($@) ? $@->code : "$@") : "$@",
+        'CW_E_SYMBOL', 'Unicode separators follow symbol policy');
 }
 eval { Ham::CW::Detector->new(wpm => 61) };
-is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'receive speed limit explicit');
+is(ref($@) ? (ref($@) ? $@->code : "$@") : "$@", 'CW_E_ARGUMENT', 'receive speed limit explicit');
 for my $level (0.01, 0.02, 0.08) {
     my $samples = noise(8000 * 62, $level);
     my $signal  = reference_sos();
@@ -51,8 +53,10 @@ my $r = $cw->decode_wav($in, frequency => 650, wpm => 20);
 ok(grep($_->{code} eq 'CW_W_SPACING_AMBIGUOUS', @{$r->warnings}), 'missing spacing hint warns');
 my $d = Ham::CW::Decoder->new(effective_wpm => 60);
 $d->feed($cw->events('SOS'));
-eval { $d->finish };
-is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'effective speed checked against estimated speed');
+my $inconsistent = $d->finish;
+ok($inconsistent->complete, 'inferred speed mismatch still finalizes');
+ok(grep($_->{code} eq 'CW_W_SPACING_AMBIGUOUS', @{$inconsistent->warnings}),
+    'inferred speed mismatch produces warning');
 my $events = Ham::CW->new->events('CQ TEST CQ TEST CQ TEST');
 $events->{segments}[0]{duration} *= 2;
 my $audio    = Ham::CW::Generator->new(sample_rate => 8000, frequency => 650)->generate($events);

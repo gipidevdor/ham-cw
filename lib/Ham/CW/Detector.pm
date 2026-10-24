@@ -30,7 +30,7 @@ sub new {
     }
     fail('CW_E_RESOURCE', 'Too many frequency candidates') if @frequencies > 256;
     number('wpm', $args{wpm}, 1, 60) if defined $args{wpm};
-    number('effective_wpm', $args{effective_wpm}, 1, $args{wpm} // 200)
+    number('effective_wpm', $args{effective_wpm}, 1, $args{wpm} // 60)
         if defined $args{effective_wpm};
     my $self = bless {
         %args,
@@ -55,6 +55,7 @@ sub reset {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
     $self->{frames}        = [];
     $self->{total_samples} = 0;
     $self->{final}         = undef;
+    $self->{snapshot}      = undef;
     $self->{pdl_kernels}   = {};
     return $self;
 }
@@ -94,9 +95,13 @@ sub feed {
     samples($block, 1000000);
     my $future = @{$self->{frames}} +
         int((@{$self->{buffer}} + @{$block} + $self->{frame_size} - 1) / $self->{frame_size});
-    fail('CW_E_RESOURCE', 'Detector frame limit exceeded') if $future > $self->{max_frames};
+    fail('CW_E_RESOURCE',
+        'Detector frame limit exceeded; increase max_frames or decode a shorter recording')
+        if $future > $self->{max_frames};
+    $self->{snapshot} = undef;
     $self->{total_samples} += @{$block};
     my $offset = 0;
+
     while ($offset < @{$block}) {
         if (   $self->{backend} eq 'pdl'
             && !@{$self->{buffer}}
@@ -197,6 +202,20 @@ sub _segment {
     return \@segments;
 }
 
+sub _robust_peak {
+    my ($powers) = @_;
+    my $peak = 0;
+
+    # A 5 ms impulse can straddle two frames. The median of five retains
+    # 20 ms dots while excluding either alignment of an isolated impulse.
+    for my $i (0 .. $#{$powers}) {
+        my @local = sort { $a <=> $b }
+            map { $_ < 0 || $_ > $#{$powers} ? 0 : $powers->[$_] } $i - 2 .. $i + 2;
+        $peak = $local[2] if $local[2] > $peak;
+    }
+    return $peak;
+}
+
 sub _analyze {
     my ($self, $complete) = @_;
     my @frames = @{$self->{frames}};
@@ -214,9 +233,7 @@ sub _analyze {
     my @powers = @{$powers};
     my @sorted = sort { $a <=> $b } @powers;
 
-    # Use the upper envelope even when marks occupy less than 5% of a recording.
-    my $peak = $sorted[-1];
-    $peak = $sorted[-1] if !$peak;
+    my $peak = _robust_peak(\@powers);
     return $empty->('CW_W_NO_SIGNAL', 'Signal below energy floor') if $peak < 1e-10;
     my $floor    = $sorted[int($#sorted * 0.10)];
     my $contrast = ($peak - $floor) / $peak;
@@ -254,15 +271,20 @@ sub _analyze {
     };
     return Ham::CW::Result->new(%{$h});
 }
-sub result { my ($self) = @_; return $self->{final} // $self->_analyze(0) }
+
+sub result {
+    my ($self) = @_;
+    return $self->{final} // ($self->{snapshot} //= $self->_analyze(0));
+}
 
 sub finish {
     my ($self) = @_;
     return $self->{final}          if $self->{state} eq 'FINISHED';
     $self->_frame($self->{buffer}) if @{$self->{buffer}};
-    $self->{buffer} = [];
-    $self->{final}  = $self->_analyze(1);
-    $self->{state}  = 'FINISHED';
+    $self->{buffer}   = [];
+    $self->{final}    = $self->_analyze(1);
+    $self->{state}    = 'FINISHED';
+    $self->{snapshot} = undef;
     return $self->{final};
 }
 1;
@@ -285,7 +307,7 @@ Ham::CW::Detector - bounded Goertzel CW detector
 
 C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
 2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
-arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for FAST usage.
+arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for PDL usage.
 
 C<new> accepts C<sample_rate> (16000), optional C<frequency> and C<wpm>,
 C<effective_wpm>, C<min_frequency> (300), C<max_frequency> (1500),
@@ -303,12 +325,14 @@ Hann-windowed, DC-removed Goertzel frames. Chunk boundaries do not affect the
 frame grid. Only one pending frame of raw samples is retained. Per-frame
 energies are retained up to C<max_frames>; exceeding it is a recoverable
 validation error. C<result> returns a provisional cumulative snapshot without
-flushing the partial frame. C<finish> flushes it once and returns the final
+flushing the partial frame. Repeated snapshots are cached until a successful
+feed or reset; reference-valued accessors still return copies. C<finish> flushes it once and returns the final
 L<Ham::CW::Result>. C<reset> discards history; C<state> reports READY, ACTIVE or
 FINISHED. Feed after finish is rejected. Invalid input does not change state.
 
 Analysis selects the strongest candidate across frames and seeds a noise floor
-from percentiles. Segmentation tracks signal peaks with a one-second decay,
+from percentiles. Its peak seed is the maximum of a five-frame median,
+which retains sparse marks without letting a single 5 ms impulse set the scale. Segmentation tracks signal peaks with a one-second decay,
 updates the noise estimate during OFF frames, and applies hysteresis. A bounded
 peak update limits the influence of impulses. It merges short interior impulses and fits Morse
 timing. Spectral purity, envelope contrast and at least three keyed marks are

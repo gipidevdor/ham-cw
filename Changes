@@ -1,25 +1,24 @@
 Revision history for Ham-CW
 
 0.001  2026-10-24
-    - Add an optional PDL backend for faster audio generation, PCM conversion
-      and tone detection. Select it with backend => 'pdl'; existing callers
-      continue to use the Perl implementation by default.
-    - Allow automatic backend selection and a per-call reception override.
-      Keep the existing sample arrays, streaming limits and error codes.
-    - Add numerical equivalence tests, a reproducible benchmark and PDL test
-      jobs for Linux, macOS and Windows. The completed platform checks and
-      PCM measurements are recorded in docs/verification.md.
-    - Expand FAST CI to the minimum Perl/PDL combination and macOS Intel.
-      Use Strawberry Perl for native Windows builds, save benchmark evidence,
-      and compare all PCM depths as well as streaming reception.
-    - Make missing-PDL tests portable to Perl 5.20.
-    - Initial development release.
-    - International Morse text, explicit prosigns and Farnsworth timing.
-    - Cumulative event conversion and deterministic PCM synthesis.
-    - Bounded PCM WAV reading and writing at 8, 16 and 24 bits.
-    - Experimental Goertzel reception and incremental processing.
-
-    - Fix sparse audio detection, retain partially decoded text, expose reception
-    limits and clarify spectral diagnostics. Validate inferred Farnsworth timing,
-    low-rate defaults and PCM bit depth. Add operational prosign aliases and
-    regression coverage; tolerate trailing WAV bytes with a warning.
+    - Initial development release for Morse text, timing, PCM WAV and MIDI.
+    - International symbols, operational prosigns and Farnsworth generation.
+    - Collecting, streaming and path-based APIs with bounded resource use,
+      structured errors and immutable decoding snapshots.
+    - Experimental audio reception with tone and speed estimation, partial
+      text recovery and warnings for ambiguous timing or spacing.
+    - Robust envelope seeding for sparse messages and isolated 5 ms impulses.
+    - Catchable broken-pipe errors, direct sampled-event MIDI tick rounding,
+      canonical decoder segment limits and validated result/error payloads.
+    - Complete-source coverage gates, archive completeness checks and
+      phase-integrated independent drift fixtures.
+    - Optional PDL acceleration, selected explicitly or through auto fallback;
+      the default Perl backend uses only core dependencies.
+    - Explicit overwrite for WAV and MIDI file output; failed replacements
+      preserve existing files.
+    - Independent signal fixtures, reception matrix, backend comparisons and
+      regression tests. Benchmark tooling reports local workload measurements.
+    - Consolidate the quality-review and FAST branches, retaining both workload
+      and cross-platform PCM benchmark tools.
+    - Verify the minimum PDL version and macOS Intel; use Strawberry Perl
+      for Windows native builds and retain downloadable timing evidence.

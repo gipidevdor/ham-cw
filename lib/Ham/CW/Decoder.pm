@@ -34,6 +34,8 @@ sub reset {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
     $self->{kind}           = undef;
     $self->{rate}           = undef;
     $self->{total_duration} = 0;
+    $self->{snapshot}       = undef;
+    $self->{final}          = undef;
     return $self;
 }
 sub state { my ($self) = @_; return $self->{state} }    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
@@ -43,14 +45,16 @@ sub decode {
     fail('CW_E_ARGUMENT', 'Morse must be a defined scalar') if !defined($morse) || ref($morse);
     $morse =~ s/\A\s+|\s+\z//gx;
     return '' unless length $morse;
-    fail('CW_E_SYMBOL', 'Invalid Morse syntax')
+    fail('CW_E_SYMBOL',
+        'Invalid Morse syntax; use spaces between letters and / between words, e.g. ... --- ...')
         unless $morse =~ /\A[.\-]+(?:\s+[.\-]+)*(?:\s*\/\s*[.\-]+(?:\s+[.\-]+)*)*\z/x;
     my $reverse = $self->{reverse};
     my @words;
     for my $word (split /\s*\/\s*/x, $morse) {
         my $text = '';
         for my $code (split /\s+/x, $word) {
-            fail('CW_E_SYMBOL', 'Unknown Morse group') unless exists $reverse->{$code};
+            fail('CW_E_SYMBOL', "Unknown Morse group '$code'; separate letters with spaces")
+                unless exists $reverse->{$code};
             $text .= $reverse->{$code};
         }
         push @words, $text;
@@ -67,8 +71,13 @@ sub feed {
     fail('CW_E_ARGUMENT', 'Event units or sample rate changed')
         if defined($self->{kind})
         && ($self->{kind} ne $kind || ($kind eq 'samples' && $self->{rate} != $rate));
-    fail('CW_E_RESOURCE', 'Decoder segment limit exceeded')
-        if @{$self->{segments}} + @{$events->{segments}} > $self->{max_segments};
+    my $joins =
+           @{$self->{segments}}
+        && @{$events->{segments}}
+        && $self->{segments}[-1]{state} eq $events->{segments}[0]{state} ? 1 : 0;
+    fail('CW_E_RESOURCE',
+        'Decoder segment limit exceeded; increase max_segments or decode shorter sequences')
+        if @{$self->{segments}} + @{$events->{segments}} - $joins > $self->{max_segments};
     my $added = 0;
     $added += $_->{$kind} for @{$events->{segments}};
     fail('CW_E_RESOURCE', 'Cumulative event duration exceeds exact integer range')
@@ -82,9 +91,10 @@ sub feed {
     }
     push @{$self->{segments}}, @{$copy};
     $self->{total_duration} += $added;
-    $self->{kind}  = $kind;
-    $self->{rate}  = $rate;
-    $self->{state} = 'ACTIVE';
+    $self->{kind}     = $kind;
+    $self->{rate}     = $rate;
+    $self->{state}    = 'ACTIVE';
+    $self->{snapshot} = undef;
     return $self;
 }
 
@@ -177,21 +187,43 @@ sub _snapshot {
         events   => $events,
         warnings => [{code => 'CW_W_NO_TIMING', message => 'No usable timing evidence'}]
     ) unless $dot;
-    fail('CW_E_ARGUMENT', 'effective_wpm exceeds estimated character WPM')
-        if defined($self->{effective_wpm}) && $self->{effective_wpm} > 1_200_000 / $dot;
-    if (  !defined($self->{effective_wpm})
-        && grep { $_->{state} eq 'off' && $_->{duration} > 8 * $dot } @{$timed->{segments}})
-    {
-        push @{$warnings},
-            {
-            code    => 'CW_W_SPACING_AMBIGUOUS',
-            message => 'Long gaps may be Farnsworth spacing; specify effective_wpm'
-            };
+    my $spacing = $dot;
+    if (defined($self->{effective_wpm})) {
+        my $character_wpm = 1_200_000 / $dot;
+        if (!defined($self->{wpm}) && $self->{effective_wpm} > $character_wpm * (1 + 1e-9)) {
+            push @{$warnings},
+                {
+                code    => 'CW_W_SPACING_AMBIGUOUS',
+                message => 'effective_wpm exceeds estimated character speed; using ordinary spacing'
+                };
+        }
+        else {
+            $spacing = (60_000_000 / $self->{effective_wpm} - 31 * $dot) / 19;
+            $spacing = $dot if $spacing < $dot;
+        }
     }
-    my $spacing =
-        defined($self->{effective_wpm})
-        ? (60_000_000 / $self->{effective_wpm} - 31 * $dot) / 19
-        : $dot;
+    else {
+        # Recording margins and isolated operator pauses do not establish
+        # Farnsworth spacing. Require repeated stretched gaps between marks.
+        my @gaps;
+        my $segments = $timed->{segments};
+        for my $i (1 .. $#{$segments} - 1) {
+            next
+                unless $segments->[$i]{state} eq 'off'
+                && $segments->[$i - 1]{state} eq 'on'
+                && $segments->[$i + 1]{state} eq 'on';
+            push @gaps, $segments->[$i]{duration} / $dot;
+        }
+        my $long = grep { $_ > 8 } @gaps;
+        if ($long >= 2) {
+            push @{$warnings},
+                {
+                code    => 'CW_W_SPACING_AMBIGUOUS',
+                message =>
+                    'Repeated long internal gaps may be Farnsworth spacing; specify effective_wpm'
+                };
+        }
+    }
     my $groups = _groups($timed->{segments}, $dot, $spacing, $complete, $warnings);
     my $text   = $self->_translate($groups, $warnings);
     return Ham::CW::Result->new(
@@ -208,12 +240,18 @@ sub _snapshot {
     );
 }
 
-sub result { my ($self) = @_; return $self->_snapshot($self->{state} eq 'FINISHED') }
+sub result {
+    my ($self) = @_;
+    return $self->{final} // ($self->{snapshot} //= $self->_snapshot(0));
+}
 
 sub finish {
     my ($self) = @_;
+    return $self->{final} if $self->{state} eq 'FINISHED';
     my $result = $self->_snapshot(1);
-    $self->{state} = 'FINISHED';
+    $self->{final}    = $result;
+    $self->{snapshot} = undef;
+    $self->{state}    = 'FINISHED';
     return $result;
 }
 1;
@@ -250,13 +288,18 @@ C<feed(events)> accepts canonical TimedEvents or SampledEvents. Units and rate
 must stay constant. Adjacent runs split across feeds are merged. Validation
 errors preserve state. C<result> returns a cumulative L<Ham::CW::Result>;
 only closed gaps confirm letters. C<finish> confirms the final group and is
-idempotent. C<reset> discards history. C<state> returns READY, ACTIVE or FINISHED.
+idempotent. Repeated C<result> calls without a successful feed reuse the
+cached snapshot; reference-valued accessors still return copies. C<reset> discards history. C<state> returns READY, ACTIVE or FINISHED.
 Feeding after finalization raises C<CW_E_STATE>.
 
 Without WPM, timing is fitted to 1:3 mark lengths within 5..60 WPM. A stream
 containing only one mark length is ambiguous and produces a warning. Specify
 WPM for short messages. Farnsworth requires C<effective_wpm> for dependable
-word boundaries. History is retained up to C<max_segments>; sample arrays
+word boundaries. Repeated internal gaps longer than eight dots warn about
+possible unknown spacing; recording margins and isolated long pauses do not.
+When effective speed exceeds an estimated character speed, reception warns
+and uses ordinary spacing. Explicit incompatible speeds are rejected by C<new>.
+History is retained up to C<max_segments>; sample arrays
 are never retained here. Invalid mark durations and unknown groups produce
 structured warnings rather than invented characters. Timing estimates are
 provisional until finish.

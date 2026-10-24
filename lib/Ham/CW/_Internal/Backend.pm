@@ -10,7 +10,10 @@ sub resolve {
     fail('CW_E_ARGUMENT', 'backend must be perl, pdl or auto')
         if ref($backend) || $backend !~ /\A(?:perl|pdl|auto)\z/x;
     return 'perl' if $backend eq 'perl';
-    my $available = eval { require Ham::CW::_Internal::PDL; 1 };
+
+    # Perl 5.20 may accept an undef %INC entry left by a failed require.
+    my $available =
+        eval { require Ham::CW::_Internal::PDL; defined $INC{'Ham/CW/_Internal/PDL.pm'} };
     return 'pdl'  if $available;
     return 'perl' if $backend eq 'auto';
     fail('CW_E_ARGUMENT', 'PDL backend unavailable; install PDL 2.081 or later');

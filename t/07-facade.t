@@ -41,6 +41,7 @@ is($error->context->{parameter}, 'x', 'exception context copied');
 
 for my $args ({typo => 20}, {wpm => 0}, {effective_wpm => 21}, {frequency => 'Inf'}) {
     eval { Ham::CW->new(%{$args}) };
-    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'facade rejects invalid configuration');
+    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
+        'CW_E_ARGUMENT', 'facade rejects invalid configuration');
 }
 done_testing;

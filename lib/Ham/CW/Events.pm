@@ -16,7 +16,8 @@ sub validate_events {
     fail('CW_E_ARGUMENT', 'Use either unit or sample_rate')
         if $timed && exists $events->{sample_rate};
     if ($timed) {
-        fail('CW_E_ARGUMENT', 'TimedEvents unit must be us') unless $events->{unit} eq 'us';
+        fail('CW_E_ARGUMENT', 'TimedEvents unit must be us')
+            if !defined($events->{unit}) || ref($events->{unit}) || $events->{unit} ne 'us';
     }
     else { integer('sample_rate', $events->{sample_rate}, 1000, 384000) }
     my $field = $timed ? 'duration' : 'samples';

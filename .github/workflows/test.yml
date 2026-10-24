@@ -29,6 +29,8 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
       - name: Configure and test
+        env:
+          HARNESS_PERL_SWITCHES: -Mwarnings=FATAL,all
         run: |
           perl Makefile.PL
           prove -lr t
@@ -37,8 +39,9 @@ jobs:
           perl -Ilib examples/send.pl example.wav CQ DE TESTCALL
           perl -Ilib examples/receive.pl example.wav
           perl -Ilib examples/midi.pl example.mid CQ DE TESTCALL
+          perl -Ilib examples/workflows.pl
   fast:
-    name: FAST / ${{ matrix.os }} / Perl ${{ matrix.perl }} / PDL ${{ matrix.pdl }}
+    name: ${{ matrix.check }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -46,11 +49,11 @@ jobs:
       matrix:
         include:
           # PDL 2.081 predates C23; use the legacy runner's GCC toolchain.
-          - {os: ubuntu-22.04, perl: '5.20', pdl: '2.081'}
-          - {os: ubuntu-latest, perl: '5.40', pdl: '2.106'}
-          - {os: macos-latest, perl: '5.40', pdl: '2.106'}
-          - {os: macos-15-intel, perl: '5.40', pdl: '2.106'}
-          - {os: windows-latest, perl: '5.40', pdl: '2.106'}
+          - {os: ubuntu-22.04, perl: '5.20', pdl: '2.081', check: 'PDL minimum / Perl 5.20'}
+          - {os: ubuntu-latest, perl: '5.40', pdl: '2.106', check: 'PDL / ubuntu-latest'}
+          - {os: macos-latest, perl: '5.40', pdl: '2.106', check: 'PDL / macos-latest'}
+          - {os: macos-15-intel, perl: '5.40', pdl: '2.106', check: 'PDL / macos-15-intel'}
+          - {os: windows-latest, perl: '5.40', pdl: '2.106', check: 'PDL / windows-latest'}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: shogo82148/actions-setup-perl@84c44b5a14f12b311f1bf3d2a70c8807f30b7ab2 # v1
@@ -60,12 +63,14 @@ jobs:
       - name: Install PDL with build diagnostics
         run: cpanm --verbose --notest PDL@${{ matrix.pdl }}
       - name: Verify FAST backend and compatibility
+        env:
+          HARNESS_PERL_SWITCHES: -Mwarnings=FATAL,all
         run: |
           perl -Ilib -MHam::CW::_Internal::PDL -e 1
           perl Makefile.PL
           prove -lr t
       - name: Compare synthesis, streaming reception and PCM
-        run: perl maint/benchmark.pl --seconds 1 --json benchmark.json
+        run: perl maint/benchmark-platforms.pl --seconds 1 --json benchmark.json
       - name: Save benchmark evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

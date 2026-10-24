@@ -1,53 +1,68 @@
-# Verification record
+# Verification
 
-Initial development candidate 0.001, checked on 2026-10-24.
-
-## Local results
+The current review candidate was checked locally on 2026-10-24. Results below
+refer to the reviewed source snapshot, including the optional PDL backend and
+workflow APIs. They do not certify unreviewed changes in another checkout.
 
 | Check | Result |
 | --- | --- |
-| Ordinary suite, Perl 5.44.0, macOS | 1,144 assertions across 14 files; PASS |
-| Ordinary suite with all Perl warnings fatal | 1,144 assertions; PASS |
-| System Perl 5.34.1, macOS | 1,144 assertions; PASS |
-| Author suite | 151 assertions across 5 files; PASS |
-| Perl::Critic 1.156, severity 3 | PASS for production modules, examples, maintainer scripts and Makefile.PL |
-| Perl::Tidy 20260826 | Formatting unchanged under the checked-in configuration |
-| Test::Pod | All public POD checked; PASS |
-| Local Test::Kwalitee 1.28 | Applicable local checks PASS; not a remote CPANTS report |
-| Full archive analysis, Module::CPANTS::Analyse 1.03 | All 33 available indicators PASS; no archive diagnostics |
-| Devel::Cover 1.52, production modules only | 99.81% statements (1061/1063); 98.87% branches (350/354) |
-| WAV format verification | Independent header, sample and reference-fixture assertions PASS |
-| Examples | WAV send, automatic receive and MIDI export executed successfully |
-| Distribution extraction/build/test | make disttest and make distcheck PASS; isolated installation and all three installed examples PASS |
-| GitHub platform matrix | All seven jobs PASS for the production implementation in [run 40082998845](https://github.com/gipidevdor/ham-cw/actions/runs/40082998845): Linux Perl 5.20/5.34/5.40/5.44, macOS 5.40, Windows 5.40 and author gates |
+| Ordinary suite, macOS ARM64, Perl 5.44 with PDL 2.106 | 1,674 assertions across 22 files; PASS |
+| Ordinary suite with all Perl warnings fatal | 1,674 assertions; PASS |
+| System Perl 5.34 without PDL | 1,513 assertions across 22 files; PASS |
+| Author checks | 203 assertions across 6 files; PASS |
+| Perl::Tidy 20260826 and Perl::Critic 1.156 | PASS |
+| POD, metadata and local kwalitee | PASS |
+| Production statement coverage | 99.15% (1,514/1,527); PASS |
+| Production branch coverage | 97.47% (501/514); PASS |
+| Distribution build/test, archive checks and isolated install | PASS |
 
-Coverage was collected from the full 1,144-assertion suite. That measurement describes the initial candidate before the corrections below. Tests and author
-tools are excluded from the coverage denominator. No uncovered path was marked exempt to improve the percentage.
-Unreachable decoder/detector FAILED checks have since been removed. The 95% statement and 90% branch
-gates are enforced by `maint/coverage.pl` in CI.
+Coverage requires all 17 production modules, including the optional PDL
+implementation. Missing, unexpected or duplicated production paths fail the
+gate before percentages are considered. Author regressions verify that a
+100% summary for an incomplete module subset cannot pass. An incomplete
+MANIFEST also prevents release archive construction.
 
-## Independent evidence
+Tests use fixed Morse vectors, independently generated audio, a synthetic
+WAV fixture, independent PCM/MIDI byte checks and injected I/O failures.
+Regression cases cover sparse messages in 62 seconds of noise, 5 ms impulses
+before CW at amplitudes 0.01 and 0.02, block/backend equivalence, fractional
+speeds, ambiguous spacing and a 125-second WAV. The drift fixture integrates
+instantaneous frequency; measured zero crossings verify its stated bounds.
 
-Symbol tests use fixed reference vectors rather than the implementation's
-lookup table. Oscillator tests check analytic sample values, zero crossings,
-amplitude bounds and exact sample counts. DSP tests generate keyed signals
-without using the project encoder/generator. The on-disk WAV fixture is built
-separately by a standalone Perl writer. MIDI tests parse bytes with a
-separate test reader and verify cumulative ticks and note-on/off events.
+A separate Perl process checks real closed-pipe writes: WAV and MIDI errors
+remain catchable, the WAV writer becomes FAILED and the caller's signal
+handler is restored. Additional tests cover canonical segment limits across
+feeds, invalid/cyclic result and exception payloads, sampled MIDI half-tick
+boundaries and valid tone defaults at 1,400, 1,401 and 1,402 Hz sample rates.
+File tests verify existing-file protection, explicit replacement and retention
+of the destination after generation failure.
 
-Negative tests cover every truncation of a small WAV, malformed chunk ordering
-and sizes, duplicate chunks, unknown padded chunks, 300 deterministic header
-mutations, non-finite samples, resource ceilings, lifecycle misuse and injected
-read/seek/write failures. Streaming tests use blocks of 1, 7 and larger sizes.
+The workflow tour and installed command-line examples are checked during
+isolated installation. Production code has no mandatory non-core dependency.
+PDL is optional; waveform comparisons use an absolute tolerance of 1e-10.
+Only PDL 2.106 was tested locally; 2.081 remains the declared minimum.
+Floating-point calculations near PCM rounding boundaries can differ outside
+the tested vectors.
 
-## Limits of this record
+All twelve platform/author jobs must pass on the candidate commit before merge:
+six ordinary Perl configurations, five PDL configurations and the author/release
+job. Main requires these checks, an up-to-date branch and a pull request.
+See the [CI runs](https://github.com/gipidevdor/ham-cw/actions/workflows/test.yml)
+for remote results; a configured matrix is not evidence of execution.
 
-The corpus is synthetic. Field performance on off-air recordings, separation
-of overlapping stations and an indefinitely adaptive radio receiver have not
-been established. Full transitive audits/builds of rejected CPAN candidates
-were not performed; see the dependency audit. No PAUSE upload, remote CPANTS
-score or CPAN Testers result is claimed. A CPAN upload requires the maintainer's
-explicit authorization and a fresh namespace/permissions check.
+The reception tests are synthetic. Off-air accuracy, overlapping stations
+and unlimited-duration reception remain outside these results. The
+[benchmark observations](benchmark-results.json) predate the latest reception
+corrections and remain historical measurements. Run `perl maint/benchmark.pl`
+to measure the current code on a chosen workload.
+
+## Historical FAST measurements
+
+The following measurements and completed platform run apply to the explicit
+commits listed below, before the subsequent quality-review integration.
+The platform benchmark is now retained as `maint/benchmark-platforms.pl`;
+`maint/benchmark.pl` additionally measures configurable workflows and snapshots.
+Current integrated-code results must be checked on the integration pull request.
 
 ## FAST backend verification (2026-10-24)
 

@@ -2,8 +2,9 @@ package Ham::CW::Audio;
 use 5.020;
 use strict;
 use warnings;
+use Storable ();
 use Ham::CW::_Internal::WavWriter;
-use Ham::CW::_Internal::IO       qw(read_exact write_bytes);
+use Ham::CW::_Internal::IO       qw(read_exact write_bytes with_file);
 use Scalar::Util                 qw(openhandle);
 use Ham::CW::_Internal::Validate qw(fail integer options samples named_arguments);
 use Ham::CW::_Internal::Backend;
@@ -92,6 +93,52 @@ sub _decode_pcm {
         return \@mono;
     }
     return \@values;
+}
+
+sub read_file {
+    my ($self, $path) = @_;
+    return with_file($path, 'read', sub { $self->read($_[0]) });
+}
+
+sub write_file {
+    my ($self, $path, $values, @pairs) = @_;
+    my %args      = named_arguments(@pairs);
+    my $overwrite = integer('overwrite', delete($args{overwrite}) // 0, 0, 1);
+    return with_file($path, 'write', sub { $self->write($_[0], $values, %args) }, $overwrite);
+}
+
+sub write_blocks {
+    my ($self, $path, $next, @pairs) = @_;
+    fail('CW_E_ARGUMENT', 'Sample source must be a code reference') unless ref($next) eq 'CODE';
+    my %args      = named_arguments(@pairs);
+    my $overwrite = integer('overwrite', delete($args{overwrite}) // 0, 0, 1);
+    return with_file(
+        $path, 'write',
+        sub {
+            my $writer = $self->writer($_[0], %args);
+            while (defined(my $block = $next->())) { $writer->feed($block) }
+            return $writer->finish;
+        },
+        $overwrite
+    );
+}
+
+sub read_blocks {
+    my ($self, $path, $callback) = @_;
+    fail('CW_E_ARGUMENT', 'Block callback must be a code reference')
+        unless ref($callback) eq 'CODE';
+    return with_file(
+        $path, 'read',
+        sub {
+            my $reader = $self->reader($_[0]);
+            my %metadata =
+                map { ($_ => $reader->{$_}) } qw(sample_rate bits channels sample_count warnings);
+            while (my $block = $reader->{next}->()) {
+                $callback->($block, Storable::dclone(\%metadata));
+            }
+            return \%metadata;
+        }
+    );
 }
 
 sub reader {
@@ -217,7 +264,7 @@ Ham::CW::Audio - bounded RIFF PCM input and output
 
 C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
 2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
-arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for FAST usage.
+arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for PDL usage.
 
 C<new> accepts C<max_bytes> (64000000), C<block_samples> (4096), and
 C<stereo> (C<left>, C<right>, C<mix>; default mix). Mix averages both channels.
@@ -235,6 +282,30 @@ them. Duplicate fmt/data chunks, compressed formats, inconsistent sizes,
 and misalignment are rejected. Trailing bytes outside RIFF are ignored with
 a C<CW_W_WAV_TRAILING> entry in the returned C<warnings> array. RF64, WAVE64 and
 extensible WAV are unsupported. Empty data is legal.
+
+=head2 read_file, write_file
+
+C<read_file(path)> returns the same samples/metadata as C<read(handle)> and
+owns the input handle. C<write_file(path, samples, %options)> accepts the same
+options as C<write(handle, samples, %options)>, owns the output handle and
+returns writer statistics. Existing output files are preserved and rejected.
+On failure handles close and removal of newly created output is attempted.
+C<overwrite =E<gt> 1> explicitly replaces an existing destination using a
+temporary sibling file, preserving old contents on generation failure.
+
+=head2 read_blocks, write_blocks
+
+C<read_blocks(path, callback)> reads one bounded block at a time, calling
+C<callback(samples, metadata)> for each. Metadata is a fresh copy containing
+C<sample_rate>, C<bits>, C<channels>, C<sample_count> and C<warnings>.
+The method closes the input and returns metadata at EOF; callback exceptions
+also close it and propagate. Constructor C<block_samples> controls block size.
+
+C<write_blocks(path, next, sample_rate =E<gt> ..., sample_count =E<gt> ...,
+bits =E<gt> 16)> pulls sample arrays from the C<next> code reference until
+it returns undef. The declared count must exactly match the stream. It owns
+the output, returns writer statistics and uses the same new-file/failure
+rules as C<write_file>, including optional C<overwrite>. These methods work with PCM, without Morse decoding.
 
 =head2 writer
 
