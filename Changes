@@ -2,7 +2,7 @@ Revision history for Ham-CW
 
 0.001  2026-10-24
     - Initial release for ITU-R M.1677-1 Morse symbols, operational signals and Farnsworth timing.
-    - Timed/sample events, bounded tone generation and experimental multichannel reception.
+    - Timed/sample events, tone generation, experimental multichannel reception and mark SNR.
     - PCM WAV and standard MIDI files, with optional PDL acceleration.
     - Library and command-line interfaces for files, bytes and sample streams.
     - Structured errors, diagnostic results and explicit output replacement.

@@ -107,3 +107,4 @@ corpus/real/CC-BY-SA-3.0.txt
 xt/corpus-licenses.t
 lib/Ham/CW/_Internal/Biquad.pm
 t/26-channel-reception.t
+t/27-mark-snr.t

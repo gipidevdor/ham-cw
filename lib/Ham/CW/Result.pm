@@ -193,6 +193,8 @@ analysis progressed and can be absent. Current producer fields are:
 
 =item * C<filter_sections>: number of cascaded band-pass biquads per candidate (currently 2).
 
+=item * C<mark_snr_db>: configured minimum mean mark/local-noise power ratio in dB, before glitch removal. This is not calibrated radio SNR.
+
 =item * C<frequency_grid_step_hz>: search candidate step, or 0 for a configured tone. This is not spectral resolution or an error bound.
 
 =back

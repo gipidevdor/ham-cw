@@ -75,7 +75,7 @@ Stdin is copied to a temporary seekable file and bounded by C<--max-bytes>
 Accepts C<--frequency>, C<--wpm>, C<--effective-wpm>, C<--backend>,
 C<--stereo mix|left|right>, C<--max-frames>, C<--min-frequency>,
 C<--max-frequency>, C<--frequency-step>, C<--min-contrast>,
-C<--min-purity>, C<--filter-bandwidth>, C<--min-snr-db>, C<--all-stations>, C<--max-bytes> and C<--block-samples>.
+C<--min-purity>, C<--filter-bandwidth>, C<--min-snr-db>, C<--mark-snr-db>, C<--all-stations>, C<--max-bytes> and C<--block-samples>.
 C<--json> outputs the complete result, including events and warnings.
 C<--all-stations> returns up to eight distinct filtered channel Results,
 ordered by accumulated energy. With C<--json>, output is an array (possibly

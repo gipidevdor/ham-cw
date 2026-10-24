@@ -15,7 +15,7 @@ sub new {
     my ($class, @pairs) = @_;
     my %args = named_arguments(@pairs);
     options(\%args,
-        qw(sample_rate frequency min_frequency max_frequency frequency_step wpm effective_wpm max_frames min_contrast min_purity backend filter_bandwidth min_snr_db)
+        qw(sample_rate frequency min_frequency max_frequency frequency_step wpm effective_wpm max_frames min_contrast min_purity backend filter_bandwidth min_snr_db mark_snr_db)
     );
     my $rate         = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
     my $default_high = $rate / 2 - 1 < 1500 ? $rate / 2 - 1 : 1500;
@@ -50,6 +50,7 @@ sub new {
         max_frames   => integer('max_frames', $args{max_frames} // 24000, 1, 1000000),
         min_contrast => number('min_contrast', $args{min_contrast} // 0.60, 0.01, 1),
         min_snr_db   => number('min_snr_db',   $args{min_snr_db}   // 12,   0,    40),
+        mark_snr_db  => number('mark_snr_db',  $args{mark_snr_db}  // 10,   0,    40),
         min_purity   => number('min_purity',   $args{min_purity}   // 0.20, 0.01, 1)
     }, $class;
     my $n = $self->{analysis_size} = $self->{frame_size} * 4;
@@ -77,6 +78,7 @@ sub new {
     $self->{acquire_centres}      = \@centres;
     $self->{acquire_guards}       = \@guards;
     $self->{snr_ratio}            = 10**($self->{min_snr_db} / 10);
+    $self->{mark_snr_ratio}       = 10**($self->{mark_snr_db} / 10);
     return $self->reset;
 }
 
@@ -313,7 +315,9 @@ sub _key_state {
     $threshold = $tracker->{gate} if $threshold < $tracker->{gate};
     $tracker->{state} = $power >= $threshold ? 'on' : 'off';
 
-    if ($tracker->{state} eq 'off') {
+    # Fading attacks and filter tails just below the switching threshold are
+    # not reliable background observations. Keep them out of the noise floor.
+    if ($tracker->{state} eq 'off' && $power < 0.25 * $threshold) {
         $tracker->{noise} += 0.02 * ($power - $tracker->{noise});
     }
     return $tracker->{state};
@@ -333,12 +337,35 @@ sub _segment {
         decay   => exp(-$self->{frame_size} / $self->{sample_rate}),
     };
     for my $i (0 .. $#{$frames}) {
+        my $noise = $tracker->{noise};
         my $state = _key_state($tracker, $powers->[$i]);
         if (@segments && $segments[-1]{state} eq $state) {
             $segments[-1]{samples} += $frames->[$i]{samples};
+            $segments[-1]{energy}  += $powers->[$i] * $frames->[$i]{samples};
         }
-        else { push @segments, {state => $state, samples => $frames->[$i]{samples}} }
+        else {
+            push @segments,
+                {
+                state   => $state,
+                samples => $frames->[$i]{samples},
+                energy  => $powers->[$i] * $frames->[$i]{samples},
+                noise   => $noise
+                };
+        }
     }
+
+    # Use the local noise estimate captured on the OFF-to-ON transition.
+    # Admission precedes glitch removal, which must not join a weak fragment
+    # to a genuine mark across a short OFF interval.
+    for my $run (@segments) {
+        if (   $run->{state} eq 'on'
+            && $run->{energy} / $run->{samples} < $run->{noise} * $self->{mark_snr_ratio})
+        {
+            $run->{state} = 'off';
+        }
+    }
+    @segments =
+        @{_merge_runs([map { +{state => $_->{state}, samples => $_->{samples}} } @segments])};
 
     # Remove isolated runs below 10 ms only when bounded by the same state.
     for (my $i = 1; $i < $#segments; ++$i) {
@@ -572,6 +599,7 @@ sub _analyze_channel {
         analyzed_samples       => $self->{total_samples},
         filter_bandwidth_hz    => $self->{filter_bandwidth},
         filter_sections        => 2,
+        mark_snr_db            => $self->{mark_snr_db},
         frequency_grid_step_hz => defined($self->{frequency}) ? 0 : ($self->{frequency_step} // 50)
     };
     return Ham::CW::_Internal::Result->from_owned('Ham::CW::Result', %{$h});
@@ -665,6 +693,8 @@ Returns a detector in C<READY>. Options and inclusive ranges:
 =item * C<filter_bandwidth>: full single-section half-power width in Hz; default C<max(40, 4 * wpm)> with explicit WPM, otherwise 180. Range 20..C<sample_rate / 2 - 1>. Two identical biquads are cascaded, so the combined half-power width is narrower. Narrow settings improve rejection but increase ringing and can merge fast marks; choose width for the fastest sender of interest.
 
 =item * C<min_snr_db>: 12 dB; range 0..40. Acquisition threshold comparing a raw-window candidate power with a local guard-bin noise estimate. This is an algorithmic spectral contrast threshold, not a calibrated receiver SNR measurement. Lower values admit weaker tones and more false detections.
+
+=item * C<mark_snr_db>: 10 dB; range 0..40. Minimum mean ON-run power relative to the tracker's local noise estimate captured at run start. Failed runs become OFF and merge before short-glitch cleanup. This is a detector feature-power ratio, not a calibrated radio SNR measurement.
 
 =item * C<min_contrast>: 0.60; range 0.01..1, minimum keyed-envelope contrast.
 
@@ -785,7 +815,15 @@ timing. A three-hop median smooths power. The peak seed uses a five-hop
 median with observed endpoint support, capped by sustained power to limit
 isolated impulses and filter ringing. The lower decile seeds the noise floor.
 Segmentation tracks keyed peaks with one-second decay, updates noise during
-OFF frames and uses hysteresis. Short interior runs are merged.
+OFF frames and uses hysteresis. Each provisional ON run must have a
+sample-weighted mean power at least C<10 ** (mark_snr_db / 10)> times the
+tracker's noise estimate at the start of that run. Failed runs become OFF;
+adjacent OFF runs merge before the existing short-interior-glitch cleanup.
+The gate and its noise reference use the same smoothed channel powers as
+the tracker. OFF observations must also be below one quarter of the switching
+threshold to update the noise estimate; this avoids treating a fading attack
+or filter decay as background noise. This is separate from C<min_snr_db>,
+the acquisition threshold.
 
 ON intervals longer than six configured dots (or 1.44 seconds before automatic
 timing) are treated as carrier interference. After timing estimation,
