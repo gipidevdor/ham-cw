@@ -50,5 +50,8 @@ Only core modules are required: Carp, Exporter, Hash::Util, Scalar::Util and
 Storable, plus strict/warnings and Perl itself. Test::More and
 JSON::PP are test requirements. ExtUtils::MakeMaker builds the distribution.
 Perl::Critic, Perl::Tidy, Devel::Cover and metadata/POD checkers are author-only.
-There is no Text::Morse, MIDI, Audio::Wav, PDL, compiler or external player
-requirement at runtime.
+The default backend requires no Text::Morse, MIDI, Audio::Wav, PDL, compiler
+or external player. The optional FAST backend requires PDL 2.081 or later,
+which is declared as a runtime recommendation in the CPAN metadata. PDL 2.106
+and its required dependencies were built locally for the FAST verification;
+this does not extend the audit to PDL's optional scientific or device modules.

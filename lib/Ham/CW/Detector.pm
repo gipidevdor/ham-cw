@@ -237,8 +237,11 @@ sub _analyze {
 
     if (grep { $_->{code} eq 'CW_W_TIMING_AMBIGUOUS' } @{$h->{warnings}}) {
         $h->{text} = '';
-        push @{$h->{warnings}}, {code => 'CW_W_UNRELIABLE',
-            message => 'Specify WPM to resolve ambiguous mark lengths'};
+        push @{$h->{warnings}},
+            {
+            code    => 'CW_W_UNRELIABLE',
+            message => 'Specify WPM to resolve ambiguous mark lengths'
+            };
     }
     $h->{frequency}   = $self->{frequencies}[$best];
     $h->{diagnostics} = {
@@ -278,6 +281,8 @@ Ham::CW::Detector - bounded Goertzel CW detector
 
 =head1 METHODS
 
+=head2 new
+
 C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
 2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
 arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for FAST usage.
@@ -290,6 +295,8 @@ and C<max_frames> (24000, about 120 seconds). Configure a valid search band
 below Nyquist; the default upper edge is clipped below Nyquist for low rates. Search grids contain
 at most 256 candidates. Reception accepts explicit WPM from 1 to 60; automatic estimation covers 5..60.
 The encoder and event decoder also support higher speeds.
+
+=head2 feed
 
 C<feed(array)> validates normalized mono samples and processes fixed 5 ms
 Hann-windowed, DC-removed Goertzel frames. Chunk boundaries do not affect the

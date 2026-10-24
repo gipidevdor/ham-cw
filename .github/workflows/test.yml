@@ -38,24 +38,39 @@ jobs:
           perl -Ilib examples/receive.pl example.wav
           perl -Ilib examples/midi.pl example.mid CQ DE TESTCALL
   fast:
-    name: FAST PDL / ${{ matrix.os }}
+    name: FAST / ${{ matrix.os }} / Perl ${{ matrix.perl }} / PDL ${{ matrix.pdl }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - {os: ubuntu-latest, perl: '5.20', pdl: '2.081'}
+          - {os: ubuntu-latest, perl: '5.40', pdl: '2.106'}
+          - {os: macos-latest, perl: '5.40', pdl: '2.106'}
+          - {os: macos-15-intel, perl: '5.40', pdl: '2.106'}
+          - {os: windows-latest, perl: '5.40', pdl: '2.106'}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: shogo82148/actions-setup-perl@84c44b5a14f12b311f1bf3d2a70c8807f30b7ab2 # v1
         with:
-          perl-version: '5.40'
-      - name: Install PDL
-        run: cpanm --notest PDL
+          perl-version: ${{ matrix.perl }}
+          distribution: ${{ startsWith(matrix.os, 'windows-') && 'strawberry' || 'default' }}
+      - name: Install PDL with build diagnostics
+        run: cpanm --verbose --notest PDL@${{ matrix.pdl }}
       - name: Verify FAST backend and compatibility
         run: |
           perl -Ilib -MHam::CW::_Internal::PDL -e 1
           perl Makefile.PL
           prove -lr t
+      - name: Compare synthesis, streaming reception and PCM
+        run: perl maint/benchmark.pl --seconds 1 --json benchmark.json
+      - name: Save benchmark evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: benchmark-${{ matrix.os }}-perl-${{ matrix.perl }}-pdl-${{ matrix.pdl }}
+          path: benchmark.json
+          if-no-files-found: error
   author:
     name: Author checks and distribution
     runs-on: ubuntu-latest

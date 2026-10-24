@@ -21,12 +21,9 @@ Initial development candidate 0.001, checked on 2026-10-24.
 | Distribution extraction/build/test | make disttest and make distcheck PASS; isolated installation and all three installed examples PASS |
 | GitHub platform matrix | All seven jobs PASS for the production implementation in [run 40082998845](https://github.com/gipidevdor/ham-cw/actions/runs/40082998845): Linux Perl 5.20/5.34/5.40/5.44, macOS 5.40, Windows 5.40 and author gates |
 
-Coverage was collected from the full 1,144-assertion suite. All production
-source files in that measurement match the candidate source. Tests and author
+Coverage was collected from the full 1,144-assertion suite. That measurement describes the initial candidate before the corrections below. Tests and author
 tools are excluded from the coverage denominator. No uncovered path was marked exempt to improve the percentage.
-The remaining uncovered branches are defensive checks for failed decoder/
-detector states, zero broadband energy after accepted spectral evidence, and
-a defensive index clamp in impulse merging. The 95% statement and 90% branch
+Unreachable decoder/detector FAILED checks have since been removed. The 95% statement and 90% branch
 gates are enforced by `maint/coverage.pl` in CI.
 
 ## Independent evidence
@@ -69,7 +66,8 @@ Short marks, empty input, resource limits, reset and finalization are also
 checked. General floating-point equivalence does not promise identical PCM
 bytes for every possible sample near a rounding boundary.
 
-The complete test suite passed with PDL installed. The author checks passed,
+The latest combined run of `prove -lr t xt` passed all 1,440 assertions
+across 21 test files with PDL installed. The author checks passed,
 including POD, distribution metadata, formatting and Perl::Critic. The source
 archive also passed extraction/build/tests, all 33 available local CPANTS
 indicators, and an isolated installation with the supplied examples. These
@@ -103,3 +101,13 @@ The CI configuration includes PDL jobs for Linux, macOS and Windows. Those
 FAST jobs have not been executed during this local verification, so their
 results remain pending. PDL 2.081 is the declared minimum; only PDL 2.106 was
 exercised here. PDL needs a compatible native installation on each platform.
+
+## Review corrections (2026-10-24)
+
+The corrected working tree passes 1,274 assertions across 16 test files and
+166 author checks. Regression cases cover sparse SOS surrounded by 62 seconds
+of noise at three levels, damaged marks, Farnsworth audio, a 125-second WAV,
+low-rate defaults, Unicode separators and structured bit-depth errors. The
+receiver now accepts explicit speeds up to 60 WPM. Spectral purity and envelope
+contrast have separate controls; frequency grid spacing is not bandwidth.
+Earlier coverage and platform results above are historical measurements.

@@ -46,6 +46,8 @@ Ham::CW::Result - immutable decoding snapshot
 
 =head1 METHODS
 
+=head2 new
+
 C<new> accepts C<text>, C<morse>, C<events>, C<frequency> (Hz), C<wpm>,
 C<warnings> (array of code/message hashes), C<complete> (boolean), and
 C<diagnostics> (hash). Each field has an accessor of the same name.

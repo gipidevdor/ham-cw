@@ -22,7 +22,8 @@ sub new {
         my $p = prosigns();
         $reverse->{$p->{$_}} = "<$_>" for sort keys %{$p};
     }
-    my $self = bless {reverse => $reverse, %args, max_segments => $args{max_segments} // 100000}, $class;
+    my $self = bless {reverse => $reverse, %args, max_segments => $args{max_segments} // 100000},
+        $class;
     return $self->reset;
 }
 
@@ -178,11 +179,14 @@ sub _snapshot {
     ) unless $dot;
     fail('CW_E_ARGUMENT', 'effective_wpm exceeds estimated character WPM')
         if defined($self->{effective_wpm}) && $self->{effective_wpm} > 1_200_000 / $dot;
-    if (!defined($self->{effective_wpm}) && grep {
-        $_->{state} eq 'off' && $_->{duration} > 8 * $dot
-    } @{$timed->{segments}}) {
-        push @{$warnings}, {code => 'CW_W_SPACING_AMBIGUOUS',
-            message => 'Long gaps may be Farnsworth spacing; specify effective_wpm'};
+    if (  !defined($self->{effective_wpm})
+        && grep { $_->{state} eq 'off' && $_->{duration} > 8 * $dot } @{$timed->{segments}})
+    {
+        push @{$warnings},
+            {
+            code    => 'CW_W_SPACING_AMBIGUOUS',
+            message => 'Long gaps may be Farnsworth spacing; specify effective_wpm'
+            };
     }
     my $spacing =
         defined($self->{effective_wpm})
@@ -232,11 +236,15 @@ Ham::CW::Decoder - textual and incremental event decoding
 
 =head1 METHODS
 
+=head2 new
+
 C<new> accepts optional C<wpm>, C<effective_wpm>, C<prefer_prosigns> and
 C<max_segments> (100000). C<decode(morse)> strictly decodes text; spaces
 separate letters, slashes separate words. Unknown groups raise C<CW_E_SYMBOL>.
 By default the shared AR/plus waveform decodes as plus; set
 C<prefer_prosigns> to favor operational tokens.
+
+=head2 feed
 
 C<feed(events)> accepts canonical TimedEvents or SampledEvents. Units and rate
 must stay constant. Adjacent runs split across feeds are merged. Validation

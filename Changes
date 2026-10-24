@@ -14,3 +14,8 @@ Revision history for Ham-CW
     - Cumulative event conversion and deterministic PCM synthesis.
     - Bounded PCM WAV reading and writing at 8, 16 and 24 bits.
     - Experimental Goertzel reception and incremental processing.
+
+    - Fix sparse audio detection, retain partially decoded text, expose reception
+    limits and clarify spectral diagnostics. Validate inferred Farnsworth timing,
+    low-rate defaults and PCM bit depth. Add operational prosign aliases and
+    regression coverage; tolerate trailing WAV bytes with a warning.

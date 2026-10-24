@@ -14,7 +14,15 @@ for my $class (qw(Ham::CW Ham::CW::Audio Ham::CW::Generator Ham::CW::Detector)) 
     is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', "$class validates backend");
 }
 {
-    local $INC{'Ham/CW/_Internal/PDL.pm'} = undef;
+    local $INC{'Ham/CW/_Internal/PDL.pm'};
+    delete $INC{'Ham/CW/_Internal/PDL.pm'};
+    local @INC = (
+        sub {
+            die "PDL deliberately unavailable\n" if $_[1] eq 'Ham/CW/_Internal/PDL.pm';
+            return;
+        },
+        @INC
+    );
     is(Ham::CW::_Internal::Backend::resolve('auto'), 'perl', 'auto fallback when PDL cannot load');
     eval { Ham::CW::_Internal::Backend::resolve('pdl') };
     is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'explicit backend load failure');
@@ -117,8 +125,8 @@ for my $length (1, 2, 7) {
 }
 my $detector = Ham::CW::Detector->new(backend => 'pdl', sample_rate => 8000, max_frames => 2);
 eval { $detector->feed([(0) x 81]) };
-is((ref($@) ? $@->code : "$@"),         'CW_E_RESOURCE', 'FAST frame limit');
-is($detector->state, 'READY',         'FAST limit validation atomic');
+is((ref($@) ? $@->code : "$@"), 'CW_E_RESOURCE', 'FAST frame limit');
+is($detector->state,            'READY',         'FAST limit validation atomic');
 eval { $detector->feed([0, 'NaN']) };
 is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'FAST validates input');
 $detector->feed([(0) x 41]);

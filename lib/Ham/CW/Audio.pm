@@ -105,8 +105,12 @@ sub reader {
     my ($riff, $length, $wave) = unpack('a4Va4', read_exact($fh, 12));
     fail('CW_E_WAV_FORMAT',    'Expected RIFF/WAVE') unless $riff eq 'RIFF' && $wave eq 'WAVE';
     fail('CW_E_WAV_TRUNCATED', 'RIFF size exceeds available bytes') if $length + 8 > $size;
-    fail('CW_E_WAV_FORMAT',    'RIFF size is inconsistent') if $length < 4 || $length + 8 != $size;
-    my ($format, $data) = _chunks($fh, $size);
+    fail('CW_E_WAV_FORMAT',    'RIFF size is inconsistent')         if $length < 4;
+    my @warnings =
+        $length + 8 < $size
+        ? ({code => 'CW_W_WAV_TRAILING', message => 'Ignored bytes after RIFF boundary'})
+        : ();
+    my ($format, $data) = _chunks($fh, $length + 8);
     my ($channels, $rate, $align, $bits) = _format($format, $data);
     seek($fh, $data->[0], 0) or fail('CW_E_IO', 'Cannot seek to WAV data');
     my $remaining = $data->[1];
@@ -125,6 +129,7 @@ sub reader {
         bits         => $bits,
         channels     => $channels,
         sample_count => $data->[1] / $align,
+        warnings     => \@warnings,
         next         => $next
     };
 }
@@ -138,6 +143,7 @@ sub read {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
         sample_rate => $reader->{sample_rate},
         bits        => $reader->{bits},
         channels    => $reader->{channels},
+        warnings    => $reader->{warnings},
         samples     => \@out
     };
 }
@@ -147,7 +153,7 @@ sub writer {
     my %args = named_arguments(@pairs);
     options(\%args, qw(sample_rate sample_count bits));
     my $rate = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
-    my $bits = integer('bits', $args{bits} // 16, 8, 24);
+    my $bits = integer('bits',        $args{bits}        // 16,    8,    24);
     fail('CW_E_ARGUMENT', 'bits must be 8, 16 or 24')
         unless $bits == 8 || $bits == 16 || $bits == 24;
     my $count = integer('sample_count', $args{sample_count}, 0, 4294967295);
@@ -207,6 +213,8 @@ Ham::CW::Audio - bounded RIFF PCM input and output
 
 =head1 METHODS
 
+=head2 new
+
 C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
 2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
 arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for FAST usage.
@@ -224,8 +232,11 @@ than the byte size; prefer C<reader> for large files.
 PCM unsigned 8-bit and signed little-endian 16/24-bit, mono/stereo, are
 supported. Unknown chunks and odd-byte padding are skipped without loading
 them. Duplicate fmt/data chunks, compressed formats, inconsistent sizes,
-misalignment and trailing bytes outside RIFF are rejected. RF64, WAVE64 and
+and misalignment are rejected. Trailing bytes outside RIFF are ignored with
+a C<CW_W_WAV_TRAILING> entry in the returned C<warnings> array. RF64, WAVE64 and
 extensible WAV are unsupported. Empty data is legal.
+
+=head2 writer
 
 C<writer(handle, sample_rate =E<gt> ..., sample_count =E<gt> ..., bits =E<gt> 16)>
 returns a bounded mono writer. C<feed(array)> writes normalized samples in
@@ -235,6 +246,8 @@ exact declared count and writes padding. It is idempotent. C<state> and
 C<result> report progress. Validation failures leave the writer usable; I/O
 failures set FAILED. Feed after finish/failure is rejected. A failed writer
 must be replaced with a new writer and fresh output handle; it cannot reset.
+
+=head2 write
 
 C<write(handle, samples, sample_rate =E<gt> ..., bits =E<gt> ...)>
 is the collecting convenience method. Handles remain owned by the caller;

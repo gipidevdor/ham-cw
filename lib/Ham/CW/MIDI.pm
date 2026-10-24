@@ -85,6 +85,8 @@ Ham::CW::MIDI - standard MIDI file export without external modules
 
 =head1 METHODS
 
+=head2 new
+
 C<new> accepts C<note> (77, range 0..127), C<velocity> (100, 1..127),
 C<channel> (1, 1..16), C<program> (80, zero-based 0..127), C<bpm> (120,
 4..1000), C<ppqn> (480, 1..32767) and C<max_bytes> (8000000).
@@ -92,6 +94,8 @@ General MIDI program 80 is a square lead; note 77 is about 698.46 Hz under
 standard A440 tuning. Channel 10 is normally percussion; use a melodic
 channel for a sustained CW tone. Actual sound and envelope depend on the
 player and synthesizer, not on the file.
+
+=head2 encode
 
 C<encode(events)> returns a binary SMF type 0 file, with one track, a tempo
 event, program change, explicit note-on/off events and end-of-track. It accepts

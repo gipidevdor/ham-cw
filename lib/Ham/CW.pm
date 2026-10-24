@@ -71,7 +71,11 @@ sub decode_wav {
     my $reader   = Ham::CW::Audio->new(%audio)->reader($fh);
     my $detector = Ham::CW::Detector->new(%args, sample_rate => $reader->{sample_rate});
     while (my $block = $reader->{next}->()) { $detector->feed($block) }
-    return $detector->finish;
+    my $result = $detector->finish;
+    return $result unless @{$reader->{warnings}};
+    my $snapshot = $result->as_hash;
+    push @{$snapshot->{warnings}}, @{$reader->{warnings}};
+    return Ham::CW::Result->new(%{$snapshot});
 }
 1;
 
@@ -103,23 +107,33 @@ No native libraries, external audio programs or network access are required.
 
 =head1 METHODS
 
+=head2 new
+
 C<new> accepts C<wpm> (20), C<effective_wpm> (WPM), C<frequency> (700),
 C<sample_rate> (16000), C<amplitude> (0.8), C<attack_ms> (5),
 C<release_ms> (5), C<unknown> (error), C<backend> (perl). Unknown options raise an exception.
 These configure encoding/generation; reception takes its own optional hints.
 
+=head2 encode
+
 C<encode(text)> returns Morse, C<decode(morse)> returns text, and
 C<events(text)> returns TimedEvents. See L<Ham::CW::Encoder>,
 L<Ham::CW::Decoder> and L<Ham::CW::Events> for syntax and rounding.
+
+=head2 generate_wav
 
 C<generate_wav(text, handle, bits =E<gt> 16, max_bytes =E<gt> 64000000)>
 writes a mono PCM WAV in bounded blocks and returns writer statistics.
 Handles are caller-owned; close them and check errors.
 
+=head2 generate_midi
+
 C<generate_midi(text, handle, %options)> writes a standard MIDI file. Options
 are those of L<Ham::CW::MIDI>; defaults use MIDI note 77 (about 698 Hz),
 independently of the audio oscillator frequency. WPM and Farnsworth timing
 come from the encoder configuration. MIDI playback timbre depends on the player.
+
+=head2 decode_wav
 
 C<decode_wav(handle, %options)> reads a seekable WAV and returns
 L<Ham::CW::Result>. Options: C<frequency>, C<wpm>, C<effective_wpm>,

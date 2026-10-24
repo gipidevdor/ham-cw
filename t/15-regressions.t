@@ -15,7 +15,7 @@ my @warnings;
     eval { Ham::CW::Audio->new->writer($fh, bits => 'abc', sample_count => 0) };
     is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'invalid bits structured error');
 }
-is_deeply(\@warnings, [], 'no raw numeric warning');
+is_deeply(\@warnings,                   [],                             'no raw numeric warning');
 is_deeply(Ham::CW::Result->new->events, {unit => 'us', segments => []}, 'canonical empty events');
 for my $token (qw(BT KN BK KA VE)) {
     ok(length Ham::CW->new->encode("<$token>"), "$token supported");
@@ -28,7 +28,7 @@ eval { Ham::CW::Detector->new(wpm => 61) };
 is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'receive speed limit explicit');
 for my $level (0.01, 0.02, 0.08) {
     my $samples = noise(8000 * 62, $level);
-    my $signal = reference_sos();
+    my $signal  = reference_sos();
     $samples->[8000 * 30 + $_] += $signal->[$_] for 0 .. $#{$signal};
     my $detector = Ham::CW::Detector->new(sample_rate => 8000, frequency => 650, wpm => 20);
     for (my $i = 0; $i < @{$samples}; $i += 4096) {
@@ -38,7 +38,7 @@ for my $level (0.01, 0.02, 0.08) {
     }
     is($detector->finish->text, 'SOS', "sparse message surrounded by noise $level");
 }
-my $cw = Ham::CW->new(sample_rate => 8000, frequency => 650, wpm => 20, effective_wpm => 10);
+my $cw    = Ham::CW->new(sample_rate => 8000, frequency => 650, wpm => 20, effective_wpm => 10);
 my $bytes = '';
 open my $out, '>:raw', \$bytes or die $!;
 $cw->generate_wav('CQ TEST', $out);
@@ -55,10 +55,11 @@ eval { $d->finish };
 is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'effective speed checked against estimated speed');
 my $events = Ham::CW->new->events('CQ TEST CQ TEST CQ TEST');
 $events->{segments}[0]{duration} *= 2;
-my $audio = Ham::CW::Generator->new(sample_rate => 8000, frequency => 650)->generate($events);
+my $audio    = Ham::CW::Generator->new(sample_rate => 8000, frequency => 650)->generate($events);
 my $detector = Ham::CW::Detector->new(sample_rate => 8000, frequency => 650, wpm => 20);
 $detector->feed($audio);
 like($detector->finish->text, qr/TEST CQ TEST/, 'one malformed mark preserves subsequent text');
+
 # A recording exceeding the default 120 s remains accessible through the facade.
 my $long = '';
 open my $long_out, '>:raw', \$long or die $!;
@@ -67,5 +68,6 @@ $writer->feed([(0) x 1000]) for 1 .. 125;
 $writer->finish;
 close $long_out or die $!;
 open my $long_in, '<:raw', \$long or die $!;
-ok(Ham::CW->new->decode_wav($long_in, max_frames => 26000)->complete, 'facade exposes history limit');
+ok(Ham::CW->new->decode_wav($long_in, max_frames => 26000)->complete,
+    'facade exposes history limit');
 done_testing;

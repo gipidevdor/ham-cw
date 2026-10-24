@@ -100,6 +100,8 @@ Ham::CW::Encoder - international Morse text and timing
 
 Undefined optional values use their documented defaults.
 
+=head2 new
+
 C<new> accepts C<wpm> (default 20, range 1..200), C<effective_wpm>
 (default WPM, range 1..WPM), and C<unknown> (C<error> or C<skip>).
 Unknown options are errors. C<encode(text)> returns dot/dash groups separated
@@ -114,6 +116,8 @@ C<< <VE> >> are also accepted. Shared aliases decode to one canonical token;
 original spellings cannot be recovered from the waveform.
 Ordinary C<AR> remains two letters. Shared punctuation/prosign waveforms are
 inherently ambiguous on reception; see L<Ham::CW::Decoder>.
+
+=head2 events
 
 C<events(text)> returns canonical TimedEvents with integer microseconds.
 Dot length is 1,200,000/WPM. Farnsworth uses a 50-unit reference word: 31 units

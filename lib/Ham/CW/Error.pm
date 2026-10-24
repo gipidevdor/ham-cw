@@ -41,6 +41,8 @@ Ham::CW::Error - structured CW exceptions
 
 =head1 METHODS
 
+=head2 new
+
 C<new(code =E<gt> ..., message =E<gt> ..., context =E<gt> {})> constructs an
 exception. C<throw> constructs and dies with it. C<code>, C<message>, and
 C<context> expose its fields; context is copied. C<as_string> also supplies
