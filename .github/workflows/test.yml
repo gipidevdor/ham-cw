@@ -32,7 +32,7 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
       - name: Install build prerequisite
-        run: cpanm --notest ExtUtils::MakeMaker
+        run: cpanm --notest ExtUtils::MakeMaker 'Digest::SHA~5.96'
       - name: Configure and test
         env:
           HARNESS_PERL_SWITCHES: -Mwarnings=FATAL,all
@@ -71,6 +71,7 @@ jobs:
           distribution: ${{ startsWith(matrix.os, 'windows-') && 'strawberry' || 'default' }}
           install-modules: |
             ExtUtils::MakeMaker
+            Digest::SHA
             PDL@${{ matrix.pdl }}
           install-modules-args: --notest
       - name: Verify PDL backend and compatibility
@@ -91,7 +92,7 @@ jobs:
   author:
     name: Author checks and distribution
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -101,6 +102,7 @@ jobs:
           perl-version: '5.40'
           install-modules: |
             ExtUtils::MakeMaker
+            Digest::SHA
             PDL@2.106
             Perl::Tidy@20260826
           install-modules-args: --notest
@@ -114,10 +116,12 @@ jobs:
           make test
           make distmeta
           prove -lr xt
+      # Condition instrumentation is needed for complete branch counts.
+      # Keep all production modules and tests; avoid unrelated timing/POD collection.
       - name: Coverage gates
         env:
-          HARNESS_PERL_SWITCHES: -MDevel::Cover=-db,${{ runner.temp }}/ham-cw-cover,-select,lib/Ham,-ignore,^t/
-        run: prove -lr t
+          HARNESS_PERL_SWITCHES: -MDevel::Cover=-db,${{ runner.temp }}/ham-cw-cover,-blib,0,-coverage,statement,branch,condition,-select,lib/Ham,-ignore,^t/
+        run: prove -j2 -lr t
       - name: Check measured coverage
         run: perl maint/coverage.pl '${{ runner.temp }}/ham-cw-cover'
       - name: Test release archive

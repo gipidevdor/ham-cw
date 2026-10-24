@@ -49,7 +49,9 @@ Storable, Fcntl, File::Basename, File::Temp, Encode, Getopt::Long, IO::Handle
 and JSON::PP, plus strict/warnings and Perl itself. The command-line frontend
 uses core Getopt::Long, Encode and JSON::PP rather than a CLI framework.
 File::Temp provides safe replacement output and bounded seekable WAV stdin.
-Test::More is a test requirement. ExtUtils::MakeMaker installs the executable,
+Test::More is a test requirement. Corpus hash verification also requires
+Digest::SHA 5.96 or later for tests, excluding its historical CVE-2016-1238
+range; older supported Perls may need that test module upgraded separately. ExtUtils::MakeMaker installs the executable,
 its manual and the Windows batch launcher alongside the library.
 The configure prerequisite is ExtUtils::MakeMaker 7.22 or later: this excludes the
 older current-directory module search vulnerability, while retaining support

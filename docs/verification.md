@@ -264,3 +264,18 @@ matches fall from the original 67 to 38. Both gates remain nonzero. See
 remaining components and the distinction between compatibility and security.
 That security-only correction did not change the runtime implementation.
 The later channelized receiver and its local measurements are described above.
+
+## Merge preparation checks
+
+The test-only Digest::SHA requirement is at least 5.96, excluding the historical
+CVE-2016-1238 range introduced by an unconstrained test prerequisite. CI installs
+it explicitly for ordinary and PDL jobs, including older supported Perls.
+The installed dependency audit on the receiver branch matched the pre-existing
+main-branch report exactly; the known baseline advisories are not suppressed.
+
+The author job runs the full coverage suite with two processes and collects
+statements, branches and conditions. Condition instrumentation preserves complete
+branch counts; unrelated subroutine/POD/timing collection is unnecessary for
+the statement/branch gates. The job has a 60-minute ceiling for the heavier
+channel bank, coverage and archive/install checks. The full production inventory
+and 95% statement / 90% branch thresholds remain unchanged.

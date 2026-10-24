@@ -43,7 +43,7 @@ WriteMakefile(
         'Symbol'      => 0,
         'File::Temp'  => 0,
         'File::Spec'  => 0,
-        'Digest::SHA' => 0
+        'Digest::SHA' => '5.96'
     },
     dist =>
         {TAR => '$(PERLRUN) maint/archive.pl', TARFLAGS => q{ }, COMPRESS => 'gzip -n -f --best'},
