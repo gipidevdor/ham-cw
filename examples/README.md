@@ -117,8 +117,8 @@ these scripts. `workflows.pl` is retained as the original compact tour.
 
 `prove -lv t/27-examples.t` runs every catalog entry from a separate empty
 working directory, checking both its exit status and completion output,
-with warnings fatal, using `perl` and `auto`, plus `pdl`
-when compatible PDL is installed. It verifies catalog completeness against
+with warnings fatal, using `perl`, plus `pdl` and `auto` when compatible PDL
+is installed. It verifies catalog completeness against
 public methods and WAV-writer documentation. New public methods and unknown
 catalog entries require the example index to be updated. The existing platform
 CI runs this ordinary test on Linux, macOS and Windows, including minimum PDL.

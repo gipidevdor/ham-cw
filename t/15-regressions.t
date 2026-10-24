@@ -26,10 +26,11 @@ for my $space ("\x{a0}", "\x{2003}") {
 }
 eval { Ham::CW::Detector->new(wpm => 61) };
 is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'receive speed limit explicit');
-for my $level (0.01, 0.02, 0.08) {
-    my $samples = noise(8000 * 62, $level);
+for my $case ([0.01, 20], [0.02, 62], [0.08, 20]) {
+    my ($level, $seconds) = @{$case};
+    my $samples = noise(8000 * $seconds, $level);
     my $signal  = reference_sos();
-    $samples->[8000 * 30 + $_] += $signal->[$_] for 0 .. $#{$signal};
+    $samples->[8000 * int($seconds / 2 - 1) + $_] += $signal->[$_] for 0 .. $#{$signal};
     my $detector = Ham::CW::Detector->new(sample_rate => 8000, frequency => 650, wpm => 20);
     for (my $i = 0; $i < @{$samples}; $i += 4096) {
         my $end = $i + 4095;

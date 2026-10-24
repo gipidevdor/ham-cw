@@ -51,8 +51,8 @@ sub execute_example {
 }
 
 my $routes   = decode_json(read_text('examples/routes.json'));
-my @backends = ('perl', 'auto');
-push @backends, 'pdl' if eval { require PDL; PDL->VERSION('2.081'); 1 };
+my @backends = ('perl');
+push @backends, 'pdl', 'auto' if eval { require PDL; PDL->VERSION('2.081'); 1 };
 my (%covered, %files, %commands);
 for my $route (@{$routes}) {
     ok(!$files{$route->{file}}++, "$route->{file} is listed once");

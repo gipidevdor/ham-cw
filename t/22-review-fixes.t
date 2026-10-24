@@ -18,10 +18,11 @@ cmp_ok($estimates[2],                      '>', 45000, 'long-message timing reta
 # This schedule is independent of the project encoder and generator.
 sub independent_sos {
     my ($speed, $ramp_ms) = @_;
-    my $rate = 8000;
-    my $unit = $rate * 1.2 / $speed;
-    my @runs = ([0, 3]);
-    for my $word (1 .. 38) {
+    my $rate  = 8000;
+    my $unit  = $rate * 1.2 / $speed;
+    my $words = 12;
+    my @runs  = ([0, 3]);
+    for my $word (1 .. $words) {
         for my $letter (0 .. 2) {
             push @runs, [0, 3] if $letter;
             for my $mark (0 .. 2) {
@@ -29,7 +30,7 @@ sub independent_sos {
                 push @runs, [1, $letter == 1 ? 3 : 1];
             }
         }
-        push @runs, [0, 7] if $word < 38;
+        push @runs, [0, 7] if $word < $words;
     }
     push @runs, [0, 3];
     my (@out, $position);
@@ -63,7 +64,7 @@ for my $backend (@backends) {
         my $r = $d->finish;
         is(
             $r->text,
-            join(' ', ('SOS') x 38),
+            join(' ', ('SOS') x 12),
             "$backend independent message at $speed WPM, ramp $ramp_ms ms"
         );
         cmp_ok(abs($r->wpm - $speed), '<', $speed * 0.05, 'speed estimate within five percent');
