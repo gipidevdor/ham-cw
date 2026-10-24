@@ -18,7 +18,7 @@ Initial development candidate 0.001, checked on 2026-10-24.
 | WAV interoperability | Python standard-library wave reader accepted generated 16-bit mono WAV |
 | Examples | WAV send, automatic receive and MIDI export executed successfully |
 | Distribution extraction/build/test | make disttest and make distcheck PASS |
-| GitHub platform matrix | Pending first push; configuration alone is not a result |
+| GitHub platform matrix | Linux Perl 5.20/5.34/5.40/5.44 and macOS 5.40 passed in the first run; Windows shell fix under verification |
 
 Coverage was collected from the 1,095-assertion suite before adding the fixed
 on-disk corpus test; all production source files in that measurement match

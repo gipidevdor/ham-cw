@@ -2,6 +2,17 @@ use 5.020;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+my %provides;
+for my $module (
+    qw(Ham::CW Ham::CW::Encoder Ham::CW::Decoder Ham::CW::Events
+    Ham::CW::Generator Ham::CW::Detector Ham::CW::Audio Ham::CW::MIDI
+    Ham::CW::Result Ham::CW::Error)
+    )
+{
+    my $file = "lib/$module.pm";
+    $file =~ s{::}{/}gx;
+    $provides{$module} = {file => $file, version => MM->parse_version($file)};
+}
 WriteMakefile(
     NAME               => 'Ham::CW',
     VERSION_FROM       => 'lib/Ham/CW.pm',
@@ -13,16 +24,18 @@ WriteMakefile(
     PREREQ_PM          =>
         {'Carp' => 0, 'Exporter' => 0, 'Scalar::Util' => 0, 'Storable' => 0, 'Hash::Util' => 0},
     TEST_REQUIRES => {'Test::More' => '0.98', 'File::Temp' => 0, 'JSON::PP' => 0, 'Symbol' => 0},
+    dist          => {TAR => '$(PERLRUN) maint/archive.pl', TARFLAGS => q{ }},
     META_MERGE    => {
+        provides    => \%provides,
         'meta-spec' => {version => 2},
         resources   => {
             repository => {
                 type => 'git',
-                url  => 'https://github.com/gpicchiarelli/ham-cw.git',
-                web  => 'https://github.com/gpicchiarelli/ham-cw'
+                url  => 'https://github.com/gipidevdor/ham-cw.git',
+                web  => 'https://github.com/gipidevdor/ham-cw'
             },
-            bugtracker => {web => 'https://github.com/gpicchiarelli/ham-cw/issues'},
-            homepage   => 'https://github.com/gpicchiarelli/ham-cw',
+            bugtracker => {web => 'https://github.com/gipidevdor/ham-cw/issues'},
+            homepage   => 'https://github.com/gipidevdor/ham-cw',
         },
         no_index => {directory => [qw(t xt examples maint)]},
         prereqs  => {

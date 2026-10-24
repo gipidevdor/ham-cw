@@ -36,6 +36,7 @@ lib/Ham/CW/Generator.pm
 lib/Ham/CW/MIDI.pm
 lib/Ham/CW/Result.pm
 LICENSE
+maint/archive.pl
 maint/build-corpus.py
 maint/coverage.pl
 Makefile.PL
