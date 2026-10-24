@@ -21,6 +21,7 @@ GetOptions(
     'min-contrast=f'     => \$options{min_contrast},
     'filter-bandwidth=f' => \$options{filter_bandwidth},
     'min-snr-db=f'       => \$options{min_snr_db},
+    'mark-snr-db=f'      => \$options{mark_snr_db},
     'all-stations'       => \$all,
     'min-purity=f'       => \$options{min_purity},
     'max-bytes=i'        => \$options{max_bytes},
@@ -34,7 +35,7 @@ if ($help) {
         "  --frequency HZ --wpm WPM --effective-wpm WPM\n",
         "  --backend perl|pdl|auto --stereo mix|left|right --max-frames N --json\n",
         "  --min-frequency HZ --max-frequency HZ --frequency-step HZ\n",
-        "  --filter-bandwidth HZ --min-snr-db DB --all-stations\n",
+        "  --filter-bandwidth HZ --min-snr-db DB --mark-snr-db DB --all-stations\n",
         "  --min-contrast N --min-purity N --max-bytes N --block-samples N\n";
     exit 0;
 }

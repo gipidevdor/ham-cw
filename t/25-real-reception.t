@@ -18,31 +18,71 @@ close $input or die $!;
 my @backends = ('perl');
 push @backends, 'pdl' if eval { require Ham::CW::_Internal::PDL; 1 };
 
+my %observed;
 for my $case (@{$cases}) {
     open my $audio, '<:raw', $case->{file} or die $!;
     my $bytes = do { local $/; <$audio> };
     close $audio or die $!;
     is(sha256_hex($bytes), $case->{sha256},
         "$case->{name} fixture matches attributed source derivative");
-    for my $backend (@backends) {
-        my $result =
-            Ham::CW->new(backend => $backend)->decode_wav_bytes($bytes, wpm => $case->{wpm});
-        my $cer = character_error_rate($case->{reference}, $result->text);
+    open my $header, '<:raw', \$bytes or die $!;
+    my $info = Ham::CW::Audio->new->reader($header);
+    close $header or die $!;
+    is(
+        $info->{sample_count},
+        int(($case->{end_seconds} - $case->{start_seconds}) * $case->{sample_rate} + 0.5),
+        "$case->{name} sample count matches its source crop"
+    );
+    is($info->{sample_rate}, $case->{sample_rate},
+        "$case->{name} retains the documented sample rate");
 
-        # The regression limit records today's shortcomings, not an accuracy claim.
-        cmp_ok(
-            $cer, '<=',
-            $case->{max_regression_cer} + 1e-12,
-            "$case->{name} / $backend does not increase the recorded CER"
-        );
+    for my $backend (@backends) {
+        my $cw        = Ham::CW->new(backend => $backend);
+        my $hinted    = $cw->decode_wav_bytes($bytes, wpm => $case->{wpm});
+        my $estimated = $cw->decode_wav_bytes($bytes);
+        my %results   = (hinted => $hinted, estimated => $estimated);
+        my %cer;
+        for my $mode (qw(hinted estimated)) {
+            my $result = $results{$mode};
+            $cer{$mode} = character_error_rate($case->{reference}, $result->text);
+            cmp_ok(
+                $cer{$mode}, '<=',
+                $case->{"max_regression_cer_$mode"} + 1e-12,
+                "$case->{name} / $backend / $mode respects its measured CER budget"
+            ) or diag('Decoded: ' . $result->text);
+            is(
+                $result->diagnostics->{timing_source},
+                $mode eq 'hinted' ? 'configured' : 'estimated',
+                'unassisted run does not inherit a WPM hint'
+            );
+            ok($result->complete, 'real clip completes in both speed modes');
+        }
         note(
             sprintf(
-                '%s / %s: CER %.3f, quality target %.2f, target %s',
-                $case->{name}, $backend, $cer,
-                $case->{quality_target_cer},
-                $cer <= $case->{quality_target_cer} ? 'met' : 'NOT MET'
+                '%s / %s: hinted CER %.3f; estimated CER %.3f (%.2f WPM); quality target %.2f',
+                $case->{name},   $backend,             $cer{hinted},
+                $cer{estimated}, $estimated->wpm // 0, $case->{quality_target_cer}
             )
         );
+        $observed{$case->{name}} = {
+            cer_hinted     => $cer{hinted},
+            cer_estimated  => $cer{estimated},
+            text_estimated => $estimated->text,
+            estimated_wpm  => $estimated->wpm
+            }
+            if $backend eq 'perl';
     }
+}
+open my $report, '-|', $^X, '-Mwarnings=FATAL,all', 'maint/reception-corpus.pl' or die $!;
+my $bytes = do { local $/; <$report> };
+ok(close($report), 'corpus reporting command succeeds');
+my $rows = JSON::PP->new->utf8->decode($bytes);
+is(scalar(@{$rows}), scalar(@{$cases}), 'report retains one row per real clip');
+for my $row (@{$rows}) {
+    is_deeply(
+        {map { ($_ => $row->{$_}) } qw(cer_hinted cer_estimated text_estimated estimated_wpm)},
+        $observed{$row->{name}},
+        "$row->{name} report contains independently estimated results"
+    );
 }
 done_testing;

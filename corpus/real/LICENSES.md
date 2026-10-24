@@ -37,26 +37,52 @@ and SciPy were preparation tools only; running the tests needs neither.
 `../real.json` records the source URLs, source/derivative SHA-256 hashes,
 intervals, transformations and transcript references.
 
-The 4U1UN crop contains its identification before the calibration carriers.
-NCDXF is split into the first and second 10-second beacon intervals, preserving
-noise and long calibration carriers. Their text references are OH2B and CS3B,
-in source-description order. SK6RUD retains the first seven seconds. References
-identify the keyed callsigns, excluding continuous calibration tones; their
-source is the recording descriptions, not output from Ham::CW. This corpus is
-small, uses automated beacon keying and does not establish manual-keying or
-conversational-QSO accuracy.
+The 4U1UN derivative is unchanged and contains its identification before
+calibration carriers. The other three derivatives were regenerated directly
+from the retained source Ogg bytes, after checking their original SHA-256:
+decode Ogg, average channels, resample the complete recording to 8000 Hz with
+`scipy.signal.resample_poly`, crop, then write signed 16-bit mono PCM. No
+denoising or gain adjustment was applied. Preparation tool versions and each
+derivative's hash/interval are retained in `license-evidence.json`.
 
-All evaluations currently use an explicit 20 WPM decoding hint. That parameter
-is a fixed evaluation setting, not a claim that all recordings were transmitted
-at exactly 20 WPM. Tone selection remains automatic. CER is Levenshtein edit
-distance divided by reference character count, with insertions, deletions,
-substitutions and emitted spaces/replacement characters counted. It may exceed
-100% when many extra characters are emitted. There is no transcript normalization.
+| Clip | Source interval (s) | Reference | WPM hint |
+| --- | ---: | --- | ---: |
+| 4U1UN | 0–3.5 | `4U1UN` | 20 |
+| OH2B | 1.84–4.66 | `OH2B` | 22 |
+| CS3B | 11.85–14.46 | `CS3B` | 22 |
+| SK6RUD | 1.95–7 | `SK6RUD` | 17 |
 
-`max_regression_cer` preserves the observed error budget; it is not a quality
-target. `quality_target_cer` is separately set to 0.25. The initial observations
-are 0% (4U1UN), 300% (OH2B), 125% (CS3B) and 83.3% (SK6RUD): three cases fail
-that quality target. Passing the regression suite does not make these results
-acceptable reception. Use `perl maint/reception-corpus.pl` for current JSON
-measurements and warnings. These known failures expose the receiver's limits
-rather than certifying it for off-air use.
+Intervals were annotated from independent raw tone projections and the known
+Morse groups, rather than selected by searching decoder CER. The first S in
+SK6RUD starts at approximately 1.95 seconds of this source, after the partly
+cut `DE`; this crop excludes that prefix. OH2B and CS3B keep the complete
+callsigns and stop before the first calibration carrier (about 5.0 and 14.79
+seconds respectively). Two-second crops would truncate these references:
+51 and 47 Morse units at the NCDXF controller's nominal 54 ms dot require
+about 2.75 and 2.54 seconds before margins. See the
+[NCDXF timing specification](https://www.ncdxf.org/beacon/beaconcontroller.html).
+
+Transcript identity comes from the source descriptions and corpus review,
+not from Ham::CW output. Speed hints are evaluation parameters; matching text
+does not establish exact speed estimation or general off-air accuracy.
+The corpus is small, uses automated beacon keying and does not establish
+manual-keying or conversational-QSO accuracy.
+
+CER is Levenshtein edit distance divided by reference character count, with
+insertions, deletions, substitutions, spaces and replacement characters all
+counted. It may exceed 100%, and transcripts are not normalized.
+`max_regression_cer_hinted` and `max_regression_cer_estimated` record separate
+measured budgets for decoding with the stated speed and with no WPM hint.
+The unassisted run also uses the automatic bandwidth default.
+`max_regression_cer` retains the hinted baseline for compatibility;
+`quality_target_cer` remains independently fixed at 0.25. Historical results
+on the longer NCDXF intervals and the SK6RUD reference without its leading
+prefix are not directly comparable to the corrected crops. Run
+`perl maint/reception-corpus.pl` for measured text, errors and warnings.
+
+The real-audio test and reporting script run both speed modes for every clip.
+The test prints both CERs on one note line and validates the reporting columns.
+The report keeps `cer` for the hinted result and adds explicit `cer_hinted`,
+`cer_estimated`, `text_estimated`, `estimated_wpm` and estimated-mode warnings/frequency.
+These are separate runs, not copies of the hinted output. Matching text does
+not certify accurate estimated speed or reception on other recordings.
