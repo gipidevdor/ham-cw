@@ -119,7 +119,7 @@ actual interpreter and platform results.
 Building requires ExtUtils::MakeMaker 7.00 or later, which supports installation
 paths containing spaces. CPAN clients install this configure prerequisite.
 For a manual build with an older bundled MakeMaker, first run
-`cpanm "ExtUtils::MakeMaker~>=7.00"`.
+`cpanm ExtUtils::MakeMaker`.
 
 ```sh
 perl Makefile.PL
