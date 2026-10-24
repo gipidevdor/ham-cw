@@ -30,7 +30,7 @@ jobs:
           perl-version: ${{ matrix.perl }}
       - name: Configure and test
         env:
-          PERL5OPT: -Mwarnings=FATAL,all
+          HARNESS_PERL_SWITCHES: -Mwarnings=FATAL,all
         run: |
           perl Makefile.PL
           prove -lr t
@@ -53,10 +53,10 @@ jobs:
         with:
           perl-version: '5.40'
       - name: Install PDL
-        run: cpanm --notest PDL
+        run: cpanm --verbose --notest PDL
       - name: Verify PDL backend and compatibility
         env:
-          PERL5OPT: -Mwarnings=FATAL,all
+          HARNESS_PERL_SWITCHES: -Mwarnings=FATAL,all
         run: |
           perl -Ilib -MHam::CW::_Internal::PDL -e 1
           perl Makefile.PL

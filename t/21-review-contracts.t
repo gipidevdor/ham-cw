@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use Config;
+use File::Temp qw(tempfile);
 use Ham::CW;
 use lib 't/lib';
 use Reference qw(reference_sos);
@@ -120,7 +121,12 @@ print $SIG{PIPE}, "\n";
     close $writer;
 }
 CHILD
-    open my $child, '-|', $^X, '-Ilib', '-e', $program or die $!;
+
+    # A script file avoids platform-specific quoting of multiline -e arguments.
+    my ($source, $path) = tempfile('ham-cw-pipe-test-XXXX', SUFFIX => '.pl', UNLINK => 1);
+    print {$source} $program or die $!;
+    close $source            or die $!;
+    open my $child, '-|', $^X, '-Ilib', $path or die $!;
     my $output = do { local $/; <$child> };
     close $child;
     my $status = $?;
