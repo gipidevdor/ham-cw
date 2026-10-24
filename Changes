@@ -1,0 +1,8 @@
+Revision history for Ham-CW
+
+0.001  2026-10-24
+    - Initial development release.
+    - International Morse text, explicit prosigns and Farnsworth timing.
+    - Cumulative event conversion and deterministic PCM synthesis.
+    - Bounded PCM WAV reading and writing at 8, 16 and 24 bits.
+    - Experimental Goertzel reception and incremental processing.

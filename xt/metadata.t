@@ -1,0 +1,10 @@
+use strict;
+use warnings;
+use Test::More;
+use Test::CPAN::Meta;
+use Test::CPAN::Changes;
+use Ham::CW ();
+my $meta = -f 'META.yml' ? 'META.yml' : "Ham-CW-$Ham::CW::VERSION/META.yml";
+meta_spec_ok($meta, undef);
+changes_file_ok('Changes', {version => $Ham::CW::VERSION});
+done_testing;

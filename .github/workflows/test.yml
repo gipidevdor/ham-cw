@@ -1,0 +1,69 @@
+name: Tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  perl:
+    name: ${{ matrix.os }} / Perl ${{ matrix.perl }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, perl: '5.20'}
+          - {os: ubuntu-latest, perl: '5.34'}
+          - {os: ubuntu-latest, perl: '5.40'}
+          - {os: ubuntu-latest, perl: '5.44'}
+          - {os: macos-latest, perl: '5.40'}
+          - {os: windows-latest, perl: '5.40'}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: shogo82148/actions-setup-perl@84c44b5a14f12b311f1bf3d2a70c8807f30b7ab2 # v1
+        with:
+          perl-version: ${{ matrix.perl }}
+      - name: Configure and test
+        shell: bash
+        run: |
+          perl Makefile.PL
+          prove -lr t
+      - name: Examples
+        shell: bash
+        run: |
+          perl -Ilib examples/send.pl example.wav CQ DE IU0ABC
+          perl -Ilib examples/receive.pl example.wav
+          perl -Ilib examples/midi.pl example.mid CQ DE IU0ABC
+  author:
+    name: Author checks and distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: shogo82148/actions-setup-perl@84c44b5a14f12b311f1bf3d2a70c8807f30b7ab2 # v1
+        with:
+          perl-version: '5.40'
+      - name: Install author tools
+        run: |
+          cpanm --notest 'Perl::Tidy@20260826'
+          cpanm --notest --installdeps --with-develop .
+      - name: Build and check metadata, POD and style
+        run: |
+          perl Makefile.PL
+          make
+          make test
+          make distmeta
+          prove -lr xt
+      - name: Coverage gates
+        env:
+          HARNESS_PERL_SWITCHES: -MDevel::Cover=-db,${{ runner.temp }}/ham-cw-cover,-select,lib/Ham,-ignore,^t/
+        run: prove -lr t
+      - name: Check measured coverage
+        run: perl maint/coverage.pl '${{ runner.temp }}/ham-cw-cover'
+      - name: Test release archive
+        run: |
+          make distcheck
+          make disttest
