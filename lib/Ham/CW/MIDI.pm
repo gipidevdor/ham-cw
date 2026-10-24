@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Scalar::Util                 qw(openhandle);
 use Ham::CW::Events              qw(validate_events to_timed);
-use Ham::CW::_Internal::IO       qw(write_bytes);
+use Ham::CW::_Internal::IO       qw(write_bytes with_file);
 use Ham::CW::_Internal::Validate qw(fail integer number options named_arguments);
 our $VERSION = '0.001';
 
@@ -60,6 +60,14 @@ sub encode {
     return pack('a4Nnnna4N', 'MThd', 6, 0, 1, $self->{ppqn}, 'MTrk', length $track) . $track;
 }
 
+sub write_file {
+    my ($self, $path, $events, @pairs) = @_;
+    my %args = named_arguments(@pairs);
+    options(\%args, 'overwrite');
+    my $overwrite = integer('overwrite', $args{overwrite} // 0, 0, 1);
+    return with_file($path, 'write', sub { $self->write($_[0], $events) }, $overwrite);
+}
+
 sub write {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
     my ($self, $fh, $events) = @_;
     fail('CW_E_ARGUMENT', 'An open file handle is required') unless openhandle($fh);
@@ -85,6 +93,8 @@ Ham::CW::MIDI - standard MIDI file export without external modules
 
 =head1 METHODS
 
+=head2 new
+
 C<new> accepts C<note> (77, range 0..127), C<velocity> (100, 1..127),
 C<channel> (1, 1..16), C<program> (80, zero-based 0..127), C<bpm> (120,
 4..1000), C<ppqn> (480, 1..32767) and C<max_bytes> (8000000).
@@ -92,6 +102,8 @@ General MIDI program 80 is a square lead; note 77 is about 698.46 Hz under
 standard A440 tuning. Channel 10 is normally percussion; use a melodic
 channel for a sustained CW tone. Actual sound and envelope depend on the
 player and synthesizer, not on the file.
+
+=head2 encode
 
 C<encode(events)> returns a binary SMF type 0 file, with one track, a tempo
 event, program change, explicit note-on/off events and end-of-track. It accepts
@@ -102,6 +114,15 @@ C<CW_E_TIMING>. Output size is bounded; this is an atomic file exporter rather
 than a live MIDI device interface. No synth, hardware, audio driver or MIDI
 module is needed. C<write(handle, events)> validates/encodes before writing
 and returns the number of bytes. The caller owns the handle.
+
+=head2 write_file
+
+C<write_file(path, events, overwrite =E<gt> 0)> exports custom timed or sampled events, closes
+the owned file and returns the number of bytes. Existing paths are rejected
+and preserved. Errors close the handle and attempt to remove newly created
+output. Set C<overwrite =E<gt> 1> to explicitly replace an existing file via
+a temporary sibling file; failed generation preserves the old contents.
+For ordinary text, use L<Ham::CW/write_midi> instead.
 
 =head1 LICENSE
 

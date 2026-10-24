@@ -58,7 +58,13 @@ sub samples {
     my ($values, $limit) = @_;
     fail('CW_E_ARGUMENT', 'Samples must be an array reference') unless ref($values) eq 'ARRAY';
     fail('CW_E_RESOURCE', 'Sample block exceeds limit') if @{$values} > $limit;
-    number('sample', $_, -1, 1) for @{$values};
+    for my $sample (@{$values}) {
+        fail('CW_E_ARGUMENT', 'sample must be a finite number in [-1, 1]')
+            if !defined($sample)
+            || ref($sample)
+            || !looks_like_number($sample)
+            || !($sample >= -1 && $sample <= 1);
+    }
     return;
 }
 1;

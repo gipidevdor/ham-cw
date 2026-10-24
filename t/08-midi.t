@@ -101,12 +101,12 @@ for my $args (
     )
 {
     eval { Ham::CW::MIDI->new(%{$args}) };
-    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'invalid MIDI option');
+    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_ARGUMENT', 'invalid MIDI option');
 }
 eval { Ham::CW::MIDI->new(max_bytes => 64)->encode(Ham::CW->new->events('SOS SOS')) };
-is((ref($@) ? $@->code : "$@"), 'CW_E_RESOURCE', 'MIDI size bound');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_RESOURCE', 'MIDI size bound');
 eval { $midi->encode({unit => 'us', segments => [{state => 'on', duration => 1}]}) };
-is((ref($@) ? $@->code : "$@"), 'CW_E_TIMING', 'zero tick note rejected');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_TIMING', 'zero tick note rejected');
 eval { $midi->encode({unit => 'us', segments => [{state => 'off', duration => 2**52}]}) };
-is((ref($@) ? $@->code : "$@"), 'CW_E_TIMING', 'delta overflow rejected');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_TIMING', 'delta overflow rejected');
 done_testing;

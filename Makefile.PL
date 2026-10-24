@@ -21,10 +21,24 @@ WriteMakefile(
     LICENSE            => 'artistic_2',
     MIN_PERL_VERSION   => '5.020',
     CONFIGURE_REQUIRES => {'ExtUtils::MakeMaker' => '6.64'},
-    PREREQ_PM          =>
-        {'Carp' => 0, 'Exporter' => 0, 'Scalar::Util' => 0, 'Storable' => 0, 'Hash::Util' => 0},
-    TEST_REQUIRES => {'Test::More' => '0.98', 'JSON::PP' => 0, 'Symbol' => 0},
-    dist          =>
+    PREREQ_PM          => {
+        'Carp'           => 0,
+        'Exporter'       => 0,
+        'Scalar::Util'   => 0,
+        'Storable'       => 0,
+        'Hash::Util'     => 0,
+        'File::Basename' => 0,
+        'File::Temp'     => 0,
+        'Fcntl'          => 0
+    },
+    TEST_REQUIRES => {
+        'Test::More' => '0.98',
+        'JSON::PP'   => 0,
+        'Symbol'     => 0,
+        'File::Temp' => 0,
+        'File::Spec' => 0
+    },
+    dist =>
         {TAR => '$(PERLRUN) maint/archive.pl', TARFLAGS => q{ }, COMPRESS => 'gzip -n -f --best'},
     META_MERGE => {
         provides    => \%provides,

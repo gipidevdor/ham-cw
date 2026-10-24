@@ -45,7 +45,9 @@ sub _segments {
     my @segments = map { +{%{$_}} } @{$sampled->{segments}};
     my $total    = 0;
     $total += $_->{samples} for @segments;
-    fail('CW_E_RESOURCE', 'Generation exceeds max_samples') if $total > $self->{max_samples};
+    fail('CW_E_RESOURCE',
+        'Generation exceeds max_samples; increase max_samples or generate a shorter message')
+        if $total > $self->{max_samples};
     return \@segments;
 }
 
@@ -141,13 +143,17 @@ Ham::CW::Generator - deterministic, block-independent sinusoidal synthesis
 
 =head1 METHODS
 
+=head2 new
+
 C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
 2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
-arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for FAST usage.
+arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for PDL usage.
 
 C<new> accepts C<sample_rate> (16000), C<frequency> (700 Hz, strictly below
 Nyquist; the default is one quarter of the rate when 700 Hz is unavailable), C<amplitude> (0.8 in 0..1), C<attack_ms> and C<release_ms> (5 each),
 and C<max_samples> (10000000). Rates are integers from 1000 to 384000.
+
+=head2 stream
 
 C<stream(events, block_size)> validates and copies events, then returns an
 iterator producing normalized floating-point sample arrays, or undef at EOF.
@@ -155,6 +161,8 @@ Default block size is 4096; valid sizes are 1..1000000. Samples depend on the
 absolute sample index, so block boundaries do not change phase or output.
 Phase advances through silence. Raised-cosine ramps remain inside each mark;
 ramps are shortened for marks smaller than twice their configured duration.
+
+=head2 generate
 
 C<generate(events)> collects a stream in memory. Both methods enforce the total
 sample limit before output. TimedEvents are explicitly converted; SampledEvents

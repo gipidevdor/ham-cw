@@ -62,3 +62,14 @@ lib/Ham/CW/_Internal/PDL.pm
 t/14-fast.t
 maint/benchmark.pl
 t/15-regressions.t
+t/16-snapshot-cache.t
+corpus/reception.json
+t/17-reception-matrix.t
+docs/benchmark-results.json
+t/18-easy-files.t
+.perlcriticrc
+.perltidyrc
+t/19-workflows.t
+t/20-review-regressions.t
+docs/usage.md
+examples/workflows.pl

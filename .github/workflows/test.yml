@@ -37,8 +37,9 @@ jobs:
           perl -Ilib examples/send.pl example.wav CQ DE TESTCALL
           perl -Ilib examples/receive.pl example.wav
           perl -Ilib examples/midi.pl example.mid CQ DE TESTCALL
+          perl -Ilib examples/workflows.pl
   fast:
-    name: FAST PDL / ${{ matrix.os }}
+    name: PDL / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -51,7 +52,7 @@ jobs:
           perl-version: '5.40'
       - name: Install PDL
         run: cpanm --notest PDL
-      - name: Verify FAST backend and compatibility
+      - name: Verify PDL backend and compatibility
         run: |
           perl -Ilib -MHam::CW::_Internal::PDL -e 1
           perl Makefile.PL

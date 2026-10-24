@@ -1,16 +1,16 @@
 Revision history for Ham-CW
 
 0.001  2026-10-24
-    - Add an optional PDL backend for faster audio generation, PCM conversion
-      and tone detection. Select it with backend => 'pdl'; existing callers
-      continue to use the Perl implementation by default.
-    - Allow automatic backend selection and a per-call reception override.
-      Keep the existing sample arrays, streaming limits and error codes.
-    - Add numerical equivalence tests, a reproducible benchmark and PDL test
-      jobs for Linux, macOS and Windows. Local results and the remaining
-      platform checks are recorded in docs/verification.md.
-    - Initial development release.
-    - International Morse text, explicit prosigns and Farnsworth timing.
-    - Cumulative event conversion and deterministic PCM synthesis.
-    - Bounded PCM WAV reading and writing at 8, 16 and 24 bits.
-    - Experimental Goertzel reception and incremental processing.
+    - Initial development release for Morse text, timing, PCM WAV and MIDI.
+    - International symbols, operational prosigns and Farnsworth generation.
+    - Collecting, streaming and path-based APIs with bounded resource use,
+      structured errors and immutable decoding snapshots.
+    - Experimental audio reception with tone and speed estimation, partial
+      text recovery and warnings for ambiguous timing or spacing.
+    - Robust envelope seeding for sparse messages and isolated 5 ms impulses.
+    - Optional PDL acceleration, selected explicitly or through auto fallback;
+      the default Perl backend uses only core dependencies.
+    - Explicit overwrite for WAV and MIDI file output; failed replacements
+      preserve existing files.
+    - Independent signal fixtures, reception matrix, backend comparisons and
+      regression tests. Benchmark tooling reports local workload measurements.

@@ -46,9 +46,13 @@ The additional exporter uses `Ham::CW::MIDI` within the same checked prefix.
 
 ## Runtime footprint
 
-Only core modules are required: Carp, Exporter, Hash::Util, Scalar::Util and
-Storable, plus strict/warnings and Perl itself. Test::More and
+Only core modules are required: Carp, Exporter, Hash::Util, Scalar::Util,
+Storable, Fcntl, File::Basename and File::Temp, plus strict/warnings and Perl
+itself. File::Temp provides temporary output for safe file replacement. Test::More and
 JSON::PP are test requirements. ExtUtils::MakeMaker builds the distribution.
 Perl::Critic, Perl::Tidy, Devel::Cover and metadata/POD checkers are author-only.
-There is no Text::Morse, MIDI, Audio::Wav, PDL, compiler or external player
-requirement at runtime.
+The default backend requires no Text::Morse, MIDI, Audio::Wav, PDL, compiler
+or external player. The optional PDL backend requires PDL 2.081 or later,
+which is declared as a runtime recommendation in the CPAN metadata. PDL 2.106
+and its required dependencies were built locally for the PDL verification;
+this does not extend the audit to PDL's optional scientific or device modules.

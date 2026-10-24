@@ -27,15 +27,17 @@ sub new {
     lock_hash(%{$self});
     return $self;
 }
-sub text        { my ($self) = @_; return $self->{text} }
-sub morse       { my ($self) = @_; return $self->{morse} }
-sub frequency   { my ($self) = @_; return $self->{frequency} }
-sub wpm         { my ($self) = @_; return $self->{wpm} }
-sub complete    { my ($self) = @_; return $self->{complete} }
-sub events      { my ($self) = @_; return dclone($self->{events}) }
-sub warnings    { my ($self) = @_; return dclone($self->{warnings}) }
-sub diagnostics { my ($self) = @_; return dclone($self->{diagnostics}) }
-sub as_hash     { my ($self) = @_; return dclone({%{$self}}) }
+sub has_text     { my ($self) = @_; return length($self->{text}) ? 1 : 0 }
+sub has_warnings { my ($self) = @_; return @{$self->{warnings}}  ? 1 : 0 }
+sub text         { my ($self) = @_; return $self->{text} }
+sub morse        { my ($self) = @_; return $self->{morse} }
+sub frequency    { my ($self) = @_; return $self->{frequency} }
+sub wpm          { my ($self) = @_; return $self->{wpm} }
+sub complete     { my ($self) = @_; return $self->{complete} }
+sub events       { my ($self) = @_; return dclone($self->{events}) }
+sub warnings     { my ($self) = @_; return dclone($self->{warnings}) }
+sub diagnostics  { my ($self) = @_; return dclone($self->{diagnostics}) }
+sub as_hash      { my ($self) = @_; return dclone({%{$self}}) }
 1;
 
 =encoding UTF-8
@@ -46,10 +48,14 @@ Ham::CW::Result - immutable decoding snapshot
 
 =head1 METHODS
 
+=head2 new
+
 C<new> accepts C<text>, C<morse>, C<events>, C<frequency> (Hz), C<wpm>,
 C<warnings> (array of code/message hashes), C<complete> (boolean), and
 C<diagnostics> (hash). Each field has an accessor of the same name.
-C<as_hash> returns all fields. Inputs and reference-valued outputs are deep
+C<has_text> returns true when text is nonempty. C<has_warnings> returns true
+when at least one warning is present. Neither is a confidence or success
+score. C<as_hash> returns all fields. Inputs and reference-valued outputs are deep
 copies, and the top-level object hash is locked. Treat object internals as
 private. Completion means finalization, not guaranteed signal confidence.
 

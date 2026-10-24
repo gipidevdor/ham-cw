@@ -10,7 +10,7 @@ sub error_is {
     my $ok = eval { $action->(); 1 };
     ok(!$ok, $name);
     isa_ok($@, 'Ham::CW::Error');
-    is((ref($@) ? $@->code : "$@"), $code, 'stable error code') if ref($@);
+    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), $code, 'stable error code') if ref($@);
 }
 for my $input (undef, [], {}) {
     error_is('CW_E_ARGUMENT', sub { Ham::CW->new->encode($input) }, 'text type validation');

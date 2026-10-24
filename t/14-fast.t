@@ -11,21 +11,23 @@ use Reference qw(reference_sos noise);
 
 for my $class (qw(Ham::CW Ham::CW::Audio Ham::CW::Generator Ham::CW::Detector)) {
     eval { $class->new(backend => 'invalid') };
-    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', "$class validates backend");
+    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_ARGUMENT', "$class validates backend");
 }
 {
     local $INC{'Ham/CW/_Internal/PDL.pm'} = undef;
     is(Ham::CW::_Internal::Backend::resolve('auto'), 'perl', 'auto fallback when PDL cannot load');
     eval { Ham::CW::_Internal::Backend::resolve('pdl') };
-    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'explicit backend load failure');
+    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
+        'CW_E_ARGUMENT', 'explicit backend load failure');
 }
 eval { Ham::CW::_Internal::Backend::resolve([]) };
-is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'backend rejects references');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_ARGUMENT', 'backend rejects references');
 my $pdl = eval { require Ham::CW::_Internal::PDL; 1 };
 is(Ham::CW::_Internal::Backend::resolve('auto'), $pdl ? 'pdl' : 'perl', 'automatic backend');
 if (!$pdl) {
     eval { Ham::CW->new(backend => 'pdl') };
-    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'missing PDL is a structured error');
+    is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
+        'CW_E_ARGUMENT', 'missing PDL is a structured error');
     done_testing;
     exit;
 }
@@ -117,16 +119,16 @@ for my $length (1, 2, 7) {
 }
 my $detector = Ham::CW::Detector->new(backend => 'pdl', sample_rate => 8000, max_frames => 2);
 eval { $detector->feed([(0) x 81]) };
-is((ref($@) ? $@->code : "$@"),         'CW_E_RESOURCE', 'FAST frame limit');
-is($detector->state, 'READY',         'FAST limit validation atomic');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_RESOURCE', 'FAST frame limit');
+is($detector->state,                               'READY',         'FAST limit validation atomic');
 eval { $detector->feed([0, 'NaN']) };
-is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'FAST validates input');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_ARGUMENT', 'FAST validates input');
 $detector->feed([(0) x 41]);
 is($detector->result->complete, 0, 'FAST provisional result');
 is($detector->finish->complete, 1, 'FAST flush partial frame');
 is($detector->finish->complete, 1, 'FAST finish idempotent');
 eval { $detector->feed([]) };
-is((ref($@) ? $@->code : "$@"), 'CW_E_STATE', 'FAST feed after finish');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_STATE', 'FAST feed after finish');
 $detector->reset;
 is($detector->state, 'READY', 'FAST reset');
 is_deeply($detector->{pdl_kernels}, {}, 'reset releases cached kernels');
@@ -135,7 +137,7 @@ my $next      = $generator->stream($events, 11);
 $next->();
 $generator->reset;
 eval { $next->() };
-is((ref($@) ? $@->code : "$@"), 'CW_E_STATE', 'FAST invalidates reset stream');
+is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_STATE', 'FAST invalidates reset stream');
 open my $fixture, '<:raw', 'corpus/sos-650hz-20wpm.wav' or die $!;
 is(Ham::CW->new(backend => 'pdl')->decode_wav($fixture)->text,
     'SOS', 'independent recorded fixture');

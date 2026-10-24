@@ -20,17 +20,20 @@ sub new {
 sub encode {
     my ($self, $text) = @_;
     fail('CW_E_ARGUMENT', 'Text must be a defined scalar') if !defined($text) || ref($text);
-    if ($self->{unknown} eq 'error' && $text =~ /[^\S\x00-\x7f]/x) {
-        fail('CW_E_SYMBOL', 'Unsupported Unicode whitespace');
+    if ($self->{unknown} eq 'error' && $text =~ /([^\S\x00-\x7f])/x) {
+        _unsupported($1, $-[1] + 1);
     }
     my $a = alphabet();
     my $p = prosigns();
     my @words;
-    for my $word (split /[\x20\t\r\n\f\x0b]+/x, $text) {
-        next unless length $word;
+    while ($text =~ /([^\x20\t\r\n\f\x0b]+)/gx) {
+        my $word        = $1;
+        my $start       = $-[1];
+        my $word_length = length $word;
         my @codes;
         while (length $word) {
             my ($token, $code);
+            my $position = $start + $word_length - length($word) + 1;
             if ($word =~ s/\A<([A-Za-z]+)>//x) {
                 $token = "<$1>";
                 $code  = $p->{uc $1};
@@ -44,13 +47,25 @@ sub encode {
             }
             if (!defined $code) {
                 next if $self->{unknown} eq 'skip';
-                fail('CW_E_SYMBOL', 'Unsupported text symbol');
+                _unsupported($token, $position);
             }
             push @codes, $code;
         }
         push @words, join(' ', @codes) if @codes;
     }
     return join(' / ', @words);
+}
+
+sub _unsupported {
+    my ($symbol, $position) = @_;
+    my $label = length($symbol) == 1 ? sprintf('U+%04X', ord $symbol) : $symbol;
+    $label = qq{'$symbol' ($label)} if $symbol =~ /\A[\x21-\x7e]\z/x;
+    return Ham::CW::Error->throw(
+        code    => 'CW_E_SYMBOL',
+        message => "Unsupported text symbol $label at character $position; "
+            . "use supported Morse characters or unknown => 'skip'",
+        context => {symbol => $symbol, position => $position}
+    );
 }
 
 sub events {
@@ -100,12 +115,16 @@ Ham::CW::Encoder - international Morse text and timing
 
 Undefined optional values use their documented defaults.
 
+=head2 new
+
 C<new> accepts C<wpm> (default 20, range 1..200), C<effective_wpm>
 (default WPM, range 1..WPM), and C<unknown> (C<error> or C<skip>).
 Unknown options are errors. C<encode(text)> returns dot/dash groups separated
 by one space, with C< / > between words. Whitespace is collapsed and ASCII
 letters are uppercased. Accented E is supported explicitly; other Unicode
-characters are rejected, without transliteration. Empty text is allowed.
+characters are rejected, without transliteration. Errors identify the symbol
+and its one-based character position in the original input, also available
+as C<symbol> and C<position> in the exception context. Empty text is allowed.
 
 Operational tokens use angle brackets: C<< <AR> >>, C<< <AS> >>, C<< <CT> >>, C<< <SK> >>,
 C<< <HH> >>, C<< <SN> >>, and C<< <SOS> >>.
@@ -114,6 +133,8 @@ C<< <VE> >> are also accepted. Shared aliases decode to one canonical token;
 original spellings cannot be recovered from the waveform.
 Ordinary C<AR> remains two letters. Shared punctuation/prosign waveforms are
 inherently ambiguous on reception; see L<Ham::CW::Decoder>.
+
+=head2 events
 
 C<events(text)> returns canonical TimedEvents with integer microseconds.
 Dot length is 1,200,000/WPM. Farnsworth uses a 50-unit reference word: 31 units

@@ -14,3 +14,11 @@ The fixture and builder are original project material under the Artistic
 License 2.0. No off-air audio or third-party recordings are included. Synthetic
 noise, fading, impulses and small frequency variation are tested separately.
 This corpus does not establish performance on real receivers or radio paths.
+
+`reception.json` defines a deterministic synthetic reception matrix using the
+independent fixed SOS schedule in `t/lib/Reference.pm`. It combines 5–60 WPM,
+8000/11025/16000 Hz sampling, off-grid tones, fading, low amplitude, seeded
+noise and DC offset, plus silence/noise rejection. `t/17-reception-matrix.t`
+checks text, tone tolerance, warnings and exact event equivalence for 137- and
+4096-sample feeds with every available backend. These are combined stress
+cases, not off-air recordings or an estimate of field error rates.
