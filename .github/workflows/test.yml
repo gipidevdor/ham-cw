@@ -52,6 +52,7 @@ jobs:
       - uses: shogo82148/actions-setup-perl@84c44b5a14f12b311f1bf3d2a70c8807f30b7ab2 # v1
         with:
           perl-version: '5.40'
+          distribution: strawberry
       - name: Install PDL
         run: cpanm --verbose --notest PDL
       - name: Verify PDL backend and compatibility
