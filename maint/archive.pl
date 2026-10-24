@@ -3,7 +3,7 @@ use 5.020;
 use strict;
 use warnings;
 use Carp qw(croak);
-use Archive::Tar;
+use Archive::Tar 3.10;
 use ExtUtils::Manifest qw(maniread);
 
 my ($output, $directory) = @ARGV;

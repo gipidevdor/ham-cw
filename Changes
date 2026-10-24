@@ -1,6 +1,10 @@
 Revision history for Ham-CW
 
 0.001  2026-10-24
+    - Upgrade vulnerable author/build tools and repair security-audit inventory
+      for version-bearing packages, merged prerequisites and the Perl minimum.
+    - Retain original scanner reports and fail on every remaining advisory;
+      no vulnerability exclusions are introduced.
     - Refresh complete-product verification and retain exact platform timings
       from the passing Linux, macOS ARM/Intel and Windows CI run.
     - Consolidate duplicated file-replacement POD without changing runtime code.
@@ -12,7 +16,8 @@ Revision history for Ham-CW
       stable CLI exit statuses, JSON reception and strict warning handling.
     - Verify the installed command on every ordinary CI platform, plus
       subprocess I/O, binary output, malformed UTF-8 and broken pipes.
-    - Require MakeMaker 7.00 or later for space-containing installation paths.
+    - Require MakeMaker 7.22 or later for safe module search and installation
+      paths containing spaces.
     - Add pull-request/push/weekly security gates for CPAN and Perl advisories,
       Git-history secret scanning, workflow security and unsafe Perl constructs.
       Preserve redacted evidence, pin scanners/actions and disable persisted

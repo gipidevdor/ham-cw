@@ -2,7 +2,7 @@
 use 5.020;
 use strict;
 use warnings;
-use Archive::Tar;
+use Archive::Tar 3.10;
 use Carp qw(croak);
 use Config;
 use Cwd qw(abs_path getcwd);
