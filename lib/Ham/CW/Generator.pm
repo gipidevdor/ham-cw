@@ -17,7 +17,7 @@ sub new {
         sample_rate => $rate,
         backend     => Ham::CW::_Internal::Backend::resolve($args{backend}),
         frequency   => number(
-            'frequency', $args{frequency} // ($rate / 2 > 700 ? 700 : $rate / 4),
+            'frequency', $args{frequency} // ($rate / 2 - 1 >= 700 ? 700 : $rate / 4),
             1,           $rate / 2 - 1
         ),
         amplitude   => number('amplitude',  $args{amplitude}  // 0.8, 0, 1),

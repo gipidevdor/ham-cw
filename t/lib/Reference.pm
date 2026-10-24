@@ -15,8 +15,8 @@ sub reference_sos {
         [0, 3], [1, 1], [0, 1], [1, 1], [0, 1], [1, 1], [0, 3], [1, 3], [0, 1], [1, 3],
         [0, 1], [1, 3], [0, 3], [1, 1], [0, 1], [1, 1], [0, 1], [1, 1], [0, 3]
     );
-    my (@out, $time);
-    $time = 0;
+    my (@out, $time, $phase);
+    ($time, $phase) = (0, 0);
     my $pi = 4 * atan2(1, 1);
 
     for my $run (@runs) {
@@ -24,8 +24,11 @@ sub reference_sos {
         for (1 .. $n) {
             my $frequency_now = $frequency + ($args{drift} // 0) * sin(2 * $pi * $time / $rate);
             my $gain = $args{fading} ? 0.7 + 0.3 * sin(2 * $pi * $time / ($rate * 0.7)) : 1;
-            push @out,
-                $run->[0] * $amplitude * $gain * sin(2 * $pi * $frequency_now * $time / $rate);
+            push @out, $run->[0] * $amplitude * $gain * sin($phase);
+
+            # Integrate frequency through both marks and gaps.
+            $phase += 2 * $pi * $frequency_now / $rate;
+            $phase -= 2 * $pi if $phase >= 2 * $pi;
             ++$time;
         }
     }

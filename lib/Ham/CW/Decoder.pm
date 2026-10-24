@@ -71,9 +71,13 @@ sub feed {
     fail('CW_E_ARGUMENT', 'Event units or sample rate changed')
         if defined($self->{kind})
         && ($self->{kind} ne $kind || ($kind eq 'samples' && $self->{rate} != $rate));
+    my $joins =
+           @{$self->{segments}}
+        && @{$events->{segments}}
+        && $self->{segments}[-1]{state} eq $events->{segments}[0]{state} ? 1 : 0;
     fail('CW_E_RESOURCE',
         'Decoder segment limit exceeded; increase max_segments or decode shorter sequences')
-        if @{$self->{segments}} + @{$events->{segments}} > $self->{max_segments};
+        if @{$self->{segments}} + @{$events->{segments}} - $joins > $self->{max_segments};
     my $added = 0;
     $added += $_->{$kind} for @{$events->{segments}};
     fail('CW_E_RESOURCE', 'Cumulative event duration exceeds exact integer range')

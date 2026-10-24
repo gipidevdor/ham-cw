@@ -10,6 +10,30 @@ use Reference qw(reference_sos noise);
 my @backends = ('perl');
 push @backends, 'pdl' if eval { require Ham::CW::_Internal::PDL; 1 };
 for my $backend (@backends) {
+    for my $amplitude (0.01, 0.02) {
+        my $samples = reference_sos(amplitude => $amplitude);
+        $samples->[$_] = 0.3 * sin(2 * 3.14159265358979 * 650 * $_ / 8000) for 400 .. 439;
+        my $reference;
+        for my $block (137, 4096) {
+            my $detector = Ham::CW::Detector->new(
+                sample_rate => 8000,
+                frequency   => 650,
+                wpm         => 20,
+                backend     => $backend
+            );
+            for (my $i = 0; $i < @{$samples}; $i += $block) {
+                my $end = $i + $block - 1;
+                $end = $#{$samples} if $end > $#{$samples};
+                $detector->feed([@{$samples}[$i .. $end]]);
+            }
+            my $result = $detector->finish;
+            is($result->text, 'SOS', "$backend weak CW after a stronger impulse, $block samples");
+            $reference //= $result->events;
+            is_deeply($result->events, $reference, 'impulse rejection is independent of blocks');
+        }
+    }
+}
+for my $backend (@backends) {
     for my $amplitude (0.10, 0.30) {
         for my $kind ('tone', 'noise') {
             my @samples = ((0) x 4000, @{reference_sos(amplitude => $amplitude)});

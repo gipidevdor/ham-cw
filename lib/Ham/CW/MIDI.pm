@@ -3,7 +3,7 @@ use 5.020;
 use strict;
 use warnings;
 use Scalar::Util                 qw(openhandle);
-use Ham::CW::Events              qw(validate_events to_timed);
+use Ham::CW::Events              qw(validate_events);
 use Ham::CW::_Internal::IO       qw(write_bytes with_file);
 use Ham::CW::_Internal::Validate qw(fail integer number options named_arguments);
 our $VERSION = '0.001';
@@ -33,22 +33,24 @@ sub _vlq {
 
 sub encode {
     my ($self, $events) = @_;
-    my $field        = validate_events($events);
-    my $timed        = $field eq 'samples' ? to_timed($events) : $events;
-    my $tempo        = int(60_000_000 / $self->{bpm} + 0.5);
-    my $ticks_per_us = $self->{ppqn} / $tempo;
-    my $channel      = $self->{channel} - 1;
+    my $field = validate_events($events);
+    my $tempo = int(60_000_000 / $self->{bpm} + 0.5);
+
+    # Keep the original event units until the final tick boundary.
+    my $numerator   = $self->{ppqn} * ($field eq 'samples' ? 1_000_000 : 1);
+    my $denominator = $tempo * ($field eq 'samples' ? $events->{sample_rate} : 1);
+    my $channel     = $self->{channel} - 1;
     my $track =
           "\0\xff\x51\x03"
         . substr(pack('N', $tempo), 1, 3)
         . pack('CCC', 0, 0xc0 | $channel, $self->{program});
     my ($time, $last_tick) = (0, 0);
 
-    for my $segment (@{$timed->{segments}}) {
-        my $start = int($time * $ticks_per_us + 0.5);
-        $time += $segment->{duration};
+    for my $segment (@{$events->{segments}}) {
+        my $start = int($time * $numerator / $denominator + 0.5);
+        $time += $segment->{$field};
         next if $segment->{state} eq 'off';
-        my $end = int($time * $ticks_per_us + 0.5);
+        my $end = int($time * $numerator / $denominator + 0.5);
         fail('CW_E_TIMING', 'MIDI resolution would produce a zero-length note') if $end <= $start;
         $track .= _vlq($start - $last_tick)
             . pack('CCC', 0x90 | $channel, $self->{note}, $self->{velocity});
@@ -56,7 +58,7 @@ sub encode {
         $last_tick = $end;
         fail('CW_E_RESOURCE', 'MIDI exceeds max_bytes') if length($track) + 30 > $self->{max_bytes};
     }
-    $track .= _vlq(int($time * $ticks_per_us + 0.5) - $last_tick) . "\xff\x2f\0";
+    $track .= _vlq(int($time * $numerator / $denominator + 0.5) - $last_tick) . "\xff\x2f\0";
     return pack('a4Nnnna4N', 'MThd', 6, 0, 1, $self->{ppqn}, 'MTrk', length $track) . $track;
 }
 
@@ -108,7 +110,8 @@ player and synthesizer, not on the file.
 C<encode(events)> returns a binary SMF type 0 file, with one track, a tempo
 event, program change, explicit note-on/off events and end-of-track. It accepts
 TimedEvents or SampledEvents. Cumulative boundaries round to nearest tick,
-halves upward, using the encoded integer tempo. Leading/trailing silence is
+halves upward, using the encoded integer tempo and the original event units
+without intermediate microsecond rounding. Leading/trailing silence is
 preserved. Zero-tick notes or deltas above the SMF four-byte limit raise
 C<CW_E_TIMING>. Output size is bounded; this is an atomic file exporter rather
 than a live MIDI device interface. No synth, hardware, audio driver or MIDI

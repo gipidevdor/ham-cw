@@ -24,6 +24,9 @@ sub read_exact {
 
 sub write_bytes {
     my ($fh, $bytes) = @_;
+
+    # A closed pipe must become an I/O exception, not terminate the caller.
+    local $SIG{PIPE} = 'IGNORE' if exists $SIG{PIPE};
     print {$fh} $bytes or fail('CW_E_IO', 'Cannot write WAV handle');
     return;
 }

@@ -1,65 +1,57 @@
 # Verification
 
-Current working tree, checked locally on 2026-10-24.
+The current review candidate was checked locally on 2026-10-24. Results below
+refer to the reviewed source snapshot, including the optional PDL backend and
+workflow APIs. They do not certify unreviewed changes in another checkout.
 
 | Check | Result |
 | --- | --- |
-| Ordinary suite, macOS ARM64, Perl 5.44 with PDL 2.106 | 1,549 assertions across 21 files; PASS |
-| Ordinary suite with all Perl warnings fatal | 1,549 assertions; PASS |
-| System Perl 5.34 without PDL | 1,396 assertions; PASS |
-| Author checks | 179 assertions across 5 files; PASS |
+| Ordinary suite, macOS ARM64, Perl 5.44 with PDL 2.106 | 1,674 assertions across 22 files; PASS |
+| Ordinary suite with all Perl warnings fatal | 1,674 assertions; PASS |
+| System Perl 5.34 without PDL | 1,513 assertions across 22 files; PASS |
+| Author checks | 203 assertions across 6 files; PASS |
 | Perl::Tidy 20260826 and Perl::Critic 1.156 | PASS |
 | POD, metadata and local kwalitee | PASS |
-| Production coverage | 99.11% statements, 97.48% branches; PASS |
+| Production statement coverage | 99.15% (1,514/1,527); PASS |
+| Production branch coverage | 97.47% (501/514); PASS |
 | Distribution build/test, archive checks and isolated install | PASS |
 
-The tests use fixed Morse vectors, independently generated audio, a recorded
-synthetic fixture, PCM and MIDI byte checks, and injected I/O failures.
-The reception matrix compares both backends and different block sizes.
-Regression cases include sparse messages in 62 seconds of noise, 5 ms tone
-and broadband impulses before weak messages, partial text recovery, Farnsworth
-spacing, recording margins, equal fractional speeds and a 125-second WAV.
-File tests cover default existing-file protection and explicit replacement,
-including preservation of the destination after generation failure.
+Coverage requires all 17 production modules, including the optional PDL
+implementation. Missing, unexpected or duplicated production paths fail the
+gate before percentages are considered. Author regressions verify that a
+100% summary for an incomplete module subset cannot pass. An incomplete
+MANIFEST also prevents release archive construction.
 
-The default Perl backend needs only core modules. PDL is optional; waveform
-comparisons use an absolute tolerance of 1e-10. Tests compare decoded text,
-events and diagnostics between backends. Floating-point calculations near
-PCM rounding boundaries can differ outside the tested vectors.
+Tests use fixed Morse vectors, independently generated audio, a synthetic
+WAV fixture, independent PCM/MIDI byte checks and injected I/O failures.
+Regression cases cover sparse messages in 62 seconds of noise, 5 ms impulses
+before CW at amplitudes 0.01 and 0.02, block/backend equivalence, fractional
+speeds, ambiguous spacing and a 125-second WAV. The drift fixture integrates
+instantaneous frequency; measured zero crossings verify its stated bounds.
 
-The current reception tests are synthetic. Off-air accuracy, overlapping
-stations and unlimited-duration reception remain outside these results.
-The current working tree has not been checked by the remote CI platform
-matrix. Only PDL 2.106 was tested locally; 2.081 remains the declared minimum.
+A separate Perl process checks real closed-pipe writes: WAV and MIDI errors
+remain catchable, the WAV writer becomes FAILED and the caller's signal
+handler is restored. Additional tests cover canonical segment limits across
+feeds, invalid/cyclic result and exception payloads, sampled MIDI half-tick
+boundaries and valid tone defaults at 1,400, 1,401 and 1,402 Hz sample rates.
+File tests verify existing-file protection, explicit replacement and retention
+of the destination after generation failure.
 
-[Benchmark observations](benchmark-results.json) were collected before the
-latest reception corrections and are retained as historical measurements.
-Use `perl maint/benchmark.pl` to measure the current code on a chosen workload.
+The workflow tour and installed command-line examples are checked during
+isolated installation. Production code has no mandatory non-core dependency.
+PDL is optional; waveform comparisons use an absolute tolerance of 1e-10.
+Only PDL 2.106 was tested locally; 2.081 remains the declared minimum.
+Floating-point calculations near PCM rounding boundaries can differ outside
+the tested vectors.
 
-## Complete workflow ergonomics (2026-10-24)
+All ten platform/author jobs must pass on the candidate commit before merge:
+six ordinary Perl configurations, three PDL platforms and the author/release
+job. Main requires these checks, an up-to-date branch and a pull request.
+See the [CI runs](https://github.com/gipidevdor/ham-cw/actions/workflows/test.yml)
+for remote results; a configured matrix is not evidence of execution.
 
-The facade now covers per-call text/timing overrides, timed/sampled events,
-collecting and streaming samples, incremental component factories, sample/event
-reception, in-memory WAV/MIDI and WAV byte decoding. Raw Audio helpers cover
-collecting file I/O and bounded callbacks/iterator output; custom MIDI events
-have managed file output. All path-writing helpers preserve existing outputs
-by default and accept explicit replacement. These additions retain the older
-handle/component interfaces.
-
-The complete ordinary/author run passed 1,728 assertions across 26 files on
-Perl 5.44.0 with PDL; system Perl 5.34.1 without PDL passed 1,396 assertions
-across 21 ordinary files. These totals include regression checks for
-impulse rejection, fractional speeds, ambiguous spacing and file replacement. The task guide maps every supported
-operation to its input/output types, options, units and lifecycle. It is not
-a claim that all users have found the API intuitive in a usability study.
-
-The self-contained workflow tour executed under both interpreters. CLI smoke
-checks exercised all help pages, named timing/tone/PCM/MIDI options, JSON
-reception, default output preservation and explicit WAV/MIDI replacement.
-The release installation checker and platform CI examples now run the tour.
-
-The complete workflow coverage run passed all 1,549 ordinary assertions:
-statements 99.11% (1444/1457), branches 97.48% (464/476). Both gates pass.
-The 60 workflow-specific checks also pass with all Perl warnings fatal.
-The final archive passed manifest checks, all 33 local archive indicators,
-isolated build/test/install and the installed workflow tour plus CLI examples.
+The reception tests are synthetic. Off-air accuracy, overlapping stations
+and unlimited-duration reception remain outside these results. The
+[benchmark observations](benchmark-results.json) predate the latest reception
+corrections and remain historical measurements. Run `perl maint/benchmark.pl`
+to measure the current code on a chosen workload.

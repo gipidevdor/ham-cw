@@ -8,6 +8,10 @@ Revision history for Ham-CW
     - Experimental audio reception with tone and speed estimation, partial
       text recovery and warnings for ambiguous timing or spacing.
     - Robust envelope seeding for sparse messages and isolated 5 ms impulses.
+    - Catchable broken-pipe errors, direct sampled-event MIDI tick rounding,
+      canonical decoder segment limits and validated result/error payloads.
+    - Complete-source coverage gates, archive completeness checks and
+      phase-integrated independent drift fixtures.
     - Optional PDL acceleration, selected explicitly or through auto fallback;
       the default Perl backend uses only core dependencies.
     - Explicit overwrite for WAV and MIDI file output; failed replacements
