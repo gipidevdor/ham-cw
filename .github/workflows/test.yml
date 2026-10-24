@@ -28,6 +28,8 @@ jobs:
       - uses: shogo82148/actions-setup-perl@84c44b5a14f12b311f1bf3d2a70c8807f30b7ab2 # v1
         with:
           perl-version: ${{ matrix.perl }}
+      - name: Install build prerequisite
+        run: cpanm --notest "ExtUtils::MakeMaker~>=7.00"
       - name: Configure and test
         env:
           HARNESS_PERL_SWITCHES: -Mwarnings=FATAL,all
@@ -62,7 +64,9 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
           distribution: ${{ startsWith(matrix.os, 'windows-') && 'strawberry' || 'default' }}
-          install-modules: PDL@${{ matrix.pdl }}
+          install-modules: |
+            ExtUtils::MakeMaker~>=7.00
+            PDL@${{ matrix.pdl }}
           install-modules-args: --notest
       - name: Verify PDL backend and compatibility
         env:
@@ -88,6 +92,7 @@ jobs:
         with:
           perl-version: '5.40'
           install-modules: |
+            ExtUtils::MakeMaker~>=7.00
             PDL@2.106
             Perl::Tidy@20260826
           install-modules-args: --notest

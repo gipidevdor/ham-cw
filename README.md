@@ -35,6 +35,11 @@ From an uninstalled checkout, use `perl -Ilib bin/ham-cw` instead of `ham-cw`.
 
 You need Perl 5.20 or later. From an extracted distribution or repository root:
 
+Building requires ExtUtils::MakeMaker 7.00 or later, which supports installation
+paths containing spaces. CPAN clients install this configure prerequisite.
+For a manual build with an older bundled MakeMaker, first run
+`cpanm "ExtUtils::MakeMaker~>=7.00"`.
+
 ```sh
 perl Makefile.PL
 make
