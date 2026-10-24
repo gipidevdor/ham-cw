@@ -199,20 +199,23 @@ copying console logs into the release notes.
 
 ## Message length and elapsed time (local, 2026-10-24)
 
-A separate local measurement used the default 16000 Hz sample rate,
-20 WPM and one, five, ten, twenty or forty repetitions of `PARIS`.
-These are standard five-letter timing words; arbitrary prose can have
-different durations. No terminal word gap is appended.
-The machine was macOS ARM64 with Perl 5.44.0 and PDL 2.106.
-Each cell below is the median of three runs, in seconds.
+The measurements below use the literal message `CQ DE TESTCALL`, repeated
+one, two, four, eight or twelve times with one separating space. Message
+length is the actual character count including spaces, and audio duration
+comes from the generated events. No reference-word equivalence is used.
+These measurements replace the previous message-length example.
 
-| Standard words | Audio duration | Generate, Perl | Generate, PDL | Analyze, Perl | Analyze, PDL |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | 2.58 | 0.030 | 0.005 | 0.142 | 0.020 |
-| 5 | 14.58 | 0.149 | 0.023 | 0.785 | 0.114 |
-| 10 | 29.58 | 0.299 | 0.049 | 1.784 | 0.233 |
-| 20 | 59.58 | 0.611 | 0.100 | 3.297 | 0.474 |
-| 40 | 119.58 | 1.198 | 0.204 | 6.391 | 0.974 |
+The sample rate was the default 16000 Hz at 20 WPM, on macOS ARM64 with
+Perl 5.44.0 and PDL 2.106. Each processing time is the median of three
+new runs, in seconds.
+
+| Repeated messages | Characters, including spaces | Audio duration | Generate, Perl | Generate, PDL | Analyze, Perl | Analyze, PDL |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 14 | 7.14 | 0.076 | 0.011 | 0.381 | 0.056 |
+| 2 | 29 | 14.70 | 0.154 | 0.024 | 0.782 | 0.112 |
+| 4 | 59 | 29.82 | 0.310 | 0.050 | 1.580 | 0.230 |
+| 8 | 119 | 60.06 | 0.619 | 0.104 | 3.186 | 0.471 |
+| 12 | 179 | 90.30 | 0.935 | 0.158 | 4.781 | 0.706 |
 
 Generation measures sample synthesis, including generator construction.
 Analysis measures 4096-sample feeds and finalization with the default
