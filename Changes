@@ -9,6 +9,10 @@ Revision history for Ham-CW
     - Add numerical equivalence tests, a reproducible benchmark and PDL test
       jobs for Linux, macOS and Windows. Local results and the remaining
       platform checks are recorded in docs/verification.md.
+    - Expand FAST CI to the minimum Perl/PDL combination and macOS Intel.
+      Use Strawberry Perl for native Windows builds, save benchmark evidence,
+      and compare all PCM depths as well as streaming reception.
+    - Make missing-PDL tests portable to Perl 5.20.
     - Initial development release.
     - International Morse text, explicit prosigns and Farnsworth timing.
     - Cumulative event conversion and deterministic PCM synthesis.

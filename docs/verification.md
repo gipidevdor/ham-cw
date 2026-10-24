@@ -79,11 +79,12 @@ PDL backend produced the documented structured error.
 
 ### Measured performance
 
-The benchmark in `maint/benchmark.pl` compares complete generator and detector
+The initial benchmark compared complete generator and detector
 calls, including conversion to and from public Perl arrays. The input was
 `CQ CQ DE TESTCALL`, sampled at 8000 Hz. Detection used the default frequency
 search grid and received the complete sample array in one feed call. Each
 case ran for a target of two CPU seconds using Perl's Benchmark module.
+The expanded cross-platform benchmark below uses wall-clock time instead.
 
 | Operation | Perl backend | PDL backend | Observed speedup |
 | --- | --- | --- | --- |
@@ -111,3 +112,30 @@ low-rate defaults, Unicode separators and structured bit-depth errors. The
 receiver now accepts explicit speeds up to 60 WPM. Spectral purity and envelope
 contrast have separate controls; frequency grid spacing is not bandwidth.
 Earlier coverage and platform results above are historical measurements.
+
+## Expanded FAST platform and PCM verification
+
+The expanded CI checks the current CW integration on an isolated branch.
+It includes the declared minimum Perl/PDL combination, the current PDL
+release on Linux and macOS ARM/Intel, and Strawberry Perl on Windows. Pure
+Perl compatibility and the author/distribution gates run alongside FAST.
+
+The benchmark now measures generation, reception from a complete array,
+reception in 4096-sample blocks, and in-memory WAV reading and writing at
+8, 16 and 24 bits. WAV cases use one second of mono PCM at 8000 Hz and include
+header processing, validation, packing/unpacking and public array conversion.
+They exclude physical disk I/O. Reception and synthesis use the same
+`CQ CQ DE TESTCALL` message at 8000 Hz. Each case warms up once, then runs
+for at least one wall-clock second. A call already in progress is completed
+before timing stops.
+
+Each FAST job saves its actual Perl/PDL versions, architecture, iteration
+counts, elapsed times and rates as a downloadable JSON artifact. Timing is
+observational: hosted runners vary, and a speedup below 1 means PDL was slower
+for that case. There is no speed threshold in the compatibility tests.
+
+The first minimum-version build failed before Ham-CW tests: PDL 2.081's
+legacy C declarations were rejected by the latest Linux compiler. The legacy
+combination therefore uses Ubuntu 22.04; current PDL remains tested on the
+latest Linux runner. This is a dependency build constraint, not evidence of
+successful tests on the failed runner.

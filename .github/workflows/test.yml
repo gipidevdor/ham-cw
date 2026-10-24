@@ -45,7 +45,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {os: ubuntu-latest, perl: '5.20', pdl: '2.081'}
+          # PDL 2.081 predates C23; use the legacy runner's GCC toolchain.
+          - {os: ubuntu-22.04, perl: '5.20', pdl: '2.081'}
           - {os: ubuntu-latest, perl: '5.40', pdl: '2.106'}
           - {os: macos-latest, perl: '5.40', pdl: '2.106'}
           - {os: macos-15-intel, perl: '5.40', pdl: '2.106'}
