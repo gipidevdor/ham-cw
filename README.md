@@ -16,15 +16,15 @@ read the diagnostics before accepting a decoded message.
 use Ham::CW;
 
 my $cw = Ham::CW->new(wpm => 20, frequency => 700);
-print $cw->encode('CQ DE IU0ABC'), "\n";
+print $cw->encode('CQ DE IU0HFJ'), "\n";
 print $cw->decode('... --- ...'), "\n";  # SOS
 
 open my $wav, '>:raw', 'cq.wav' or die $!;
-$cw->generate_wav('CQ DE IU0ABC', $wav);
+$cw->generate_wav('CQ DE IU0HFJ', $wav);
 close $wav or die $!;
 
 open my $midi, '>:raw', 'cq.mid' or die $!;
-$cw->generate_midi('CQ DE IU0ABC', $midi, note => 77, program => 80);
+$cw->generate_midi('CQ DE IU0HFJ', $midi, note => 77, program => 80);
 close $midi or die $!;
 
 open my $input, '<:raw', 'cq.wav' or die $!;
@@ -46,7 +46,7 @@ make install
 ```
 
 For a source checkout, `prove -lr t` runs the ordinary tests without installing.
-`perl -Ilib examples/send.pl cq.wav CQ DE IU0ABC` writes a recording;
+`perl -Ilib examples/send.pl cq.wav CQ DE IU0HFJ` writes a recording;
 `perl -Ilib examples/receive.pl cq.wav` attempts automatic reception.
 
 ## Interfaces

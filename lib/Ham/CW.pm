@@ -81,10 +81,10 @@ Ham::CW - Morse text, timing and PCM tools in pure Perl
 
     use Ham::CW;
     my $cw = Ham::CW->new(wpm => 20, frequency => 700);
-    print $cw->encode('CQ CQ DE IU0ABC'), "\n";
+    print $cw->encode('CQ CQ DE IU0HFJ'), "\n";
     print $cw->decode('... --- ...'), "\n";
     open my $out, '>:raw', 'cq.wav' or die $!;
-    $cw->generate_wav('CQ CQ DE IU0ABC', $out);
+    $cw->generate_wav('CQ CQ DE IU0HFJ', $out);
     close $out or die $!;
     open my $in, '<:raw', 'cq.wav' or die $!;
     my $result = $cw->decode_wav($in, frequency => 700, wpm => 20);

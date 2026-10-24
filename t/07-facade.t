@@ -6,11 +6,11 @@ my $cw = Ham::CW->new;
 for my $bits (8, 16, 24) {
     my $bytes = '';
     open my $out, '>', \$bytes or die $!;
-    $cw->generate_wav('CQ DE IU0ABC', $out, bits => $bits);
+    $cw->generate_wav('CQ DE IU0HFJ', $out, bits => $bits);
     close $out;
     open my $in, '<', \$bytes or die $!;
     my $r = $cw->decode_wav($in, frequency => 700, wpm => 20);
-    is($r->text, 'CQ DE IU0ABC', "WAV facade $bits bits");
+    is($r->text, 'CQ DE IU0HFJ', "WAV facade $bits bits");
 }
 my $events = {unit => 'us', segments => []};
 my $r      = Ham::CW::Result->new(

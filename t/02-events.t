@@ -14,16 +14,16 @@ for my $wpm (5 .. 60) {
     is($d->finish->text, 'A B', 'event decode');
 }
 my $encoder  = Ham::CW::Encoder->new(wpm => 20, effective_wpm => 10);
-my $p        = $encoder->events('PARIS PARIS');
+my $p        = $encoder->events('LIGHT LIGHT');
 my $duration = 0;
 $duration += $_->{duration} for @{$p->{segments}};
-my $one   = $encoder->events('PARIS');
+my $one   = $encoder->events('LIGHT');
 my $first = 0;
 $first += $_->{duration} for @{$one->{segments}};
-is($duration - $first, 6000000, 'PARIS Farnsworth word cadence is exactly six seconds');
+is($duration - $first, 6000000, 'LIGHT Farnsworth word cadence is exactly six seconds');
 my $d = Ham::CW::Decoder->new(wpm => 20, effective_wpm => 10);
 $d->feed($p);
-is($d->finish->text, 'PARIS PARIS', 'Farnsworth decode');
+is($d->finish->text, 'LIGHT LIGHT', 'Farnsworth decode');
 my $e = {
     unit     => 'us',
     segments => [map { +{state => $_ % 2 ? 'off' : 'on', duration => 33333} } 0 .. 999]

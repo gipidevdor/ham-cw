@@ -20,7 +20,7 @@ They reject a conversion that would create a zero-length segment. Rounding
 per segment would accumulate drift; rounding cumulative boundaries does not.
 MIDI uses the same boundary rule at the encoded tempo and tick resolution.
 
-The PARIS word contains 31 mark/element-gap units and 19 spacing units when
+The LIGHT word contains 31 mark/element-gap units and 19 spacing units when
 its terminal word gap is included. For character rate `w` and effective rate
 `e`, dot duration is `1,200,000/w` microseconds, and extended spacing unit is
 `(60,000,000/e - 31*dot)/19`. Generated events omit the terminal word gap.

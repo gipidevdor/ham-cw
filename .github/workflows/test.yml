@@ -33,9 +33,9 @@ jobs:
           prove -lr t
       - name: Examples
         run: |
-          perl -Ilib examples/send.pl example.wav CQ DE IU0ABC
+          perl -Ilib examples/send.pl example.wav CQ DE IU0HFJ
           perl -Ilib examples/receive.pl example.wav
-          perl -Ilib examples/midi.pl example.mid CQ DE IU0ABC
+          perl -Ilib examples/midi.pl example.mid CQ DE IU0HFJ
   author:
     name: Author checks and distribution
     runs-on: ubuntu-latest
