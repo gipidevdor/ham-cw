@@ -184,7 +184,7 @@ Both backends use the same public arrays and file/event formats. Floating-point
 values can differ slightly, including one PCM unit near a rounding boundary.
 Use `perl maint/benchmark.pl --help` and `perl maint/benchmark-platforms.pl --help`
 for workload measurements. [Verification](docs/verification.md) separates
-local checks, historical platform results and benchmark observations.
+current local and platform checks from historical benchmark observations.
 
 ## Practical limits
 

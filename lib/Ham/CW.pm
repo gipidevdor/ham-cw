@@ -578,9 +578,10 @@ With C<overwrite =E<gt> 1>, output is first written to a temporary file in the
 same directory and renamed after successful generation and close. Failure
 before replacement preserves the old destination and attempts temporary-file
 cleanup. Existing regular-file permission bits are preserved and symbolic-link
-destinations are rejected. Replacement creates a new file identity; ownership,
-ACLs and other hard links are not transferred. Replacement can fail if directory
-permissions or the operating system prevent rename.
+destinations, including dangling links, are rejected with C<CW_E_IO>. A new
+path follows the process umask. Replacement creates a new file identity;
+ownership, ACLs and other hard links are not transferred. Replacement can
+fail if directory permissions or the operating system prevent rename.
 
 Handle methods never close caller-owned handles. Set binary mode when
 opening WAV/MIDI files and check C<close> errors yourself:
@@ -603,14 +604,6 @@ C<frequency> and C<wpm> can be undefined when estimation fails.
 Result reference fields are copied on input and access. Diagnostic fields
 explain analysis; they are not confidence scores. L<Ham::CW::Result> documents
 every accessor, warning code and diagnostic field.
-
-=head2 Replacement file semantics
-
-Explicit C<overwrite =E<gt> 1> preserves an existing regular destination's
-permission bits. Symbolic-link destinations, including dangling links, are
-rejected with C<CW_E_IO>. A new path follows the process umask. Replacement
-uses a new file identity; ownership, ACLs and other hard links are not
-transferred. See F<docs/architecture.md> for the shared file contract.
 
 =head1 ERRORS
 

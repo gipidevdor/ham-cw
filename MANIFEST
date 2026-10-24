@@ -18,6 +18,7 @@ docs/benchmark-results.json
 docs/benchmarks.md
 docs/cpan-audit.json
 docs/dependency-audit.md
+docs/platform-results.json
 docs/releasing.md
 docs/security-ci.md
 docs/usage.md
