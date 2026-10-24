@@ -16,7 +16,9 @@
     "sample_rate": 8000,
     "transformation": "Decoded Ogg, averaged channels, scipy resample_poly to 8000 Hz, cropped, PCM signed 16-bit; no denoising or gain change",
     "max_regression_cer": 0,
-    "quality_target_cer": 0.25
+    "quality_target_cer": 0.25,
+    "max_regression_cer_hinted": 0,
+    "max_regression_cer_estimated": 0
   },
   {
     "name": "oh2b",
@@ -35,7 +37,9 @@
     "sample_rate": 8000,
     "transformation": "Decoded source Ogg, averaged channels, scipy resample_poly to 8000 Hz, callsign-only crop, PCM signed 16-bit; no denoising or gain change",
     "max_regression_cer": 0,
-    "quality_target_cer": 0.25
+    "quality_target_cer": 0.25,
+    "max_regression_cer_hinted": 0,
+    "max_regression_cer_estimated": 0
   },
   {
     "name": "cs3b",
@@ -54,7 +58,9 @@
     "sample_rate": 8000,
     "transformation": "Decoded source Ogg, averaged channels, scipy resample_poly to 8000 Hz, callsign-only crop, PCM signed 16-bit; no denoising or gain change",
     "max_regression_cer": 0,
-    "quality_target_cer": 0.25
+    "quality_target_cer": 0.25,
+    "max_regression_cer_hinted": 0,
+    "max_regression_cer_estimated": 0
   },
   {
     "name": "sk6rud",
@@ -73,6 +79,8 @@
     "sample_rate": 8000,
     "transformation": "Decoded source Ogg, averaged channels, scipy resample_poly to 8000 Hz, callsign-only crop, PCM signed 16-bit; no denoising or gain change",
     "max_regression_cer": 0,
-    "quality_target_cer": 0.25
+    "quality_target_cer": 0.25,
+    "max_regression_cer_hinted": 0,
+    "max_regression_cer_estimated": 0
   }
 ]

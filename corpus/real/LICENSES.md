@@ -71,8 +71,18 @@ manual-keying or conversational-QSO accuracy.
 CER is Levenshtein edit distance divided by reference character count, with
 insertions, deletions, substitutions, spaces and replacement characters all
 counted. It may exceed 100%, and transcripts are not normalized.
-`max_regression_cer` records the remeasured hinted baseline for these crops;
+`max_regression_cer_hinted` and `max_regression_cer_estimated` record separate
+measured budgets for decoding with the stated speed and with no WPM hint.
+The unassisted run also uses the automatic bandwidth default.
+`max_regression_cer` retains the hinted baseline for compatibility;
 `quality_target_cer` remains independently fixed at 0.25. Historical results
 on the longer NCDXF intervals and the SK6RUD reference without its leading
 prefix are not directly comparable to the corrected crops. Run
 `perl maint/reception-corpus.pl` for measured text, errors and warnings.
+
+The real-audio test and reporting script run both speed modes for every clip.
+The test prints both CERs on one note line and validates the reporting columns.
+The report keeps `cer` for the hinted result and adds explicit `cer_hinted`,
+`cer_estimated`, `text_estimated`, `estimated_wpm` and estimated-mode warnings/frequency.
+These are separate runs, not copies of the hinted output. Matching text does
+not certify accurate estimated speed or reception on other recordings.

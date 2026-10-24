@@ -234,8 +234,9 @@ independent 20/25 WPM estimates, with unequal levels and added noise. A stronger
 continuous carrier is also tested. This does not establish arbitrary field
 accuracy: co-channel stations cannot be separated; fading, interference, short
 messages and unknown spacing can still produce wrong, partial or empty text.
-Review each Result's warnings. Two of four real-clip quality targets remain
-unmet; see [measured reception results](docs/verification.md).
+Review each Result's warnings. For current hinted and unassisted CER, run
+`perl maint/reception-corpus.pl`; the historical figures in
+[verification](docs/verification.md) predate the corrected corpus crops.
 
 The default candidate spacing is 50 Hz. Synthetic reception tests allow tone
 error within one configured grid step, an empirical tolerance rather than a
