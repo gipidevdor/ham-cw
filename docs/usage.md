@@ -353,3 +353,10 @@ These methods share the ordinary receive limits and options; see the
 latency and margin-suppression behavior. Co-channel stations cannot be
 separated. Close tones, fading and noise can still cause false or missing
 stations, even when text is present and no warning is emitted.
+
+## Complete runnable scenarios
+
+See the [executable example catalog](../examples/README.md) for the full public
+API index and self-contained paths for PCM, streaming, station reception,
+results, errors and CLI processes. Run a selected scenario with
+`perl -Ilib examples/run-all.pl --only pcm-streams --backend auto`.

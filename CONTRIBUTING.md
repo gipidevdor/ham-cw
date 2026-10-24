@@ -72,6 +72,17 @@ and guide recipes independently in temporary directories with warnings fatal.
 `xt/pod.t` validates POD syntax. Preview installed-style output with
 `perldoc lib/Ham/CW.pm` or the corresponding module path.
 
+## Executable examples
+
+Keep `examples/routes.json` synchronized with runnable examples and public
+methods. Each catalog entry must execute independently from an empty working
+directory and use the supported public API. Numerical examples accept an
+optional `perl`, `auto` or `pdl` argument. Use temporary output and check expected
+results/errors explicitly. Recordings need the same provenance/license care as
+tests. `t/27-examples.t` runs the catalog across available backends, checks its
+method/command inventory and smoke-tests the runner. The isolated installation
+check also runs the complete catalog against the installed library.
+
 ## Coverage and release checks
 
 Statement/branch targets are 95%/90% for all production modules, including PDL.

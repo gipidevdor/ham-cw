@@ -169,6 +169,14 @@ module and installed with it. Read it using `perldoc Ham::CW` after installation
 or `perldoc lib/Ham/CW.pm` from the checkout. Use the corresponding module name
 or file path for other references. Each public method has its own section.
 
+## Executable API examples
+
+The [example catalog](examples/README.md) covers every public method, WAV writer
+operations, success/failure paths, multiple stations, CLI and licensed recordings.
+Run `perl -Ilib examples/run-all.pl --list` to choose a scenario or
+`perl -Ilib examples/run-all.pl --backend perl` to run them all. Numerical
+examples also support `--backend auto` or `--backend pdl` through that runner.
+
 ## Command-line examples
 
 Run these from the checkout root. The sender creates `cw-example.wav`; the
