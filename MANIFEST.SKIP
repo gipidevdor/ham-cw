@@ -9,3 +9,5 @@
 \.(?:bak|tdy|ERR)$
 ^examples/.*\.wav$
 (^|/)\.DS_Store$
+
+^\.[^/]+(?:/|$)

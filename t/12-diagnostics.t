@@ -27,8 +27,8 @@ my $invalid =
     Ham::CW::Generator->new(sample_rate => 8000, frequency => 650, attack_ms => 0, release_ms => 0)
     ->generate($bad);
 my $r = decode_signal($invalid);
-is($r->text, '', 'ambiguous mark durations do not produce guessed text');
-ok(grep($_->{code} eq 'CW_W_UNRELIABLE', @{$r->warnings}), 'timing rejection warning');
+is($r->text, "\x{FFFD}", 'invalid group retains replacement character');
+ok(grep($_->{code} eq 'CW_W_TIMING', @{$r->warnings}), 'timing rejection warning');
 my $same =
     Ham::CW::Generator->new(sample_rate => 8000, frequency => 650)->generate($cw->events('SSS'));
 my $auto = Ham::CW::Detector->new(sample_rate => 8000, frequency => 650);
@@ -66,7 +66,7 @@ eval {
         frequency_step => 10
     );
 };
-is($@->code, 'CW_E_RESOURCE', 'frequency candidate resource limit');
+is((ref($@) ? $@->code : "$@"), 'CW_E_RESOURCE', 'frequency candidate resource limit');
 my $snapshot = Ham::CW::Result->new(warnings => [{code => 'CW_W_TEST', message => 'sample'}]);
 my $warnings = $snapshot->warnings;
 $warnings->[0]{code} = 'BAD';

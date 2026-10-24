@@ -19,7 +19,7 @@ my @cases = (
 for my $case (@cases) {
     open my $fh, '<', \$case->[0] or die $!;
     eval { Ham::CW::Audio->new->reader($fh) };
-    is(ref($@) && $@->code, $case->[1], 'reject malformed chunk structure');
+    is(ref($@) && (ref($@) ? $@->code : "$@"), $case->[1], 'reject malformed chunk structure');
 }
 my $reordered = riff($data . $fmt);
 open my $in, '<', \$reordered or die $!;

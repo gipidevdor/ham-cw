@@ -16,15 +16,15 @@ read the diagnostics before accepting a decoded message.
 use Ham::CW;
 
 my $cw = Ham::CW->new(wpm => 20, frequency => 700);
-print $cw->encode('CQ DE IU0HFJ'), "\n";
+print $cw->encode('CQ DE TESTCALL'), "\n";
 print $cw->decode('... --- ...'), "\n";  # SOS
 
 open my $wav, '>:raw', 'cq.wav' or die $!;
-$cw->generate_wav('CQ DE IU0HFJ', $wav);
+$cw->generate_wav('CQ DE TESTCALL', $wav);
 close $wav or die $!;
 
 open my $midi, '>:raw', 'cq.mid' or die $!;
-$cw->generate_midi('CQ DE IU0HFJ', $midi, note => 77, program => 80);
+$cw->generate_midi('CQ DE TESTCALL', $midi, note => 77, program => 80);
 close $midi or die $!;
 
 open my $input, '<:raw', 'cq.wav' or die $!;
@@ -46,8 +46,39 @@ make install
 ```
 
 For a source checkout, `prove -lr t` runs the ordinary tests without installing.
-`perl -Ilib examples/send.pl cq.wav CQ DE IU0HFJ` writes a recording;
+`perl -Ilib examples/send.pl cq.wav CQ DE TESTCALL` writes a recording;
 `perl -Ilib examples/receive.pl cq.wav` attempts automatic reception.
+
+## FAST with Perl Data Language
+
+Install PDL (`cpanm PDL`), then select the backend once:
+
+```perl
+my $cw = Ham::CW->new(backend => 'pdl', wpm => 20, frequency => 700);
+$cw->generate_wav('CQ DE TESTCALL', $wav_handle);
+my $result = $cw->decode_wav($input_handle);
+```
+
+`backend => 'perl'` remains the default, with no non-core dependencies.
+`'pdl'` requires PDL 2.081 or later and fails with `CW_E_ARGUMENT` when
+unavailable. `'auto'` selects PDL when loadable and otherwise uses Perl.
+Generator, Detector and Audio accept the same option independently;
+`decode_wav` also accepts an override. Text, timing and MIDI share the existing
+implementation. Public samples remain ordinary Perl array references.
+
+PDL vectorizes the oscillator, ramps, PCM normalization and quantization.
+Detection batches at most 128 frames and computes the equivalent spectral
+power using cached sine/cosine projections in double precision. Fixed frame
+grid, streaming limits, partial frames, lifecycle and diagnostics are retained.
+Floating-point results can differ slightly; PCM samples extremely close to a
+rounding boundary may differ by one integer unit. Benchmark your workload with
+`perl maint/benchmark.pl`: short blocks and single-frequency reception can
+spend more time converting arrays than they save in vector operations.
+
+The FAST CI job installs PDL and tests Linux, macOS and Windows. PDL itself
+contains native code; installation requires a compatible PDL build or a C
+build toolchain. No operating-system-specific audio or external DSP command
+is used. Platform results must be confirmed by CI before claiming validation.
 
 ## Interfaces
 
@@ -55,7 +86,7 @@ For a source checkout, `prove -lr t` runs the ordinary tests without installing.
 | --- | --- |
 | `Ham::CW` | Text, event, WAV and MIDI convenience methods |
 | `Ham::CW::Encoder` | International symbols, explicit prosigns, WPM and Farnsworth |
-| `Ham::CW::Decoder` | Internal text and incremental event decoder |
+| `Ham::CW::Decoder` | Public text and incremental event decoder |
 | `Ham::CW::Events` | Validated microsecond/sample conversion |
 | `Ham::CW::Generator` | Deterministic sine oscillator and bounded sample iterator |
 | `Ham::CW::Detector` | Incremental Goertzel analysis and reception diagnostics |
@@ -64,7 +95,7 @@ For a source checkout, `prove -lr t` runs the ordinary tests without installing.
 | `Ham::CW::Result` | Cumulative decoding snapshots with copied fields |
 | `Ham::CW::Error` | Exceptions with stable machine-readable codes |
 
-Run `perldoc -l Ham::CW` after installing, or `perldoc lib/Ham/CW.pm` in the
+Run `perldoc Ham::CW` after installing, or `perldoc lib/Ham/CW.pm` in the
 checkout. Each public module documents its options, limits and lifecycle.
 
 Morse text uses spaces between characters and ` / ` between words. Operational

@@ -20,10 +20,13 @@ sub new {
 sub encode {
     my ($self, $text) = @_;
     fail('CW_E_ARGUMENT', 'Text must be a defined scalar') if !defined($text) || ref($text);
+    if ($self->{unknown} eq 'error' && $text =~ /[^\S\x00-\x7f]/x) {
+        fail('CW_E_SYMBOL', 'Unsupported Unicode whitespace');
+    }
     my $a = alphabet();
     my $p = prosigns();
     my @words;
-    for my $word (split /\s+/x, $text) {
+    for my $word (split /[\x20\t\r\n\f\x0b]+/x, $text) {
         next unless length $word;
         my @codes;
         while (length $word) {
@@ -95,6 +98,8 @@ Ham::CW::Encoder - international Morse text and timing
 
 =head1 METHODS
 
+Undefined optional values use their documented defaults.
+
 C<new> accepts C<wpm> (default 20, range 1..200), C<effective_wpm>
 (default WPM, range 1..WPM), and C<unknown> (C<error> or C<skip>).
 Unknown options are errors. C<encode(text)> returns dot/dash groups separated
@@ -104,6 +109,9 @@ characters are rejected, without transliteration. Empty text is allowed.
 
 Operational tokens use angle brackets: C<< <AR> >>, C<< <AS> >>, C<< <CT> >>, C<< <SK> >>,
 C<< <HH> >>, C<< <SN> >>, and C<< <SOS> >>.
+Aliases C<< <BT> >>, C<< <KN> >>, C<< <BK> >>, C<< <KA> >> and
+C<< <VE> >> are also accepted. Shared aliases decode to one canonical token;
+original spellings cannot be recovered from the waveform.
 Ordinary C<AR> remains two letters. Shared punctuation/prosign waveforms are
 inherently ambiguous on reception; see L<Ham::CW::Decoder>.
 

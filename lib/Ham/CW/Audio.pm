@@ -6,17 +6,19 @@ use Ham::CW::_Internal::WavWriter;
 use Ham::CW::_Internal::IO       qw(read_exact write_bytes);
 use Scalar::Util                 qw(openhandle);
 use Ham::CW::_Internal::Validate qw(fail integer options samples named_arguments);
+use Ham::CW::_Internal::Backend;
 our $VERSION = '0.001';
 
 sub new {
     my ($class, @pairs) = @_;
     my %args = named_arguments(@pairs);
-    options(\%args, qw(max_bytes stereo block_samples));
+    options(\%args, qw(max_bytes stereo block_samples backend));
     my $policy = $args{stereo} // 'mix';
     fail('CW_E_ARGUMENT', 'stereo must be left, right or mix')
         unless $policy =~ /\A(?:left|right|mix)\z/x;
     return bless {
         stereo        => $policy,
+        backend       => Ham::CW::_Internal::Backend::resolve($args{backend}),
         max_bytes     => integer('max_bytes',     $args{max_bytes}     // 64000000, 44, 4294967295),
         block_samples => integer('block_samples', $args{block_samples} // 4096,     1,  1000000)
     }, $class;
@@ -114,6 +116,8 @@ sub reader {
         $count = $remaining if $count > $remaining;
         my $raw = read_exact($fh, $count);
         $remaining -= $count;
+        return Ham::CW::_Internal::PDL::decode_pcm($raw, $bits, $channels, $self->{stereo})
+            if $self->{backend} eq 'pdl';
         return _decode_pcm($raw, $bits, $channels, $self->{stereo});
     };
     return {
@@ -143,7 +147,7 @@ sub writer {
     my %args = named_arguments(@pairs);
     options(\%args, qw(sample_rate sample_count bits));
     my $rate = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
-    my $bits = $args{bits} // 16;
+    my $bits = integer('bits', $args{bits} // 16, 8, 24);
     fail('CW_E_ARGUMENT', 'bits must be 8, 16 or 24')
         unless $bits == 8 || $bits == 16 || $bits == 24;
     my $count = integer('sample_count', $args{sample_count}, 0, 4294967295);
@@ -163,6 +167,7 @@ sub writer {
     );
     return bless {
         fh      => $fh,
+        backend => $self->{backend},
         bits    => $bits,
         count   => $count,
         written => 0,
@@ -201,6 +206,10 @@ Ham::CW::Audio - bounded RIFF PCM input and output
     while (my $samples = $reader->{next}->()) { $detector->feed($samples) }
 
 =head1 METHODS
+
+C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
+2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
+arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for FAST usage.
 
 C<new> accepts C<max_bytes> (64000000), C<block_samples> (4096), and
 C<stereo> (C<left>, C<right>, C<mix>; default mix). Mix averages both channels.

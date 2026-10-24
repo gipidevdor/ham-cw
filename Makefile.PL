@@ -23,7 +23,7 @@ WriteMakefile(
     CONFIGURE_REQUIRES => {'ExtUtils::MakeMaker' => '6.64'},
     PREREQ_PM          =>
         {'Carp' => 0, 'Exporter' => 0, 'Scalar::Util' => 0, 'Storable' => 0, 'Hash::Util' => 0},
-    TEST_REQUIRES => {'Test::More' => '0.98', 'File::Temp' => 0, 'JSON::PP' => 0, 'Symbol' => 0},
+    TEST_REQUIRES => {'Test::More' => '0.98', 'JSON::PP' => 0, 'Symbol' => 0},
     dist          =>
         {TAR => '$(PERLRUN) maint/archive.pl', TARFLAGS => q{ }, COMPRESS => 'gzip -n -f --best'},
     META_MERGE => {
@@ -40,6 +40,7 @@ WriteMakefile(
         },
         no_index => {directory => [qw(t xt examples maint)], namespace => ['Ham::CW::_Internal']},
         prereqs  => {
+            runtime => {recommends => {PDL => '2.081'}},
             develop => {
                 requires => {
                     'Perl::Tidy'              => 0,

@@ -35,7 +35,7 @@ run_command($make);
 run_command($make, 'test');
 run_command($make, 'install');
 local $ENV{PERL5LIB} = File::Spec->catdir($prefix, 'lib', 'perl5');
-run_command($^X, 'examples/send.pl',    "$root/test.wav", 'CQ', 'DE', 'IU0HFJ');
+run_command($^X, 'examples/send.pl',    "$root/test.wav", 'CQ', 'DE', 'TESTCALL');
 run_command($^X, 'examples/receive.pl', "$root/test.wav");
 run_command($^X, 'examples/midi.pl',    "$root/test.mid", 'SOS');
 print "Installed distribution and examples PASS\n";

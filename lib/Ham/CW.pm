@@ -15,10 +15,10 @@ sub new {
     my ($class, @pairs) = @_;
     my %args = named_arguments(@pairs);
     options(\%args,
-        qw(wpm effective_wpm frequency sample_rate amplitude attack_ms release_ms unknown));
+        qw(wpm effective_wpm frequency sample_rate amplitude attack_ms release_ms unknown backend));
     my %encoder = map { exists($args{$_}) ? ($_ => $args{$_}) : () } qw(wpm effective_wpm unknown);
     my %generator = map { exists($args{$_}) ? ($_ => $args{$_}) : () }
-        qw(frequency sample_rate amplitude attack_ms release_ms);
+        qw(frequency sample_rate amplitude attack_ms release_ms backend);
     Ham::CW::Encoder->new(%encoder);
     Ham::CW::Generator->new(%generator);
     return bless {encoder => \%encoder, generator => \%generator}, $class;
@@ -37,8 +37,10 @@ sub generate_wav {
     my $sampled = Ham::CW::Events::to_samples($events, $rate);
     my $count   = 0;
     $count += $_->{samples} for @{$sampled->{segments}};
-    my $audio =
-        Ham::CW::Audio->new(exists($args{max_bytes}) ? (max_bytes => $args{max_bytes}) : ());
+    my $audio = Ham::CW::Audio->new(
+        backend => $self->{generator}{backend} // 'perl',
+        exists($args{max_bytes}) ? (max_bytes => $args{max_bytes}) : ()
+    );
     my $gen    = Ham::CW::Generator->new(%{$self->{generator}});
     my $next   = $gen->stream($sampled);
     my $writer = $audio->writer(
@@ -61,9 +63,11 @@ sub decode_wav {
     my ($self, $fh, @pairs) = @_;
     my %args = named_arguments(@pairs);
     options(\%args,
-        qw(frequency wpm effective_wpm stereo max_bytes min_frequency max_frequency frequency_step)
+        qw(frequency wpm effective_wpm stereo max_bytes min_frequency max_frequency frequency_step max_frames min_contrast min_purity backend)
     );
-    my %audio    = map { exists($args{$_}) ? ($_ => delete $args{$_}) : () } qw(stereo max_bytes);
+    $args{backend} //= $self->{generator}{backend} // 'perl';
+    my %audio = map { exists($args{$_}) ? ($_ => delete $args{$_}) : () } qw(stereo max_bytes);
+    $audio{backend} = $args{backend};
     my $reader   = Ham::CW::Audio->new(%audio)->reader($fh);
     my $detector = Ham::CW::Detector->new(%args, sample_rate => $reader->{sample_rate});
     while (my $block = $reader->{next}->()) { $detector->feed($block) }
@@ -81,10 +85,10 @@ Ham::CW - Morse text, timing and PCM tools in pure Perl
 
     use Ham::CW;
     my $cw = Ham::CW->new(wpm => 20, frequency => 700);
-    print $cw->encode('CQ CQ DE IU0HFJ'), "\n";
+    print $cw->encode('CQ CQ DE TESTCALL'), "\n";
     print $cw->decode('... --- ...'), "\n";
     open my $out, '>:raw', 'cq.wav' or die $!;
-    $cw->generate_wav('CQ CQ DE IU0HFJ', $out);
+    $cw->generate_wav('CQ CQ DE TESTCALL', $out);
     close $out or die $!;
     open my $in, '<:raw', 'cq.wav' or die $!;
     my $result = $cw->decode_wav($in, frequency => 700, wpm => 20);
@@ -101,7 +105,7 @@ No native libraries, external audio programs or network access are required.
 
 C<new> accepts C<wpm> (20), C<effective_wpm> (WPM), C<frequency> (700),
 C<sample_rate> (16000), C<amplitude> (0.8), C<attack_ms> (5),
-C<release_ms> (5), C<unknown> (error). Unknown options raise an exception.
+C<release_ms> (5), C<unknown> (error), C<backend> (perl). Unknown options raise an exception.
 These configure encoding/generation; reception takes its own optional hints.
 
 C<encode(text)> returns Morse, C<decode(morse)> returns text, and
@@ -120,8 +124,28 @@ come from the encoder configuration. MIDI playback timbre depends on the player.
 C<decode_wav(handle, %options)> reads a seekable WAV and returns
 L<Ham::CW::Result>. Options: C<frequency>, C<wpm>, C<effective_wpm>,
 C<stereo>, C<max_bytes>, C<min_frequency>, C<max_frequency>,
-C<frequency_step>. Omit frequency/WPM for estimation. Always inspect warnings;
+C<frequency_step>, C<max_frames>, C<min_contrast>, C<min_purity>, C<backend>.
+The default history limit is 24000 frames (about 120 seconds); increase
+C<max_frames> for longer recordings, up to 1000000 frames. Reception supports
+up to 60 WPM. Omit frequency/WPM for estimation. Farnsworth reception needs
+C<effective_wpm> for dependable word boundaries. Always inspect warnings;
 completion does not imply reliable reception. See L<Ham::CW::Detector>.
+
+=head1 FAST BACKEND
+
+C<backend =E<gt> 'pdl'> enables Perl Data Language vectorized audio processing
+for both WAV generation and reception. Install PDL 2.081 or later first.
+C<'perl'> keeps the core-only implementation; C<'auto'> selects PDL if
+loadable, falling back to Perl otherwise. Explicit PDL selection fails with
+C<CW_E_ARGUMENT> when unavailable. C<decode_wav> can override the backend.
+Text, event and MIDI operations retain their shared implementation.
+
+Samples remain Perl array references. Double-precision DSP can introduce
+small numerical differences, including one PCM unit near quantization ties.
+The detector uses equivalent sinusoidal projections and bounded frame
+batches. Performance depends on chunk sizes and frequency candidate count;
+run F<maint/benchmark.pl> on the target machine. PDL requires a compatible
+native installation on each platform.
 
 =head1 ERRORS
 

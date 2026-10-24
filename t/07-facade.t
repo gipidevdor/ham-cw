@@ -6,11 +6,11 @@ my $cw = Ham::CW->new;
 for my $bits (8, 16, 24) {
     my $bytes = '';
     open my $out, '>', \$bytes or die $!;
-    $cw->generate_wav('CQ DE IU0HFJ', $out, bits => $bits);
+    $cw->generate_wav('CQ DE TESTCALL', $out, bits => $bits);
     close $out;
     open my $in, '<', \$bytes or die $!;
     my $r = $cw->decode_wav($in, frequency => 700, wpm => 20);
-    is($r->text, 'CQ DE IU0HFJ', "WAV facade $bits bits");
+    is($r->text, 'CQ DE TESTCALL', "WAV facade $bits bits");
 }
 my $events = {unit => 'us', segments => []};
 my $r      = Ham::CW::Result->new(
@@ -41,6 +41,6 @@ is($error->context->{parameter}, 'x', 'exception context copied');
 
 for my $args ({typo => 20}, {wpm => 0}, {effective_wpm => 21}, {frequency => 'Inf'}) {
     eval { Ham::CW->new(%{$args}) };
-    is($@->code, 'CW_E_ARGUMENT', 'facade rejects invalid configuration');
+    is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'facade rejects invalid configuration');
 }
 done_testing;

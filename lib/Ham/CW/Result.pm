@@ -15,7 +15,7 @@ sub new {
         {
             text        => '',
             morse       => '',
-            events      => [],
+            events      => {unit => 'us', segments => []},
             frequency   => undef,
             wpm         => undef,
             warnings    => [],

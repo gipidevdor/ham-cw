@@ -1,4 +1,5 @@
 package Ham::CW::_Internal::WavWriter;
+use 5.020;
 use strict;
 use warnings;
 use Ham::CW::_Internal::IO       qw(write_bytes);
@@ -20,7 +21,10 @@ sub feed {
     fail('CW_E_ARGUMENT', 'More samples than declared')
         if $self->{written} + @{$values} > $self->{count};
     my $scale = 2**($self->{bits} - 1);
-    my @ints  = map { _quantize($_, $scale) } @{$values};
+    my @ints =
+        $self->{backend} eq 'pdl'
+        ? Ham::CW::_Internal::PDL::quantize($values, $scale)
+        : map { _quantize($_, $scale) } @{$values};
     my $raw;
     if ($self->{bits} == 8) {
         $raw = pack('C*', map { $_ + 128 } @ints);

@@ -65,3 +65,15 @@ hysteresis, while limiting the influence of impulse peaks. The one-second
 peak decay operates on a fixed sample grid, independently of feed boundaries.
 Fixed history limits bound memory; unlimited-duration reception is not part
 of this version's contract.
+
+## Optional FAST backend
+
+The internal backend resolver accepts `perl`, `pdl`, and `auto`. Only FAST
+loads PDL; explicit selection fails early if unavailable. Facade construction
+propagates selection to generation and PCM I/O, and reception inherits it
+unless overridden. Symbolic encoding, events, decoding and MIDI remain shared.
+The vector implementation uses double precision and public Perl arrays.
+Detection uses squared sinusoidal projections, mathematically equivalent to
+Goertzel power, with cached kernels per frame length and batches of at most
+128 frames. Partial frames use the prefix of the original Hann window.
+Existing validation precedes processing and retained history stays bounded.

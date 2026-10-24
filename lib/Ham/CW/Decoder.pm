@@ -17,7 +17,12 @@ sub new {
     number('effective_wpm', $args{effective_wpm}, 1, $args{wpm} // 200)
         if defined $args{effective_wpm};
     integer('max_segments', $args{max_segments} // 100000, 1, 1000000);
-    my $self = bless {%args, max_segments => $args{max_segments} // 100000}, $class;
+    my $reverse = reverse_alphabet();
+    if ($args{prefer_prosigns}) {
+        my $p = prosigns();
+        $reverse->{$p->{$_}} = "<$_>" for sort keys %{$p};
+    }
+    my $self = bless {reverse => $reverse, %args, max_segments => $args{max_segments} // 100000}, $class;
     return $self->reset;
 }
 
@@ -39,11 +44,7 @@ sub decode {
     return '' unless length $morse;
     fail('CW_E_SYMBOL', 'Invalid Morse syntax')
         unless $morse =~ /\A[.\-]+(?:\s+[.\-]+)*(?:\s*\/\s*[.\-]+(?:\s+[.\-]+)*)*\z/x;
-    my $reverse = reverse_alphabet();
-    if ($self->{prefer_prosigns}) {
-        my $p = prosigns();
-        $reverse->{$p->{$_}} = "<$_>" for sort keys %{$p};
-    }
+    my $reverse = $self->{reverse};
     my @words;
     for my $word (split /\s*\/\s*/x, $morse) {
         my $text = '';
@@ -59,7 +60,7 @@ sub decode {
 sub feed {
     my ($self, $events) = @_;
     fail('CW_E_STATE', 'Decoder is finalized; reset before feeding')
-        if $self->{state} =~ /FINISHED|FAILED/x;
+        if $self->{state} eq 'FINISHED';
     my $kind = validate_events($events);
     my $rate = $events->{sample_rate};
     fail('CW_E_ARGUMENT', 'Event units or sample rate changed')
@@ -175,6 +176,14 @@ sub _snapshot {
         events   => $events,
         warnings => [{code => 'CW_W_NO_TIMING', message => 'No usable timing evidence'}]
     ) unless $dot;
+    fail('CW_E_ARGUMENT', 'effective_wpm exceeds estimated character WPM')
+        if defined($self->{effective_wpm}) && $self->{effective_wpm} > 1_200_000 / $dot;
+    if (!defined($self->{effective_wpm}) && grep {
+        $_->{state} eq 'off' && $_->{duration} > 8 * $dot
+    } @{$timed->{segments}}) {
+        push @{$warnings}, {code => 'CW_W_SPACING_AMBIGUOUS',
+            message => 'Long gaps may be Farnsworth spacing; specify effective_wpm'};
+    }
     my $spacing =
         defined($self->{effective_wpm})
         ? (60_000_000 / $self->{effective_wpm} - 31 * $dot) / 19
@@ -199,7 +208,6 @@ sub result { my ($self) = @_; return $self->_snapshot($self->{state} eq 'FINISHE
 
 sub finish {
     my ($self) = @_;
-    fail('CW_E_STATE', 'Decoder is failed') if $self->{state} eq 'FAILED';
     my $result = $self->_snapshot(1);
     $self->{state} = 'FINISHED';
     return $result;

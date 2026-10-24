@@ -51,3 +51,55 @@ been established. Full transitive audits/builds of rejected CPAN candidates
 were not performed; see the dependency audit. No PAUSE upload, remote CPANTS
 score or CPAN Testers result is claimed. A CPAN upload requires the maintainer's
 explicit authorization and a fresh namespace/permissions check.
+
+## FAST backend verification (2026-10-24)
+
+The optional PDL backend was checked on macOS ARM64 with Perl 5.44.0 and
+PDL 2.106. The previous platform matrix above applies to the original Perl
+implementation; it does not establish portability of the new backend.
+
+The FAST tests compare generated samples at 1000, 8000, 16000 and 44100 Hz
+with the reference Perl implementation, using different block sizes. The
+waveforms agree within an absolute tolerance of 1e-10. Reception tests use
+independently generated signals and the existing WAV fixture, and compare
+text, tone selection, event timings and rejection warnings. PCM tests cover
+8-, 16- and 24-bit samples, signed rounding at half steps, clipping and all
+three stereo policies. The tested PCM output is byte-for-byte identical.
+Short marks, empty input, resource limits, reset and finalization are also
+checked. General floating-point equivalence does not promise identical PCM
+bytes for every possible sample near a rounding boundary.
+
+The complete test suite passed with PDL installed. The author checks passed,
+including POD, distribution metadata, formatting and Perl::Critic. The source
+archive also passed extraction/build/tests, all 33 available local CPANTS
+indicators, and an isolated installation with the supplied examples. These
+are local checks, not a CPAN Testers report or a PAUSE upload.
+
+A separate run with macOS system Perl 5.34.1 passed without PDL. Automatic
+selection fell back to Perl, and an explicit request for the unavailable
+PDL backend produced the documented structured error.
+
+### Measured performance
+
+The benchmark in `maint/benchmark.pl` compares complete generator and detector
+calls, including conversion to and from public Perl arrays. The input was
+`CQ CQ DE TESTCALL`, sampled at 8000 Hz. Detection used the default frequency
+search grid and received the complete sample array in one feed call. Each
+case ran for a target of two CPU seconds using Perl's Benchmark module.
+
+| Operation | Perl backend | PDL backend | Observed speedup |
+| --- | --- | --- | --- |
+| Audio generation | 20.2 calls/second | 94.0 calls/second | About 4.7 times |
+| Tone detection and decoding | 3.35 calls/second | 13.0 calls/second | About 3.9 times |
+
+These measurements describe this machine and workload. They are not minimum
+performance guarantees or end-to-end WAV throughput measurements. Small feed
+blocks and a single candidate frequency can reduce the benefit. Run
+`perl maint/benchmark.pl` to repeat the comparison on another system.
+
+### Platform status
+
+The CI configuration includes PDL jobs for Linux, macOS and Windows. Those
+FAST jobs have not been executed during this local verification, so their
+results remain pending. PDL 2.081 is the declared minimum; only PDL 2.106 was
+exercised here. PDL needs a compatible native installation on each platform.

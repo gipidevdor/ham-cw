@@ -5,6 +5,7 @@ use warnings;
 use Ham::CW::_Internal::Validate qw(fail number integer options samples named_arguments);
 use Ham::CW::Decoder;
 use Ham::CW::Result;
+use Ham::CW::_Internal::Backend;
 our $VERSION = '0.001';
 my $PI = 4 * atan2(1, 1);
 
@@ -12,7 +13,7 @@ sub new {
     my ($class, @pairs) = @_;
     my %args = named_arguments(@pairs);
     options(\%args,
-        qw(sample_rate frequency min_frequency max_frequency frequency_step wpm effective_wpm max_frames min_contrast)
+        qw(sample_rate frequency min_frequency max_frequency frequency_step wpm effective_wpm max_frames min_contrast min_purity backend)
     );
     my $rate         = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
     my $default_high = $rate / 2 - 1 < 1500 ? $rate / 2 - 1 : 1500;
@@ -28,16 +29,18 @@ sub new {
         for (my $f = $low; $f <= $high; $f += $step) { push @frequencies, $f }
     }
     fail('CW_E_RESOURCE', 'Too many frequency candidates') if @frequencies > 256;
-    number('wpm', $args{wpm}, 1, 200) if defined $args{wpm};
+    number('wpm', $args{wpm}, 1, 60) if defined $args{wpm};
     number('effective_wpm', $args{effective_wpm}, 1, $args{wpm} // 200)
         if defined $args{effective_wpm};
     my $self = bless {
         %args,
         sample_rate  => $rate,
+        backend      => Ham::CW::_Internal::Backend::resolve($args{backend}),
         frequencies  => \@frequencies,
         frame_size   => int($rate * 0.005 + 0.5),
-        max_frames   => integer('max_frames', $args{max_frames}    // 24000, 1, 1000000),
-        min_contrast => number('min_contrast', $args{min_contrast} // 0.20, 0.01, 1)
+        max_frames   => integer('max_frames', $args{max_frames} // 24000, 1, 1000000),
+        min_contrast => number('min_contrast', $args{min_contrast} // 0.60, 0.01, 1),
+        min_purity   => number('min_purity',   $args{min_purity}   // 0.20, 0.01, 1)
     }, $class;
     my $n = $self->{frame_size};
     $self->{window}       = [map { 0.5 - 0.5 * cos(2 * $PI * $_ / ($n - 1)) } 0 .. $n - 1];
@@ -52,12 +55,17 @@ sub reset {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
     $self->{frames}        = [];
     $self->{total_samples} = 0;
     $self->{final}         = undef;
+    $self->{pdl_kernels}   = {};
     return $self;
 }
 sub state { my ($self) = @_; return $self->{state} }    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 
 sub _frame {
     my ($self, $block) = @_;
+    if ($self->{backend} eq 'pdl') {
+        Ham::CW::_Internal::PDL::frames($self, [$block]);
+        return;
+    }
     my $n    = @{$block};
     my $mean = 0;
     $mean += $_ for @{$block};
@@ -82,7 +90,7 @@ sub _frame {
 
 sub feed {
     my ($self, $block) = @_;
-    fail('CW_E_STATE', 'Detector is finalized or failed') if $self->{state} =~ /FINISHED|FAILED/x;
+    fail('CW_E_STATE', 'Detector is finalized') if $self->{state} eq 'FINISHED';
     samples($block, 1000000);
     my $future = @{$self->{frames}} +
         int((@{$self->{buffer}} + @{$block} + $self->{frame_size} - 1) / $self->{frame_size});
@@ -90,6 +98,20 @@ sub feed {
     $self->{total_samples} += @{$block};
     my $offset = 0;
     while ($offset < @{$block}) {
+        if (   $self->{backend} eq 'pdl'
+            && !@{$self->{buffer}}
+            && @{$block} - $offset >= $self->{frame_size})
+        {
+            my $count = int((@{$block} - $offset) / $self->{frame_size});
+            $count = 128 if $count > 128;
+            my @blocks;
+            for (1 .. $count) {
+                push @blocks, [@{$block}[$offset .. $offset + $self->{frame_size} - 1]];
+                $offset += $self->{frame_size};
+            }
+            Ham::CW::_Internal::PDL::frames($self, \@blocks);
+            next;
+        }
         my $take = $self->{frame_size} - @{$self->{buffer}};
         $take = @{$block} - $offset if $take > @{$block} - $offset;
         push @{$self->{buffer}}, @{$block}[$offset .. $offset + $take - 1];
@@ -191,16 +213,18 @@ sub _analyze {
     my ($best, $powers) = $self->_select_tone(\@frames);
     my @powers = @{$powers};
     my @sorted = sort { $a <=> $b } @powers;
-    my $peak   = $sorted[int($#sorted * 0.95)];
+
+    # Use the upper envelope even when marks occupy less than 5% of a recording.
+    my $peak = $sorted[-1];
     $peak = $sorted[-1] if !$peak;
     return $empty->('CW_W_NO_SIGNAL', 'Signal below energy floor') if $peak < 1e-10;
     my $floor    = $sorted[int($#sorted * 0.10)];
     my $contrast = ($peak - $floor) / $peak;
     return $empty->('CW_W_NOT_CW', 'No keyed envelope contrast', {contrast => $contrast})
-        if $contrast < 0.6;
+        if $contrast < $self->{min_contrast};
     my $purity = $self->_purity(\@frames, \@powers, $peak);
     return $empty->('CW_W_NOT_CW', 'Insufficient narrow-band energy', {purity => $purity})
-        if $purity < $self->{min_contrast};
+        if $purity < $self->{min_purity};
     my $segments = $self->_segment(\@frames, \@powers, $floor, $peak);
     my @marks    = grep { $_->{state} eq 'on' } @{$segments};
     return $empty->('CW_W_NOT_CW', 'Too few keyed marks to identify CW') if @marks < 3;
@@ -211,27 +235,19 @@ sub _analyze {
     my $r = $complete ? $decoder->finish : $decoder->result;
     my $h = $r->as_hash;
 
-    # Unknown timing groups remain diagnostic evidence, not plausible text.
-    if (
-        grep {
-                   $_->{code} eq 'CW_W_TIMING'
-                || $_->{code} eq 'CW_W_SYMBOL'
-                || $_->{code} eq 'CW_W_TIMING_AMBIGUOUS'
-        } @{$h->{warnings}}
-        )
-    {
+    if (grep { $_->{code} eq 'CW_W_TIMING_AMBIGUOUS' } @{$h->{warnings}}) {
         $h->{text} = '';
-        push @{$h->{warnings}},
-            {code => 'CW_W_UNRELIABLE', message => 'Timing does not support reliable decoding'};
+        push @{$h->{warnings}}, {code => 'CW_W_UNRELIABLE',
+            message => 'Specify WPM to resolve ambiguous mark lengths'};
     }
     $h->{frequency}   = $self->{frequencies}[$best];
     $h->{diagnostics} = {
         %{$h->{diagnostics}},
-        purity                  => $purity,
-        contrast                => $contrast,
-        frame_samples           => $self->{frame_size},
-        analyzed_samples        => $self->{total_samples},
-        frequency_resolution_hz => defined($self->{frequency}) ? 0 : ($self->{frequency_step} // 50)
+        purity                 => $purity,
+        contrast               => $contrast,
+        frame_samples          => $self->{frame_size},
+        analyzed_samples       => $self->{total_samples},
+        frequency_grid_step_hz => defined($self->{frequency}) ? 0 : ($self->{frequency_step} // 50)
     };
     return Ham::CW::Result->new(%{$h});
 }
@@ -239,9 +255,8 @@ sub result { my ($self) = @_; return $self->{final} // $self->_analyze(0) }
 
 sub finish {
     my ($self) = @_;
-    return $self->{final}                    if $self->{state} eq 'FINISHED';
-    fail('CW_E_STATE', 'Detector is failed') if $self->{state} eq 'FAILED';
-    $self->_frame($self->{buffer})           if @{$self->{buffer}};
+    return $self->{final}          if $self->{state} eq 'FINISHED';
+    $self->_frame($self->{buffer}) if @{$self->{buffer}};
     $self->{buffer} = [];
     $self->{final}  = $self->_analyze(1);
     $self->{state}  = 'FINISHED';
@@ -263,12 +278,18 @@ Ham::CW::Detector - bounded Goertzel CW detector
 
 =head1 METHODS
 
+C<new> also accepts C<backend>: C<perl> (default), C<pdl> (requires PDL
+2.081 or later), or C<auto> (PDL when available, otherwise Perl). Public
+arrays, limits and lifecycle remain unchanged. See L<Ham::CW> for FAST usage.
+
 C<new> accepts C<sample_rate> (16000), optional C<frequency> and C<wpm>,
 C<effective_wpm>, C<min_frequency> (300), C<max_frequency> (1500),
-C<frequency_step> (50 Hz), C<min_contrast> (0.20, minimum spectral purity),
+C<frequency_step> (50 Hz), C<min_contrast> (0.60, minimum envelope contrast),
+C<min_purity> (0.20, minimum spectral purity),
 and C<max_frames> (24000, about 120 seconds). Configure a valid search band
 below Nyquist; the default upper edge is clipped below Nyquist for low rates. Search grids contain
-at most 256 candidates. WPM limits match L<Ham::CW::Decoder>.
+at most 256 candidates. Reception accepts explicit WPM from 1 to 60; automatic estimation covers 5..60.
+The encoder and event decoder also support higher speeds.
 
 C<feed(array)> validates normalized mono samples and processes fixed 5 ms
 Hann-windowed, DC-removed Goertzel frames. Chunk boundaries do not affect the
@@ -286,6 +307,10 @@ peak update limits the influence of impulses. It merges short interior impulses 
 timing. Spectral purity, envelope contrast and at least three keyed marks are
 required. Silence, unkeyed tones and rejected timing produce structured
 warnings. Frequency is a grid estimate, not a precision measurement.
+C<frequency_grid_step_hz> is the candidate spacing, not spectral resolution.
+The 5 ms Hann window has a bandwidth of roughly 300 Hz. Spectral purity
+is the ratio of projected tone energy to windowed broadband energy; a pure
+matched tone is approximately 0.67, not 1.
 Snapshot text and estimates may change as evidence arrives; use final output
 for decisions. An empty result with complete true still needs warning review.
 
