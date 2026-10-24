@@ -19,6 +19,7 @@ docs/benchmarks.md
 docs/cpan-audit.json
 docs/dependency-audit.md
 docs/releasing.md
+docs/security-ci.md
 docs/usage.md
 docs/verification.md
 examples/midi.pl

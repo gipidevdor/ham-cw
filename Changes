@@ -10,6 +10,10 @@ Revision history for Ham-CW
     - Verify the installed command on every ordinary CI platform, plus
       subprocess I/O, binary output, malformed UTF-8 and broken pipes.
     - Require MakeMaker 7.00 or later for space-containing installation paths.
+    - Add pull-request/push/weekly security gates for CPAN and Perl advisories,
+      Git-history secret scanning, workflow security and unsafe Perl constructs.
+      Preserve redacted evidence, pin scanners/actions and disable persisted
+      checkout credentials; update Actions dependencies weekly.
     - Initial development release for Morse text, timing, PCM WAV and MIDI.
     - International symbols, operational prosigns and Farnsworth generation.
     - Collecting, streaming and path-based APIs with bounded resource use,

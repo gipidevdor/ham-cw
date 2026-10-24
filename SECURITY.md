@@ -12,3 +12,11 @@ Use public issues for ordinary correctness and DSP limitations.
 The library processes local input and has no runtime networking. File-size,
 frame and event limits are part of its defensive boundary. Only the current
 development version receives fixes; no response-time guarantee is offered.
+
+## Automated checks
+
+Pull requests, main-branch changes and weekly scheduled runs check known
+CPAN/Perl advisories, committed secrets, workflow security and unsafe Perl
+constructs. Reports and limitations are described in
+[Security CI](docs/security-ci.md). Any advisory or scanner failure fails
+the final `Security checks` gate. This is not a guarantee of absence of bugs.
