@@ -17,7 +17,7 @@ my @warnings;
 }
 is_deeply(\@warnings,                   [],                             'no raw numeric warning');
 is_deeply(Ham::CW::Result->new->events, {unit => 'us', segments => []}, 'canonical empty events');
-for my $token (qw(BT KN BK KA VE)) {
+for my $token (qw(AR AS BT CT HH SK SN)) {
     ok(length Ham::CW->new->encode("<$token>"), "$token supported");
 }
 for my $space ("\x{a0}", "\x{2003}") {

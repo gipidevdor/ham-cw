@@ -14,7 +14,11 @@ the handles they open. New output files use exclusive creation, so existing
 files and symlinks are not overwritten. Explicit `overwrite => 1` generates
 into a temporary sibling file, preserves an existing regular file's permission
 bits, and replaces the directory entry after generation and close succeed.
-Symbolic-link destinations are rejected, including dangling links. A new path
+Preparation rejects detected symbolic-link destinations, including dangling
+links. Inspection and rename are separate filesystem operations: a destination
+changed concurrently after inspection can still be replaced. This helper does
+not provide an atomic no-symlink guarantee; use a directory whose entries are
+not being changed by other writers. A new path
 uses the ordinary 0666 permissions filtered through the process umask.
 Atomic replacement creates a new file identity: ownership, ACLs and other
 hard links are not transferred. Callback failure closes the handle,
@@ -76,22 +80,56 @@ append repeatedly.
 
 ## Reception assumptions
 
-Each 5 ms frame is DC-removed and Hann-windowed. A Goertzel bank measures
-candidate frequencies. Analysis uses accumulated candidate energy, spectral
-purity, envelope contrast, adaptive peak/noise tracking and hysteresis; short interior impulses are merged.
-The symbolic decoder samples the complete range of distinct mark widths,
-with at most 128 timing candidates, or uses the supplied WPM. When both mark
-classes are present, their separation estimates dot length while allowing a
-bounded common width offset from envelope shaping and frame quantization.
-Warnings record ambiguous timing and rejected groups. Unknown or implausible
-mark groups do not become guessed words.
+Samples advance on a fixed approximately 5 ms hop grid. Every candidate
+frequency has two persistent constant-peak biquad band-pass sections in
+transposed direct form II. Original code implements the mathematical BPF
+coefficients in the [W3C Audio EQ Cookbook](https://www.w3.org/TR/audio-eq-cookbook/).
+With `alpha = tan(pi * width / rate)`, `width` is the digital single-section
+full half-power bandwidth; cascading narrows the combined response. The
+nominal centre-frequency group delay of the cascade is `2 / alpha` samples.
+The default width is `max(40, 4 * WPM)` Hz with a WPM hint, otherwise 180 Hz.
+It balances rejection and keying transients; it is not a guarantee of separation.
 
-Global recording statistics identify the candidate tone and seed the noise
-floor. Segmentation adapts its keyed-signal peak and OFF noise estimates with
-hysteresis, while limiting the influence of impulse peaks. The one-second
-peak decay operates on a fixed sample grid, independently of feed boundaries.
-Fixed history limits bound memory; unlimited-duration reception is not part
-of this version's contract.
+Four filtered hops form a DC-removed Hann window, approximately 20 ms. Goertzel
+measures each channel's tone power. Acquisition separately examines eight raw
+hops (40 ms) and compares candidate Goertzel power against the lower median
+of up to six neighboring guard powers, scaled by 1.3. Guards are at offsets
+±1, ±2 and ±3 times `max(100, 2 * frequency_step)` Hz, omitting frequencies
+outside the sampled band. The default 12 dB power-ratio threshold gates the
+filtered features. This is spectral contrast, not calibrated SNR. Guard geometry
+and strong interference can still defeat it.
+
+Accumulated channel energies rank local spectral maxima. Contrast, filtered
+purity, keyed marks and timing determine acceptance. `channels()` exposes up
+to eight Results, strongest accumulated energy first, separated by at least
+`max(100, filter_bandwidth)` Hz to avoid duplicate adjacent-bin reports.
+The primary API returns the first accepted Result, or a rejection Result.
+A supplied frequency limits the bank to one channel. Different keyed tones
+can be recovered simultaneously; co-channel sources cannot be unmixed.
+
+Median smoothing, sustained-support peak caps, adaptive OFF noise and keyed
+peak tracking with one-second decay and hysteresis reduce impulsive errors.
+Carrier intervals and sub-tolerance short marks are excluded. Valid multi-mark
+Morse groups anchor margin cleanup; adjacent valid short letters and one
+neighboring damaged multi-mark group are retained. Unsupported activity beyond
+those margins is suppressed with a warning. Damaged interior groups remain
+replacement characters. This generic timing heuristic can discard badly damaged
+real edge characters and does not establish that decoded text is meaningful.
+
+The symbolic decoder samples distinct mark widths with at most 128 timing
+candidates, or uses supplied WPM. Both mark classes permit a dot estimate
+that allows a common shaping/quantization offset. Without both classes,
+automatic timing can remain ambiguous and text is suppressed.
+
+Filter states and short raw/filtered histories persist across feeds. Finalization
+adds bounded zero padding, shifts feature columns by rounded nominal window/
+filter delay, then drops padding features. Actual input length and resource
+accounting remain unchanged. Preview features are causal and uncompensated;
+final event boundaries may change. The operation does not retain the full raw
+recording. Feature storage is O(KN), bounded by candidate and frame limits.
+Fresh analysis costs O(KN log N), with per-channel O(N) working memory;
+unchanged snapshots are cached. Throttle previews, for example once a second.
+Unlimited-duration reception is outside this version's contract.
 
 ## Optional PDL backend
 
@@ -102,5 +140,7 @@ unless overridden. Symbolic encoding, events, decoding and MIDI remain shared.
 The vector implementation uses double precision and public Perl arrays.
 Detection uses squared sinusoidal projections, mathematically equivalent to
 Goertzel power, with cached kernels per frame length and batches of at most
-128 frames. Partial frames use the prefix of the original Hann window.
+128 frames. Partial final hops enter the same fixed history/window and are flushed once.
+Acquisition and biquad states are shared with the scalar pipeline; PDL batches
+only the equivalent filtered projections.
 Existing validation precedes processing and retained history stays bounded.

@@ -25,10 +25,10 @@ my %COMMANDS = (
     ],
     receive => [
         qw(frequency wpm effective-wpm backend stereo max-frames min-frequency max-frequency
-            frequency-step min-contrast min-purity max-bytes block-samples json strict)
+            frequency-step min-contrast min-purity filter-bandwidth min-snr-db all-stations max-bytes block-samples json strict)
     ],
 );
-my %FLAGS        = map { $_ => 1 } qw(help version overwrite prefer-prosigns json strict);
+my %FLAGS = map { $_ => 1 } qw(help version overwrite prefer-prosigns json strict all-stations);
 my %DESCRIPTIONS = (
     unknown           => 'error|skip: unsupported symbols (default: error).',
     'prefer-prosigns' => 'Prefer named prosigns for ambiguous Morse groups.',
@@ -59,8 +59,11 @@ my %DESCRIPTIONS = (
     'frequency-step'  => 'Tone-search grid step in Hz (default: 50).',
     'min-contrast'    => 'Minimum keyed-envelope contrast, 0.01..1 (default: 0.60).',
     'min-purity'      => 'Minimum spectral purity, 0.01..1 (default: 0.20).',
-    json              => 'Write the complete reception result, including warnings, as JSON.',
-    strict            => 'Return status 1 for any reception warning, including partial text.'
+    'filter-bandwidth' => 'Per-section band-pass width in Hz (default: max(40, 4*WPM), or 180).',
+    'min-snr-db'       => 'Acquisition tone/guard power threshold, 0..40 dB (default: 12).',
+    'all-stations'     => 'Return up to eight distinct keyed stations; JSON becomes an array.',
+    json               => 'Write the complete reception result, including warnings, as JSON.',
+    strict             => 'Return status 1 for any reception warning, including partial text.'
 );
 
 sub _bytes {
@@ -210,8 +213,11 @@ sub _receive {
     fail('CW_E_ARGUMENT', 'Use one WAV path or --input, not both')
         if @{$arguments} > 1 || (defined($path) && @{$arguments});
     $path //= $arguments->[0] // '-';
-    my $cw = Ham::CW->new;
-    return $cw->read_wav($path, %{$options}) if $path ne '-';
+    my $cw            = Ham::CW->new;
+    my $all           = delete $options->{all_stations};
+    my $path_method   = $all ? 'read_wav_channels'   : 'read_wav';
+    my $handle_method = $all ? 'decode_wav_channels' : 'decode_wav';
+    return $cw->$path_method($path, %{$options}) if $path ne '-';
     my $audio = Ham::CW::Audio->new(
         exists($options->{max_bytes}) ? (max_bytes => $options->{max_bytes}) : ());
     my ($temporary) = eval { tempfile('ham-cw-stdin-XXXXXX', TMPDIR => 1, UNLINK => 1) };
@@ -219,7 +225,7 @@ sub _receive {
     binmode $temporary, ':raw' or fail('CW_E_IO', 'Cannot set temporary input mode');
     _copy($stdin, $audio->{max_bytes}, sub { write_bytes($temporary, $_[0]) });
     seek($temporary, 0, 0) or fail('CW_E_IO', 'Cannot rewind temporary input');
-    return $cw->decode_wav($temporary, %{$options});
+    return $cw->$handle_method($temporary, %{$options});
 }
 
 sub _output {
@@ -230,6 +236,27 @@ sub _output {
     }
     else { with_file($path, 'write', $action, $overwrite) }
     return;
+}
+
+sub _receive_output {
+    my ($result, $json, $strict, $stderr) = @_;
+    my ($bytes, $status);
+    my $all     = ref($result) eq 'ARRAY';
+    my @results = $all ? @{$result} : ($result);
+    $status = !(grep { $_->has_text } @results)
+        || ($strict && (grep { $_->has_warnings } @results)) ? 1 : 0;
+    $bytes =
+        $json
+        ? JSON::PP->new->utf8->canonical->pretty->encode(
+        $all ? [map { $_->as_hash } @results] : $result->as_hash)
+        : _bytes(
+        join('', map { ($all ? $_->frequency . " Hz: " : '') . $_->text . "\n" } @results));
+    if (!$json) {
+        for my $station (@results) {
+            _write($stderr, _bytes("$_->{code}: $_->{message}\n")) for @{$station->warnings};
+        }
+    }
+    return ($bytes, $status);
 }
 
 sub _execute {
@@ -247,14 +274,7 @@ sub _execute {
 
     if ($command eq 'receive') {
         my $result = _receive($arguments, $options, $stdin);
-        $status = !$result->has_text || ($strict && $result->has_warnings) ? 1 : 0;
-        $bytes =
-            $json
-            ? JSON::PP->new->utf8->canonical->pretty->encode($result->as_hash)
-            : _bytes($result->text . "\n");
-        if (!$json) {
-            _write($stderr, _bytes("$_->{code}: $_->{message}\n")) for @{$result->warnings};
-        }
+        ($bytes, $status) = _receive_output($result, $json, $strict, $stderr);
     }
     else {
         my $text = _text($arguments, $options, $stdin);

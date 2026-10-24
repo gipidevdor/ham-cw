@@ -58,33 +58,36 @@ sub alphabet {
         '='  => '-...-',
         '+'  => '.-.-.',
         '@'  => '.--.-.',
+        '×'  => '-..-',
     };
 }
 
 sub prosigns {
     return {
-        BT  => '-...-',
-        KN  => '-.--.',
-        BK  => '-...-.-',
-        KA  => '-.-.-',
-        VE  => '...-.',
-        AR  => '.-.-.',
-        AS  => '.-...',
-        CT  => '-.-.-',
-        SK  => '...-.-',
-        HH  => '........',
-        SN  => '...-.',
-        SOS => '...---...'
+        BT => '-...-',
+        AR => '.-.-.',
+        AS => '.-...',
+        CT => '-.-.-',
+        SK => '...-.-',
+        HH => '........',
+        SN => '...-.'
     };
 }
 
 sub reverse_alphabet {
+    my ($prefer_prosigns) = @_;
     my $a = alphabet();
-    my %r = reverse %{$a};
+    my %r;
+
+    # The ITU multiplication sign uses the letter X waveform.
+    for my $symbol (sort keys %{$a}) { $r{$a->{$symbol}} //= $symbol }
     my $p = prosigns();
 
-    # Shared waveforms retain punctuation unless the caller requests prosigns.
-    for my $name (sort keys %{$p}) { $r{$p->{$name}} //= "<$name>" }
+    # Only signals from ITU-R M.1677-1, Annex 1, section 1.1.3.
+    # These tokens are library mnemonics for the named ITU signals.
+    for my $name (qw(AR AS BT CT HH SK SN)) {
+        $r{$p->{$name}} = "<$name>" if $prefer_prosigns || !exists $r{$p->{$name}};
+    }
     return \%r;
 }
 1;

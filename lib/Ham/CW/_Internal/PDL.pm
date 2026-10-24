@@ -25,35 +25,38 @@ sub tone {
 
 sub frames {
     my ($self, $blocks) = @_;
-    my $n        = @{$blocks->[0]};
-    my $data     = PDL->pdl(PDL::double(), $blocks);
+    my $n = $self->{analysis_size};
+    my (@channels, @gates);
+    for my $block (@{$blocks}) {
+        push @channels, $self->_filtered_channels($block);
+        push @gates,    [@{$self->{last_gates}}];
+    }
+    my $data     = PDL->pdl(PDL::double(), \@channels);
     my $window   = PDL->pdl(PDL::double(), [@{$self->{window}}[0 .. $n - 1]]);
     my $windowed = ($data - ($data->sumover / $n)->dummy(0)) * $window;
     my $energy   = ($windowed * $windowed)->sumover;
     my $kernels  = $self->{pdl_kernels}{$n};
     if (!$kernels) {
-        my $index = PDL->sequence(PDL::double(), $n);
-        $kernels = [];
-        for my $frequency (@{$self->{frequencies}}) {
-            my $phase = $index * (2 * $PI * $frequency / $self->{sample_rate});
-            push @{$kernels}, [$phase->cos, $phase->sin];
-        }
+        my $index       = PDL->sequence(PDL::double(), $n)->dummy(1);
+        my $frequencies = PDL->pdl(PDL::double(), $self->{frequencies})->dummy(0);
+        my $phase       = $index * $frequencies * (2 * $PI / $self->{sample_rate});
+        $kernels = [$phase->cos, $phase->sin];
         $self->{pdl_kernels}{$n} = $kernels;
     }
-    my @powers;
-    for my $kernel (@{$kernels}) {
-        my $real = ($windowed * $kernel->[0])->sumover;
-        my $imag = ($windowed * $kernel->[1])->sumover;
-        push @powers, $real * $real + $imag * $imag;
+    my $real     = ($windowed * $kernels->[0])->sumover;
+    my $imag     = ($windowed * $kernels->[1])->sumover;
+    my @powers   = (($real * $real + $imag * $imag) * PDL->pdl(PDL::double(), \@gates))->list;
+    my @energies = $energy->list;
+    my $count    = @{$self->{frequencies}};
+    for my $i (0 .. $#{$blocks}) {
+        $self->_retain_frame(
+            {
+                powers   => [@powers[$i * $count .. ($i + 1) * $count - 1]],
+                energies => [@energies[$i * $count .. ($i + 1) * $count - 1]],
+                samples  => scalar(@{$blocks->[$i]})
+            }
+        );
     }
-    my @rows = map { [] } @{$blocks};
-    for my $power (@powers) {
-        my @values = $power->list;
-        push @{$rows[$_]}, $values[$_] for 0 .. $#rows;
-    }
-    my @energy = $energy->list;
-    push @{$self->{frames}},
-        map { +{powers => $rows[$_], energy => $energy[$_], samples => $n} } 0 .. $#rows;
     return;
 }
 

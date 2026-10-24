@@ -13,3 +13,4 @@
 ^\.github/
 ^\.(?:gitignore|gitattributes|editorconfig)$
 ^local/
+^corpus/morse\.wav$

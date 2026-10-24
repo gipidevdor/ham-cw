@@ -11,7 +11,8 @@ The hard-keyed fixture intentionally differs from the generator's default
 raised-cosine envelope.
 
 The fixture and builder are original project material under the Artistic
-License 2.0. No off-air audio or third-party recordings are included. Synthetic
+License 2.0. The synthetic fixture itself contains no off-air audio. Third-party recordings
+are listed separately below. Synthetic
 noise, fading, impulses and small frequency variation are tested separately.
 This corpus does not establish performance on real receivers or radio paths.
 
@@ -22,3 +23,31 @@ noise and DC offset, plus silence/noise rejection. `t/17-reception-matrix.t`
 checks text, tone tolerance, warnings and exact event equivalence for 137- and
 4096-sample feeds with every available backend. These are combined stress
 cases, not off-air recordings or an estimate of field error rates.
+
+## Real received audio
+
+`real.json` and `real/*.wav` add four clips from three received radio-beacon
+recordings, with per-file attribution, audio licenses, source hashes and
+transformations in [real/LICENSES.md](real/LICENSES.md). These files retain
+their own CC0/CC BY-SA terms. The test suite measures character error rate
+(CER), rather than requiring exact text on every recording. Recorded regression
+budgets are separate from the quality target; three of the initial four
+cases miss that target. Run `perl maint/reception-corpus.pl` for full results.
+
+Synthetic tests cover recovery behind a stronger unkeyed carrier and
+independent, simultaneous SOS/CQ signals at unequal levels with added noise.
+The channel test also checks independent 20/25 WPM estimation, 150 Hz separation
+with explicit speed, backend/chunk equivalence and filter response.
+A separate independent irregular schedule varies mark/gap lengths by up to
+12%; it is simulated manual variation, not a human-keyed recording. The real
+beacon clips use automated keying and do not fill that remaining field-data gap.
+
+## Admission to the release corpus
+
+A new recording needs an explicit free license permitting redistribution and
+adaptation, an identified author/source and a record of any conversion or crop.
+Public download access alone is not a license. Preserve the original terms and
+review obligations before adding it to the inventory or MANIFEST. The author
+check compares distributed audio with the reviewed inventory, verifies hashes
+and requires license/attribution evidence and shipped legal texts. Unverified
+local recordings are excluded; they are not examples or release fixtures.

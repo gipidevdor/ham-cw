@@ -10,22 +10,28 @@ my $PI = 4 * atan2(1, 1);
 
 sub new {
     my ($class, @pairs) = @_;
+    my $self = bless $class->validate(@pairs), $class;
+    return $self->reset;
+}
+
+sub validate {
+    my ($class, @pairs) = @_;
     my %args = named_arguments(@pairs);
-    options(\%args, qw(sample_rate frequency amplitude attack_ms release_ms max_samples backend));
-    my $rate = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
-    my $self = bless {
+    my $args = \%args;
+    options($args, qw(sample_rate frequency amplitude attack_ms release_ms max_samples backend));
+    my $rate = integer('sample_rate', $args->{sample_rate} // 16000, 1000, 384000);
+    return {
         sample_rate => $rate,
-        backend     => Ham::CW::_Internal::Backend::resolve($args{backend}),
+        backend     => Ham::CW::_Internal::Backend::resolve($args->{backend}),
         frequency   => number(
-            'frequency', $args{frequency} // ($rate / 2 - 1 >= 700 ? 700 : $rate / 4),
+            'frequency', $args->{frequency} // ($rate / 2 - 1 >= 700 ? 700 : $rate / 4),
             1,           $rate / 2 - 1
         ),
-        amplitude   => number('amplitude',  $args{amplitude}  // 0.8, 0, 1),
-        attack_ms   => number('attack_ms',  $args{attack_ms}  // 5,   0, 1000),
-        release_ms  => number('release_ms', $args{release_ms} // 5,   0, 1000),
-        max_samples => integer('max_samples', $args{max_samples} // 10000000, 1, 100000000),
-    }, $class;
-    return $self->reset;
+        amplitude   => number('amplitude',  $args->{amplitude}  // 0.8, 0, 1),
+        attack_ms   => number('attack_ms',  $args->{attack_ms}  // 5,   0, 1000),
+        release_ms  => number('release_ms', $args->{release_ms} // 5,   0, 1000),
+        max_samples => integer('max_samples', $args->{max_samples} // 10000000, 1, 100000000),
+    };
 }
 
 sub reset {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
@@ -68,7 +74,16 @@ sub stream {
         if ($si > $#segments) { $self->{state} = 'FINISHED'; return }
         my @out;
         while (@out < $block_size && $si <= $#segments) {
-            my $seg   = $segments[$si];
+            my $seg = $segments[$si];
+            if ($seg->{state} eq 'off') {
+                my $count = $seg->{samples} - $offset;
+                $count = $block_size - @out if $count > $block_size - @out;
+                push @out, (0) x $count;
+                $absolute += $count;
+                $offset   += $count;
+                if ($offset == $seg->{samples}) { ++$si; $offset = 0 }
+                next;
+            }
             my $value = 0;
             if ($seg->{state} eq 'on') {
                 my $attack  = $self->{attack_ms} * $self->{sample_rate} / 1000;
@@ -187,6 +202,16 @@ Returns a generator in C<READY> state. Options and inclusive ranges:
 Optional undefined values use defaults. Invalid, duplicate or unknown options
 raise C<CW_E_ARGUMENT>. Speed is determined by input events, not generator
 options; C<wpm> is an Encoder option.
+
+=head2 validate
+
+    my $configuration = Ham::CW::Generator->validate(%options);
+
+Validates the same options as C<new> and returns a fresh normalized
+configuration hash without constructing an instance. Unknown names, duplicate
+options and invalid values raise the same errors as C<new>. Defaults are
+resolved in the returned hash, including the selected backend. Optional PDL
+loading/availability checks still occur. No stream is started or audio produced.
 
 =head2 stream
 

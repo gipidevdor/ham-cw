@@ -41,14 +41,19 @@ separate maintainer action; no repository workflow uploads to CPAN.
    installs to a temporary prefix and runs the installed CLI, command-line examples
    and workflow tour. It does not publish anything. Rerun `make distmeta`
    before author metadata checks if distribution commands removed staging data.
-7. Update [verification](verification.md) with the source revision, commands,
+7. Check every distributed audio file against the reviewed license inventory.
+   Preserve author/work titles, source links, change descriptions and license
+   texts; original project licensing must not override third-party audio terms.
+   The corpus-license author check rejects unregistered distributed recordings.
+   Local recordings with unknown provenance must remain outside the archive.
+8. Update [verification](verification.md) with the source revision, commands,
    environment and actual outcomes. Distinguish current results from historical
    benchmark observations. A synthetic corpus does not establish off-air
    accuracy; local archive indicators are not CPAN Testers or remote CPANTS.
-8. Obtain the maintainer's approval to upload the checked archive to CPAN.
+9. Obtain the maintainer's approval to upload the checked archive to CPAN.
    Use the authorized PAUSE process. Record the uploaded archive checksum and
    verify that it corresponds to the reviewed source.
-9. After acceptance, tag the tested commit and publish the distribution and
+10. After acceptance, tag the tested commit and publish the distribution and
    checksum through the project's release process. Review CPAN Testers reports;
    fix attributable failures with regressions and a subsequent release.
 

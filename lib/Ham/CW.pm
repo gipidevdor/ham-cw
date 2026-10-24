@@ -22,8 +22,8 @@ sub new {
     my %encoder = map { exists($args{$_}) ? ($_ => $args{$_}) : () } qw(wpm effective_wpm unknown);
     my %generator = map { exists($args{$_}) ? ($_ => $args{$_}) : () }
         qw(frequency sample_rate amplitude attack_ms release_ms backend max_samples);
-    Ham::CW::Encoder->new(%encoder);
-    Ham::CW::Generator->new(%generator);
+    Ham::CW::Encoder->validate(%encoder);
+    Ham::CW::Generator->validate(%generator);
     return bless {encoder => \%encoder, generator => \%generator}, $class;
 }
 
@@ -85,8 +85,12 @@ sub detector {
     return Ham::CW::Detector->new(%args);
 }
 
-sub decode_samples {
-    my ($self, $values, @pairs) = @_;
+sub decode_samples { my ($self, @args) = @_; return $self->_decode_samples(0, @args) }
+
+sub decode_samples_channels { my ($self, @args) = @_; return $self->_decode_samples(1, @args) }
+
+sub _decode_samples {
+    my ($self, $all, $values, @pairs) = @_;
     Ham::CW::_Internal::Validate::samples($values, 100000000);
     my $detector = $self->detector(@pairs);
     for (my $offset = 0; $offset < @{$values}; $offset += 4096) {
@@ -94,7 +98,8 @@ sub decode_samples {
         $end = $#{$values} if $end > $#{$values};
         $detector->feed([@{$values}[$offset .. $end]]);
     }
-    return $detector->finish;
+    my $result = $detector->finish;
+    return $all ? $detector->channels : $result;
 }
 
 sub generator {
@@ -176,6 +181,11 @@ sub read_wav {
     return with_file($path, 'read', sub { $self->decode_wav($_[0], @pairs) });
 }
 
+sub read_wav_channels {
+    my ($self, $path, @pairs) = @_;
+    return with_file($path, 'read', sub { $self->decode_wav_channels($_[0], @pairs) });
+}
+
 sub generate_wav {
     my ($self, $text, $fh, @pairs) = @_;
     my %args = named_arguments(@pairs);
@@ -207,11 +217,15 @@ sub generate_midi {
     return Ham::CW::MIDI->new(%args)->write($fh, $encoder->events($text));
 }
 
-sub decode_wav {
-    my ($self, $fh, @pairs) = @_;
+sub decode_wav { my ($self, @args) = @_; return $self->_decode_wav(0, @args) }
+
+sub decode_wav_channels { my ($self, @args) = @_; return $self->_decode_wav(1, @args) }
+
+sub _decode_wav {
+    my ($self, $all, $fh, @pairs) = @_;
     my %args = named_arguments(@pairs);
     options(\%args,
-        qw(frequency wpm effective_wpm stereo max_bytes min_frequency max_frequency frequency_step max_frames min_contrast min_purity backend block_samples)
+        qw(frequency wpm effective_wpm stereo max_bytes min_frequency max_frequency frequency_step max_frames min_contrast min_purity backend block_samples filter_bandwidth min_snr_db)
     );
     $args{backend} //= $self->{generator}{backend} // 'perl';
     my %audio = map { exists($args{$_}) ? ($_ => delete $args{$_}) : () }
@@ -220,11 +234,17 @@ sub decode_wav {
     my $reader   = Ham::CW::Audio->new(%audio)->reader($fh);
     my $detector = Ham::CW::Detector->new(%args, sample_rate => $reader->{sample_rate});
     while (my $block = $reader->{next}->()) { $detector->feed($block) }
-    my $result = $detector->finish;
-    return $result unless @{$reader->{warnings}};
-    my $snapshot = $result->as_hash;
-    push @{$snapshot->{warnings}}, @{$reader->{warnings}};
-    return Ham::CW::Result->new(%{$snapshot});
+    my $result  = $detector->finish;
+    my @results = $all ? @{$detector->channels} : ($result);
+
+    if (@{$reader->{warnings}}) {
+        for my $index (0 .. $#results) {
+            my $snapshot = $results[$index]->as_hash;
+            push @{$snapshot->{warnings}}, @{$reader->{warnings}};
+            $results[$index] = Ham::CW::Result->new(%{$snapshot});
+        }
+    }
+    return $all ? \@results : $results[0];
 }
 1;
 
@@ -367,7 +387,13 @@ For a known sender using Farnsworth spacing:
 
 Audio reception accepts explicit speeds from 1 to 60 WPM; automatic timing
 estimation covers 5..60 WPM. This accepted range is not an accuracy guarantee.
-L<Ham::CW::Detector/new> lists every detector option and its range.
+The default tone search uses 50 Hz candidate spacing. Synthetic tests allow
+one configured step of tone error; this is a test tolerance, not 50 Hz spectral
+resolution. Independent filtered channels can recover distinct overlapping tones.
+The ordinary receive methods return the strongest accepted channel; use the
+C<*_channels> methods for up to eight station Results. Co-channel signals
+cannot be separated, and noise can still produce false or incomplete text. L<Ham::CW::Detector/new> lists every detector
+option and its range.
 L<Ham::CW::Decoder/new> lists the separate event-decoding options.
 
 =head1 METHODS
@@ -498,6 +524,16 @@ C<overwrite>. Collects the entire encoded file in memory.
 Reads a binary WAV scalar and returns a finalized Result. Accepts
 L</decode_wav> options. The complete WAV byte string must already be in memory.
 
+=head2 read_wav_channels
+
+    my $stations = $cw->read_wav_channels('received.wav', wpm => 20);
+
+Opens/closes the path like C<read_wav> and returns the station array from
+C<decode_wav_channels>. The header supplies the sample rate. All reception
+and stereo/file-limit options of C<read_wav> apply. No accepted station
+returns an empty array, even when the primary single-channel result would
+carry rejection warnings.
+
 =head2 generate_wav
 
     my $stats = $cw->generate_wav($text, $handle, %wav_options);
@@ -518,6 +554,17 @@ byte count. Accepts C<wpm>, C<effective_wpm> and C<unknown> plus
 L<Ham::CW::MIDI/new> options: C<note>, C<velocity>, C<channel>, C<program>,
 C<bpm>, C<ppqn> and C<max_bytes>. Defaults include note 77, independently of
 the audio oscillator frequency. The caller owns and closes the handle.
+
+=head2 decode_wav_channels
+
+    my $stations = $cw->decode_wav_channels($seekable_handle, wpm => 20);
+
+Like C<decode_wav>, but returns zero to eight complete station Results in an
+array reference. It accepts the same options, leaves the caller's handle open
+and propagates WAV warnings to each accepted Result. An empty station list
+has no Results to carry warnings; C<decode_wav> provides the primary rejection
+and file diagnostics. Selection and limitations match
+L<Ham::CW::Detector/channels>.
 
 =head2 decode_wav
 
@@ -542,6 +589,19 @@ allow for greater memory use. File size and frame limits are independent.
 
 Returns a fresh L<Ham::CW::Encoder>, inheriting encoding defaults and applying
 overrides. Methods are C<encode> and C<events>.
+
+=head2 decode_samples_channels
+
+    my $stations = $cw->decode_samples_channels($samples,
+        sample_rate => 8000, wpm => 20);
+
+Like C<decode_samples>, but returns an array reference of zero to eight
+complete L<Ham::CW::Result> objects, ordered by descending accumulated
+channel energy. Options, input validation and resource limits are identical.
+Each Result has its own frequency, timing, text and warnings. See
+L<Ham::CW::Detector/channels> for selection, spacing and accuracy limits.
+An empty list contains no rejection Result; use C<decode_samples> when the
+reason for no reception is needed.
 
 =head2 generator
 
@@ -577,9 +637,12 @@ On failure, a newly created output is closed and removal is attempted.
 With C<overwrite =E<gt> 1>, output is first written to a temporary file in the
 same directory and renamed after successful generation and close. Failure
 before replacement preserves the old destination and attempts temporary-file
-cleanup. Existing regular-file permission bits are preserved and symbolic-link
-destinations, including dangling links, are rejected with C<CW_E_IO>. A new
-path follows the process umask. Replacement creates a new file identity;
+cleanup. Existing regular-file permission bits are preserved. Symbolic-link
+destinations, including dangling links, are rejected with C<CW_E_IO> when
+detected during preparation. These checks and the final rename are separate
+operations: a concurrently substituted destination can still be replaced.
+Use an output directory whose entries are not being changed by other writers.
+A new path follows the process umask. Replacement creates a new file identity;
 ownership, ACLs and other hard links are not transferred. Replacement can
 fail if directory permissions or the operating system prevent rename.
 

@@ -183,11 +183,15 @@ analysis progressed and can be absent. Current producer fields are:
 
 =item * C<contrast>: keyed-envelope separation, C<(peak - floor) / peak>.
 
-=item * C<purity>: projected tone energy divided by windowed broadband energy. A matched, well-resolved pure Hann-windowed tone is about 0.67; this is not a probability or a scale normalized to 1.
+=item * C<purity>: projected tone energy divided by windowed energy of the filtered channel. A matched, well-resolved pure Hann-windowed tone is about 0.67; this is not a probability or a scale normalized to 1.
 
 =item * C<frame_samples>: full detector frame length in samples.
 
 =item * C<analyzed_samples>: total accepted input sample count. In a preview, a partial frame can still be pending and excluded from spectral analysis.
+
+=item * C<filter_bandwidth_hz>: configured full half-power width of one biquad section. The cascade has a narrower response; this field is not station separation or frequency accuracy.
+
+=item * C<filter_sections>: number of cascaded band-pass biquads per candidate (currently 2).
 
 =item * C<frequency_grid_step_hz>: search candidate step, or 0 for a configured tone. This is not spectral resolution or an error bound.
 
@@ -277,6 +281,12 @@ expose this in metadata; facade reception propagates it into the Result.
 =head1 SEE ALSO
 
 L<Ham::CW::Decoder>, L<Ham::CW::Detector>, L<Ham::CW::Error>.
+
+C<CW_W_INTERFERENCE> means carrier intervals, short implausible marks or
+unsupported outer activity were excluded during audio reception. It does
+not certify that every remaining group is CW; damaged legitimate characters
+may also have been excluded. Symbolic/event decoding does not apply these
+audio-specific exclusions.
 
 =head1 LICENSE
 

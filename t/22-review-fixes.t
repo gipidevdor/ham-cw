@@ -154,7 +154,11 @@ cmp_ok(abs($fitted - 60000), '<', 100, 'bounded candidates cover a wide set of d
 my $invalid =
     {unit => 'us', segments => [{state => 'on', duration => 60000, extra => sub { return }}]};
 my $validated = Ham::CW::Decoder->new(wpm => 20);
-eval { $validated->feed($invalid) };
-is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'unsafe event metadata rejected before copying');
-is($validated->state,         'READY',         'unsafe event metadata leaves decoder unchanged');
+$validated->feed($invalid);
+is_deeply(
+    $validated->result->events->{segments},
+    [{state => 'on', duration => 60000}],
+    'only validated canonical fields are retained; unsafe metadata is ignored'
+);
+is($validated->state, 'ACTIVE', 'unrelated metadata does not prevent canonical decoding');
 done_testing;
