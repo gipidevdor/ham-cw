@@ -35,6 +35,8 @@ my $auto = Ham::CW::Detector->new(sample_rate => 8000, frequency => 650);
 $auto->feed($same);
 is($auto->finish->text, '', 'single mark length needs WPM hint');
 my $signal = reference_sos();
+my @rising = map { $signal->[$_] * (0.1 + 0.9 * $_ / $#{$signal}) } 0 .. $#{$signal};
+is(decode_signal(\@rising)->text, 'SOS', 'adaptive envelope follows a rising signal level');
 
 # A 5 ms tone burst during a word/letter gap must not become an extra mark.
 for my $i (3000 .. 3039) { $signal->[$i] = 0.9 * sin(2 * $pi * 650 * $i / 8000) }
@@ -53,6 +55,9 @@ my $rate11025 = reference_sos(rate => 11025, frequency => 700);
 my $other     = Ham::CW::Detector->new(sample_rate => 11025, frequency => 700, wpm => 20);
 $other->feed($rate11025);
 is($other->finish->text, 'SOS', 'non-divisible sample rate');
+my $low_rate = Ham::CW::Detector->new(sample_rate => 1000, frequency => 200, wpm => 20);
+$low_rate->feed(reference_sos(rate => 1000, frequency => 200));
+is($low_rate->finish->text, 'SOS', 'known tone at the lowest supported sample rate');
 eval {
     Ham::CW::Detector->new(
         sample_rate    => 16000,

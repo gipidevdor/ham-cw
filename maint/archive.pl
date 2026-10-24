@@ -1,6 +1,8 @@
+#!/usr/bin/env perl
 use 5.020;
 use strict;
 use warnings;
+use Carp qw(croak);
 use Archive::Tar;
 use ExtUtils::Manifest qw(maniread);
 
@@ -16,7 +18,7 @@ for my $file ($archive->get_files) {
     $file->gid(0);
     $file->uname('');
     $file->gname('');
-    $file->mode(0644);
+    $file->mode(($file->mode & oct '111') ? oct '755' : oct '644');
     $file->mtime($ENV{SOURCE_DATE_EPOCH}) if defined $ENV{SOURCE_DATE_EPOCH};
 }
-$archive->write($output) or die "Cannot write $output: " . $archive->error;
+$archive->write($output) or croak "Cannot write $output: " . $archive->error;

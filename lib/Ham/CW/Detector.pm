@@ -14,10 +14,11 @@ sub new {
     options(\%args,
         qw(sample_rate frequency min_frequency max_frequency frequency_step wpm effective_wpm max_frames min_contrast)
     );
-    my $rate = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
-    my $low  = number('min_frequency',  $args{min_frequency}  // 300,  1,    $rate / 2 - 1);
-    my $high = number('max_frequency',  $args{max_frequency}  // 1500, $low, $rate / 2 - 1);
-    my $step = number('frequency_step', $args{frequency_step} // 50,   10,   500);
+    my $rate         = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
+    my $default_high = $rate / 2 - 1 < 1500 ? $rate / 2 - 1 : 1500;
+    my $low  = number('min_frequency',  $args{min_frequency} // 300,           1,    $rate / 2 - 1);
+    my $high = number('max_frequency',  $args{max_frequency} // $default_high, $low, $rate / 2 - 1);
+    my $step = number('frequency_step', $args{frequency_step} // 50,           10,   500);
     my @frequencies;
 
     if (defined $args{frequency}) {
@@ -126,12 +127,36 @@ sub _purity {
     return $purity;
 }
 
+sub _key_state {
+    my ($tracker, $power) = @_;
+    my $limited = $power < 2 * $tracker->{ceiling} ? $power : 2 * $tracker->{ceiling};
+    my $decayed = $tracker->{peak} * $tracker->{decay};
+    $tracker->{peak} = $limited > $decayed ? $limited : $decayed;
+    $tracker->{peak} = $tracker->{minimum} if $tracker->{peak} < $tracker->{minimum};
+    my $fraction  = $tracker->{state} eq 'on' ? 0.06 : 0.12;
+    my $threshold = $tracker->{noise} + ($tracker->{peak} - $tracker->{noise}) * $fraction;
+    $tracker->{state} = $power >= $threshold ? 'on' : 'off';
+
+    if ($tracker->{state} eq 'off') {
+        $tracker->{noise} += 0.02 * ($power - $tracker->{noise});
+    }
+    return $tracker->{state};
+}
+
 sub _segment {
     my ($self, $frames, $powers, $floor, $peak) = @_;
-    my ($state, @segments) = ('off');
+    my @segments;
+    my $minimum = $floor + 0.05 * ($peak - $floor);
+    my $tracker = {
+        state   => 'off',
+        noise   => $floor,
+        peak    => $minimum,
+        minimum => $minimum,
+        ceiling => $peak,
+        decay   => exp(-$self->{frame_size} / $self->{sample_rate}),
+    };
     for my $i (0 .. $#{$frames}) {
-        my $threshold = $floor + ($peak - $floor) * ($state eq 'on' ? 0.06 : 0.12);
-        $state = $powers->[$i] >= $threshold ? 'on' : 'off';
+        my $state = _key_state($tracker, $powers->[$i]);
         if (@segments && $segments[-1]{state} eq $state) {
             $segments[-1]{samples} += $frames->[$i]{samples};
         }
@@ -242,7 +267,7 @@ C<new> accepts C<sample_rate> (16000), optional C<frequency> and C<wpm>,
 C<effective_wpm>, C<min_frequency> (300), C<max_frequency> (1500),
 C<frequency_step> (50 Hz), C<min_contrast> (0.20, minimum spectral purity),
 and C<max_frames> (24000, about 120 seconds). Configure a valid search band
-below Nyquist, including when using low sample rates. Search grids contain
+below Nyquist; the default upper edge is clipped below Nyquist for low rates. Search grids contain
 at most 256 candidates. WPM limits match L<Ham::CW::Decoder>.
 
 C<feed(array)> validates normalized mono samples and processes fixed 5 ms
@@ -254,8 +279,10 @@ flushing the partial frame. C<finish> flushes it once and returns the final
 L<Ham::CW::Result>. C<reset> discards history; C<state> reports READY, ACTIVE or
 FINISHED. Feed after finish is rejected. Invalid input does not change state.
 
-Analysis selects the strongest candidate across frames, applies a percentile
-noise floor and hysteresis, merges short interior impulses and fits Morse
+Analysis selects the strongest candidate across frames and seeds a noise floor
+from percentiles. Segmentation tracks signal peaks with a one-second decay,
+updates the noise estimate during OFF frames, and applies hysteresis. A bounded
+peak update limits the influence of impulses. It merges short interior impulses and fits Morse
 timing. Spectral purity, envelope contrast and at least three keyed marks are
 required. Silence, unkeyed tones and rejected timing produce structured
 warnings. Frequency is a grid estimate, not a precision measurement.
@@ -266,8 +293,9 @@ for decisions. An empty result with complete true still needs warning review.
 
 This initial detector targets isolated, reasonably stable CW with adequate
 signal-to-noise ratio and mark lengths above roughly 20 ms. It does not
-separate overlapping transmitters or track large frequency drift. Percentile
-thresholds are recording-wide, not a continuously adaptive radio receiver.
+separate overlapping transmitters or track large frequency drift. Candidate
+selection and threshold seeds use the retained recording; envelope tracking
+adapts within that recording. Reception remains limited to the configured history.
 Severe fading, sparse marks, long leading silence and Farnsworth without
 known spacing can cause rejection or ambiguity. Field performance has not
 been established. No confidence probability is claimed.

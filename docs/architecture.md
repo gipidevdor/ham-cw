@@ -54,12 +54,14 @@ append repeatedly.
 
 Each 5 ms frame is DC-removed and Hann-windowed. A Goertzel bank measures
 candidate frequencies. Analysis uses accumulated candidate energy, spectral
-purity, envelope contrast and hysteresis; short interior impulses are merged.
+purity, envelope contrast, adaptive peak/noise tracking and hysteresis; short interior impulses are merged.
 The symbolic decoder fits 1:3 mark durations or uses the supplied WPM.
 Warnings record ambiguous timing and rejected groups. Unknown or implausible
 mark groups do not become guessed words.
 
-The thresholds currently use statistics across the retained recording. A
-rolling, continuously adaptive noise model and an indefinitely running
-receiver are future work, not hidden behind the streaming API. Fixed limits
-bound memory but do not establish constant-memory, unlimited-duration decoding.
+Global recording statistics identify the candidate tone and seed the noise
+floor. Segmentation adapts its keyed-signal peak and OFF noise estimates with
+hysteresis, while limiting the influence of impulse peaks. The one-second
+peak decay operates on a fixed sample grid, independently of feed boundaries.
+Fixed history limits bound memory; unlimited-duration reception is not part
+of this version's contract.

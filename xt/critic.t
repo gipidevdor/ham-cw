@@ -4,7 +4,7 @@ use Test::More;
 use File::Find qw(find);
 use Perl::Critic;
 my @files;
-find(sub { push @files, $File::Find::name if /\.pm\z/ }, 'lib');
+find(sub { push @files, $File::Find::name if /\.(?:pm|pl)\z/x }, qw(lib maint examples));
 my $critic = Perl::Critic->new(-profile => '.perlcriticrc');
 
 for my $file (sort @files, 'Makefile.PL') {

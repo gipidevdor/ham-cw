@@ -82,7 +82,7 @@ choice and envelopes depend on the synthesizer.
 ## Limits that matter
 
 Reception targets one reasonably stable CW signal. It does not separate
-simultaneous stations. The initial detector uses recording-wide percentile
+simultaneous stations. The initial detector uses percentile-seeded adaptive
 thresholds, a frequency grid and a fixed frame size. It is not yet a validated
 receiver for arbitrary off-air recordings. Short or ambiguous signals produce
 warnings or empty text.
