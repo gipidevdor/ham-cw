@@ -16,11 +16,13 @@ not enough. Do not commit recordings without permission to redistribute them.
 perl Makefile.PL
 make test
 cpanm --installdeps --with-develop .
-perlcritic lib Makefile.PL
+perlcritic lib maint examples Makefile.PL
+make distmeta
 prove -lr xt
 make disttest
 make dist
 perl maint/check-dist.pl Ham-CW-0.001.tar.gz
+perl maint/check-install.pl Ham-CW-0.001.tar.gz
 ```
 
 The author checks require `META.yml` from `make distmeta` or `make dist`.
@@ -42,3 +44,8 @@ independent assertions or radio recordings.
 Public API changes need POD, tests and a Changes entry. Preserve structured
 error codes, validation atomicity and block-independent output. Resource
 limits are part of the public contract. Keep metadata and MANIFEST in sync.
+
+The default branch requires the platform matrix and author checks to pass.
+Submit changes through a pull request. No approving review is required, so
+a sole maintainer can merge work once all checks pass. Force pushes and
+branch deletion are blocked.

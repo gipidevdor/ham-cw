@@ -10,8 +10,9 @@
    exact candidate commit. A configured matrix is not a test result.
 5. Run `make dist`, `make disttest` and `make distcheck`. Inspect META.json,
    META.yml, MANIFEST and the archive contents. Check the archive
-   with `perl maint/check-dist.pl Ham-CW-VERSION.tar.gz`. Install the extracted archive
-   into a temporary prefix and run both examples from that installation.
+   with `perl maint/check-dist.pl Ham-CW-VERSION.tar.gz`. Verify installation
+   with `perl maint/check-install.pl Ham-CW-VERSION.tar.gz`; it builds, tests,
+   installs to a temporary prefix and runs all three installed examples.
 6. Review documented limitations. In particular, do not advertise field-proven
    DSP reception until an independently sourced, licensed recording corpus
    with expected text and signal conditions has passed.

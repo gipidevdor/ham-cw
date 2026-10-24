@@ -9,7 +9,7 @@ Initial development candidate 0.001, checked on 2026-10-24.
 | Ordinary suite, Perl 5.44.0, macOS | 1,144 assertions across 14 files; PASS |
 | Ordinary suite with all Perl warnings fatal | 1,144 assertions; PASS |
 | System Perl 5.34.1, macOS | 1,144 assertions; PASS |
-| Author suite | 148 assertions across 5 files; PASS |
+| Author suite | 151 assertions across 5 files; PASS |
 | Perl::Critic 1.156, severity 3 | PASS for production modules, examples, maintainer scripts and Makefile.PL |
 | Perl::Tidy 20260826 | Formatting unchanged under the checked-in configuration |
 | Test::Pod | All public POD checked; PASS |
@@ -18,12 +18,12 @@ Initial development candidate 0.001, checked on 2026-10-24.
 | Devel::Cover 1.52, production modules only | 99.81% statements (1061/1063); 98.87% branches (350/354) |
 | WAV format verification | Independent header, sample and reference-fixture assertions PASS |
 | Examples | WAV send, automatic receive and MIDI export executed successfully |
-| Distribution extraction/build/test | make disttest and make distcheck PASS |
-| GitHub platform matrix | All seven jobs PASS in [run 40082009731](https://github.com/gipidevdor/ham-cw/actions/runs/40082009731); final adaptive-envelope changes are being rechecked |
+| Distribution extraction/build/test | make disttest and make distcheck PASS; isolated installation and all three installed examples PASS |
+| GitHub platform matrix | All seven jobs PASS for the production implementation in [run 40082998845](https://github.com/gipidevdor/ham-cw/actions/runs/40082998845): Linux Perl 5.20/5.34/5.40/5.44, macOS 5.40, Windows 5.40 and author gates |
 
 Coverage was collected from the full 1,144-assertion suite. All production
-source files in that measurement match the candidate source. Tests and author tools are excluded from the coverage
-denominator. No uncovered path was marked exempt to improve the percentage.
+source files in that measurement match the candidate source. Tests and author
+tools are excluded from the coverage denominator. No uncovered path was marked exempt to improve the percentage.
 The remaining uncovered branches are defensive checks for failed decoder/
 detector states, zero broadband energy after accepted spectral evidence, and
 a defensive index clamp in impulse merging. The 95% statement and 90% branch

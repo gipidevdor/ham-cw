@@ -67,3 +67,4 @@ jobs:
           make disttest
           make dist
           perl maint/check-dist.pl Ham-CW-0.001.tar.gz
+          perl maint/check-install.pl Ham-CW-0.001.tar.gz

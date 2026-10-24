@@ -1,7 +1,7 @@
 # Dependency and namespace audit
 
-Checked on 2026-10-24. Exact release metadata and declared dependencies are
-preserved in [cpan-audit.json](cpan-audit.json). The metadata comes from the
+Checked on 2026-10-24. Exact release metadata and declared dependencies for the initial text/audio
+candidates are preserved in [cpan-audit.json](cpan-audit.json). The metadata comes from the
 [MetaCPAN API](https://fastapi.metacpan.org/). Release age alone is not evidence
 of a defect. Third-party test suites were inspected where listed in the JSON,
 but were not executed; their coverage and platform results are not independently
@@ -14,6 +14,7 @@ certified here.
 | [Audio::Data](https://metacpan.org/pod/Audio::Data) | Audio 1.029, 2004-06-02 | Metadata license/minimum unknown | Not selected. Its sample storage uses XS, and related playback builds inspect native audio systems. It conflicts with a pure-Perl reference implementation. |
 | [PDL](https://metacpan.org/pod/PDL) | 2.106, 2026-08-18 | Perl terms; 5.16 | Not required. Excellent numerical capabilities, but native compilation and its dependency tree are disproportionate for this reference path. A future optional acceleration layer needs benchmarks. |
 | [Math::FFT](https://metacpan.org/pod/Math::FFT) | 1.36, 2020-10-17 | Perl terms; 5.8 | Not selected. FFT/XS is unnecessary for the initial narrow-band candidate bank. No speed advantage is claimed without measurement. |
+| [MIDI](https://metacpan.org/pod/MIDI) | MIDI-Perl 0.84, 2023-10-17 | Perl terms in POD; release metadata license/minimum Perl/dependencies not specified | No runtime dependency. This release only exports a bounded type-0 track with tempo, program and note events; the small encoder preserves the project event-rounding/error contracts. General MIDI editing, import and device I/O remain outside its scope. Candidate tests, transitive dependencies and portability were not independently verified. |
 
 Text::Morse declares Test::Simple/Test::More as runtime requirements. Audio::Wav
 has no declared non-core runtime dependency in the queried release metadata;
