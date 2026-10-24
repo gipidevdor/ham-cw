@@ -91,9 +91,13 @@ The default width is `max(40, 4 * WPM)` Hz with a WPM hint, otherwise 180 Hz.
 It balances rejection and keying transients; it is not a guarantee of separation.
 
 Four filtered hops form a DC-removed Hann window, approximately 20 ms. Goertzel
-measures each channel's tone power. Acquisition separately examines eight raw
-hops (40 ms) and compares candidate Goertzel power against the lower median
-of up to six neighboring guard powers, scaled by 1.3. Guards are at offsets
+measures each channel's tone power; a channel that fails acquisition keeps
+its windowed energy but skips the recurrence. Acquisition separately examines
+eight raw hops (40 ms): each hop supplies one Fourier projection per candidate
+and guard frequency, and the eight projections are combined under a hop-wise
+Hann taper with the window mean removed. The candidate power is compared
+against the lower median of up to six neighboring guard powers, scaled by 1.3.
+Guards are at offsets
 ±1, ±2 and ±3 times `max(100, 2 * frequency_step)` Hz, omitting frequencies
 outside the sampled band. The default 12 dB power-ratio threshold gates the
 filtered features. This is spectral contrast, not calibrated SNR. Guard geometry
@@ -109,7 +113,10 @@ can be recovered simultaneously; co-channel sources cannot be unmixed.
 
 Median smoothing, sustained-support peak caps, adaptive OFF noise and keyed
 peak tracking with one-second decay and hysteresis reduce impulsive errors.
-Carrier intervals and sub-tolerance short marks are excluded. Valid multi-mark
+An ON run whose power exceeds twice the seeded peak is narrowed to the hops
+above 22% of its own top, so a burst smeared by the analysis window cannot
+pass as a mark. Carrier intervals and sub-tolerance short marks are excluded.
+Valid multi-mark
 Morse groups anchor margin cleanup; adjacent valid short letters and one
 neighboring damaged multi-mark group are retained. Unsupported activity beyond
 those margins is suppressed with a warning. Damaged interior groups remain

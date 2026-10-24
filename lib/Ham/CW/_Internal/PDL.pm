@@ -28,7 +28,7 @@ sub frames {
     my $n = $self->{analysis_size};
     my (@channels, @gates);
     for my $block (@{$blocks}) {
-        push @channels, $self->_filtered_channels($block);
+        push @channels, $self->_filtered_channels($block, 1);
         push @gates,    [@{$self->{last_gates}}];
     }
     my $data     = PDL->pdl(PDL::double(), \@channels);

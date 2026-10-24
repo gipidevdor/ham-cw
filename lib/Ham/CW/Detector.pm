@@ -67,16 +67,17 @@ sub new {
             my $key = sprintf('%.12g', $candidate);
             if (!exists $lookup{$key}) {
                 $lookup{$key} = @acquire;
-                push @acquire, 2 * cos(2 * $PI * $candidate / $rate);
+                push @acquire, $candidate;
             }
             push @indices, $lookup{$key};
         }
         push @centres, shift @indices;
         push @guards,  \@indices;
     }
-    $self->{acquire_coefficients} = \@acquire;
-    $self->{acquire_centres}      = \@centres;
-    $self->{acquire_guards}       = \@guards;
+    $self->{acquire_frequencies} = \@acquire;
+    $self->{acquire_centres}     = \@centres;
+    $self->{acquire_guards}      = \@guards;
+    $self->_prepare_acquisition;
     $self->{snr_ratio}            = 10**($self->{min_snr_db} / 10);
     $self->{mark_snr_ratio}       = 10**($self->{mark_snr_db} / 10);
     return $self->reset;
@@ -95,10 +96,9 @@ sub reset {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
     $self->{pdl_kernels}       = {};
     $self->{filter_history}    = [map { [(0) x $self->{analysis_size}] } @{$self->{frequencies}}];
     $self->{delay_compensated} = 0;
-    $self->{raw_history}       = [(0) x ($self->{analysis_size} * 2)];
-    my $m = @{$self->{raw_history}};
-    $self->{acquire_window} = [map { 0.5 - 0.5 * cos(2 * $PI * $_ / ($m - 1)) } 0 .. $m - 1];
-    $self->{filters}        = [
+    $self->{raw_history}       = [(0) x ($self->{acquire_hops} * $self->{frame_size})];
+    $self->{acquire_partials}  = [];
+    $self->{filters}           = [
         map { Ham::CW::_Internal::Biquad->new($self->{sample_rate}, $_, $self->{filter_bandwidth}) }
             @{$self->{frequencies}}
     ];
@@ -122,23 +122,47 @@ sub _frame {
     my $channels = $self->_filtered_channels($block);
     my $n        = $self->{analysis_size};
     my $gates    = $self->{last_gates};
+    my $window   = $self->{window};
+    my $pairs    = $n - $n % 2;
     my (@powers, @energies);
     for my $index (0 .. $#{$channels}) {
         my $channel = $channels->[$index];
         my $mean    = 0;
         $mean += $_ for @{$channel};
         $mean /= $n;
-        my ($s1, $s2, $energy) = (0, 0, 0);
+        my $energy = 0;
+
+        # A gated-off channel reports zero power, so only its windowed energy
+        # is needed; the recurrence below runs for admitted channels alone.
+        if (!$gates->[$index]) {
+            for my $i (0 .. $n - 1) {
+                my $x = ($channel->[$i] - $mean) * $window->[$i];
+                $energy += $x * $x;
+            }
+            push @powers,   0;
+            push @energies, $energy;
+            next;
+        }
+        my ($s1, $s2) = (0, 0);
         my $coeff = $self->{coefficients}[$index];
-        for my $i (0 .. $n - 1) {
-            my $x = ($channel->[$i] - $mean) * $self->{window}[$i];
+        for (my $i = 0; $i < $pairs; $i += 2) {
+            my $x0 = ($channel->[$i] - $mean) * $window->[$i];
+            my $x1 = ($channel->[$i + 1] - $mean) * $window->[$i + 1];
+            $energy += $x0 * $x0;
+            $energy += $x1 * $x1;
+            my $value = $x0 + $coeff * $s1 - $s2;
+            $s1 = $x1 + $coeff * $value - $s1;
+            $s2 = $value;
+        }
+        if ($pairs < $n) {
+            my $x = ($channel->[$pairs] - $mean) * $window->[$pairs];
             $energy += $x * $x;
             my $value = $x + $coeff * $s1 - $s2;
             $s2 = $s1;
             $s1 = $value;
         }
         my $power = $s1 * $s1 + $s2 * $s2 - $coeff * $s1 * $s2;
-        push @powers,   $gates->[$index] && $power > 0 ? $power : 0;
+        push @powers,   $power > 0 ? $power : 0;
         push @energies, $energy;
     }
     $self->_retain_frame(
@@ -147,41 +171,141 @@ sub _frame {
 }
 
 sub _filtered_channels {
-    my ($self, $block) = @_;
+    my ($self, $block, $copy) = @_;
     $self->{last_gates} = $self->_acquire($block);
     my @channels;
     for my $index (0 .. $#{$self->{filters}}) {
         my $history = $self->{filter_history}[$index];
         push @{$history}, @{$self->{filters}[$index]->process($block)};
         splice @{$history}, 0, @{$block};
-        push @channels, [@{$history}];
+
+        # Batched callers keep several hops; the immediate caller reads the
+        # history before the next hop replaces it.
+        push @channels, $copy ? [@{$history}] : $history;
     }
     return \@channels;
 }
 
+sub _prepare_acquisition {
+    my ($self) = @_;
+    my $hop   = $self->{frame_size};
+    my $hops  = $self->{acquire_hops} = 8;
+    my $total = $hop * $hops;
+    my $rate  = $self->{sample_rate};
+
+    # One Hann weight per hop: the mean of the periodic window over that hop.
+    my @weights;
+    for my $position (0 .. $hops - 1) {
+        my $weight = 0;
+        $weight += 0.5 - 0.5 * cos(2 * $PI * ($position * $hop + $_) / $total) for 0 .. $hop - 1;
+        push @weights, $weight / $hop;
+    }
+    my (@cosines, @sines, @rotate, @offsets);
+    for my $frequency (@{$self->{acquire_frequencies}}) {
+        my $omega = 2 * $PI * $frequency / $rate;
+        push @cosines, [map { cos($omega * $_) } 0 .. $hop - 1];
+        push @sines,   [map { sin($omega * $_) } 0 .. $hop - 1];
+
+        # Weighted rotation that places a hop's partial projection at its
+        # position inside the window, and the window's own transform for
+        # removing the mean afterwards.
+        my @rotation;
+        for my $position (0 .. $hops - 1) {
+            my $angle = $omega * $position * $hop;
+            push @rotation, [$weights[$position] * cos($angle), -$weights[$position] * sin($angle)];
+        }
+        push @rotate, \@rotation;
+        my ($real, $imaginary) = (0, 0);
+        for my $n (0 .. $total - 1) {
+            my $weight = $weights[int($n / $hop)];
+            $real      += $weight * cos($omega * $n);
+            $imaginary -= $weight * sin($omega * $n);
+        }
+        push @offsets, [$real, $imaginary];
+    }
+    $self->{acquire_cos}     = \@cosines;
+    $self->{acquire_sin}     = \@sines;
+    $self->{acquire_rotate}  = \@rotate;
+    $self->{acquire_offsets} = \@offsets;
+    return;
+}
+
+sub _acquire_partial {
+    my ($self, $samples) = @_;
+    my ($cosines, $sines) = @{$self}{qw(acquire_cos acquire_sin)};
+    my $count = @{$samples};
+    my $pairs = $count - $count % 2;
+    my $sum   = 0;
+    $sum += $_ for @{$samples};
+    my (@real, @imaginary);
+    for my $j (0 .. $#{$cosines}) {
+        my ($c, $s) = ($cosines->[$j], $sines->[$j]);
+        my ($re, $im) = (0, 0);
+        for (my $m = 0; $m < $pairs; $m += 2) {
+            $re += $samples->[$m] * $c->[$m] + $samples->[$m + 1] * $c->[$m + 1];
+            $im += $samples->[$m] * $s->[$m] + $samples->[$m + 1] * $s->[$m + 1];
+        }
+        if ($pairs < $count) {
+            $re += $samples->[$pairs] * $c->[$pairs];
+            $im += $samples->[$pairs] * $s->[$pairs];
+        }
+        push @real,      $re;
+        push @imaginary, -$im;
+    }
+    return {real => \@real, imaginary => \@imaginary, sum => $sum};
+}
+
+sub _acquire_powers {
+    my ($self)  = @_;
+    my $ring    = $self->{acquire_partials};
+    my $rotate  = $self->{acquire_rotate};
+    my $offsets = $self->{acquire_offsets};
+    my $first   = $self->{acquire_hops} - @{$ring};
+    my $mean    = 0;
+    $mean += $_->{sum} for @{$ring};
+    $mean /= $self->{acquire_hops} * $self->{frame_size};
+    my @powers;
+    for my $j (0 .. $#{$offsets}) {
+        my ($re, $im) = (0, 0);
+        for my $k (0 .. $#{$ring}) {
+            my ($wr, $wi) = @{$rotate->[$j][$first + $k]};
+            my ($pr, $pi) = ($ring->[$k]{real}[$j], $ring->[$k]{imaginary}[$j]);
+            $re += $wr * $pr - $wi * $pi;
+            $im += $wr * $pi + $wi * $pr;
+        }
+        $re -= $mean * $offsets->[$j][0];
+        $im -= $mean * $offsets->[$j][1];
+        push @powers, $re * $re + $im * $im;
+    }
+    return \@powers;
+}
+
 sub _acquire {
     my ($self, $block) = @_;
+    my $hop     = $self->{frame_size};
     my $history = $self->{raw_history};
     push @{$history}, @{$block};
     splice @{$history}, 0, @{$block};
-    my $n    = @{$history};
-    my $mean = 0;
-    $mean += $_ for @{$history};
-    $mean /= $n;
-    my @window = map { ($history->[$_] - $mean) * $self->{acquire_window}[$_] } 0 .. $n - 1;
-    my @powers;
-
-    for my $coefficient (@{$self->{acquire_coefficients}}) {
-        my ($s1, $s2) = (0, 0);
-        for my $x (@window) { my $value = $x + $coefficient * $s1 - $s2; $s2 = $s1; $s1 = $value }
-        my $power = $s1 * $s1 + $s2 * $s2 - $coefficient * $s1 * $s2;
-        push @powers, $power > 0 ? $power : 0;
+    my $ring = $self->{acquire_partials};
+    if (@{$block} == $hop) {
+        push @{$ring}, $self->_acquire_partial($block);
+        shift @{$ring} while @{$ring} > $self->{acquire_hops};
     }
+    else {
+        # A shorter flush block moves the hop grid; rebuild every partial from
+        # the retained raw window so the positions stay aligned.
+        @{$ring} = ();
+        for my $position (0 .. $self->{acquire_hops} - 1) {
+            my $start = $position * $hop;
+            push @{$ring}, $self->_acquire_partial([@{$history}[$start .. $start + $hop - 1]]);
+        }
+    }
+    my $powers = $self->_acquire_powers;
     my @gates;
     for my $i (0 .. $#{$self->{frequencies}}) {
-        my @guard  = sort { $a <=> $b } @powers[@{$self->{acquire_guards}[$i]}];
+        my @guard  = sort { $a <=> $b } @{$powers}[@{$self->{acquire_guards}[$i]}];
         my $noise  = @guard ? $guard[int($#guard / 2)] * 1.3 : 0;
-        my $signal = $powers[$self->{acquire_centres}[$i]];
+        my $signal = $powers->[$self->{acquire_centres}[$i]];
         push @gates, $signal > 1e-12 && $signal >= $noise * $self->{snr_ratio} ? 1 : 0;
     }
     return \@gates;
@@ -336,9 +460,14 @@ sub _segment {
         ceiling => $peak,
         decay   => exp(-$self->{frame_size} / $self->{sample_rate}),
     };
+    my (@states, @noises);
     for my $i (0 .. $#{$frames}) {
-        my $noise = $tracker->{noise};
-        my $state = _key_state($tracker, $powers->[$i]);
+        push @noises, $tracker->{noise};
+        push @states, _key_state($tracker, $powers->[$i]);
+    }
+    _trim_bursts(\@states, $powers, 2 * $peak);
+    for my $i (0 .. $#{$frames}) {
+        my $state = $states[$i];
         if (@segments && $segments[-1]{state} eq $state) {
             $segments[-1]{samples} += $frames->[$i]{samples};
             $segments[-1]{energy}  += $powers->[$i] * $frames->[$i]{samples};
@@ -349,7 +478,7 @@ sub _segment {
                 state   => $state,
                 samples => $frames->[$i]{samples},
                 energy  => $powers->[$i] * $frames->[$i]{samples},
-                noise   => $noise
+                noise   => $noises[$i]
                 };
         }
     }
@@ -380,6 +509,28 @@ sub _segment {
         }
     }
     return \@segments;
+}
+
+sub _trim_bursts {
+    my ($states, $powers, $ceiling) = @_;
+
+    # The tracker clamps anything above twice the seeded peak, so a burst far
+    # stronger than the message keeps every smeared hop above the switching
+    # threshold. Such a run is only as wide as its own power above 22% of its
+    # top, the same fraction that admits an ordinary mark.
+    my $i = 0;
+    while ($i < @{$states}) {
+        if ($states->[$i] ne 'on') { ++$i; next }
+        my $end = $i;
+        ++$end while $end < $#{$states} && $states->[$end + 1] eq 'on';
+        my $top = 0;
+        $top = $powers->[$_] > $top ? $powers->[$_] : $top for $i .. $end;
+        if ($top > $ceiling) {
+            $states->[$_] = 'off' for grep { $powers->[$_] < 0.22 * $top } $i .. $end;
+        }
+        $i = $end + 1;
+    }
+    return;
 }
 
 sub _robust_peak {
@@ -800,8 +951,11 @@ form an approximately 20 ms analysis window, with DC removal and Hann
 weighting. Perl uses Goertzel power; PDL uses equivalent sinusoidal
 projections after the same filters.
 
-Acquisition independently examines eight raw hops (approximately 40 ms)
-with DC removal, Hann weighting and Goertzel. A candidate must exceed a
+Acquisition independently examines eight raw hops (approximately 40 ms).
+Each hop contributes one Fourier projection per candidate and guard
+frequency; the eight projections are combined under a hop-wise Hann taper
+with the window mean removed, so a new hop costs one projection rather than a
+transform of the whole window. A candidate must exceed a
 noise estimate from up to six guards at offsets of one, two and three times
 C<max(100, 2 * frequency_step)> Hz. Out-of-band guards are omitted. The lower
 median guard power, scaled by 1.3, supplies the threshold reference. Filtered
@@ -819,6 +973,10 @@ OFF frames and uses hysteresis. Each provisional ON run must have a
 sample-weighted mean power at least C<10 ** (mark_snr_db / 10)> times the
 tracker's noise estimate at the start of that run. Failed runs become OFF;
 adjacent OFF runs merge before the existing short-interior-glitch cleanup.
+A run whose power exceeds twice the seeded peak is far stronger than the
+message; it is narrowed to the hops above 22% of its own top before
+admission, so a short burst smeared by the analysis window does not become
+a mark.
 The gate and its noise reference use the same smoothed channel powers as
 the tracker. OFF observations must also be below one quarter of the switching
 threshold to update the noise estimate; this avoids treating a fading attack
