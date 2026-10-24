@@ -7,8 +7,8 @@ Revision history for Ham-CW
     - Allow automatic backend selection and a per-call reception override.
       Keep the existing sample arrays, streaming limits and error codes.
     - Add numerical equivalence tests, a reproducible benchmark and PDL test
-      jobs for Linux, macOS and Windows. Local results and the remaining
-      platform checks are recorded in docs/verification.md.
+      jobs for Linux, macOS and Windows. The completed platform checks and
+      PCM measurements are recorded in docs/verification.md.
     - Expand FAST CI to the minimum Perl/PDL combination and macOS Intel.
       Use Strawberry Perl for native Windows builds, save benchmark evidence,
       and compare all PCM depths as well as streaming reception.

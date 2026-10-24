@@ -75,10 +75,22 @@ rounding boundary may differ by one integer unit. Benchmark your workload with
 `perl maint/benchmark.pl`: short blocks and single-frequency reception can
 spend more time converting arrays than they save in vector operations.
 
-The FAST CI job installs PDL and tests Linux, macOS and Windows. PDL itself
+The FAST CI jobs install PDL and test Linux, macOS ARM/Intel and Windows
+with Strawberry Perl. A legacy Linux job checks Perl 5.20 with PDL 2.081. PDL itself
 contains native code; installation requires a compatible PDL build or a C
 build toolchain. No operating-system-specific audio or external DSP command
-is used. Platform results must be confirmed by CI before claiming validation.
+is used. See [verification](docs/verification.md) for the actual run and platform results.
+
+The expanded benchmark also compares reception in 4096-sample blocks and
+in-memory PCM WAV reading/writing separately at 8, 16 and 24 bits:
+
+```sh
+perl maint/benchmark.pl --seconds 1 --json benchmark.json
+```
+
+The JSON records versions, architecture, timings and iteration counts. Every
+FAST CI job saves it as an artifact. Ratios below 1 identify slower PDL cases;
+benchmarks are observations and do not gate the compatibility tests.
 
 ## Interfaces
 

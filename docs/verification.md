@@ -98,10 +98,9 @@ blocks and a single candidate frequency can reduce the benefit. Run
 
 ### Platform status
 
-The CI configuration includes PDL jobs for Linux, macOS and Windows. Those
-FAST jobs have not been executed during this local verification, so their
-results remain pending. PDL 2.081 is the declared minimum; only PDL 2.106 was
-exercised here. PDL needs a compatible native installation on each platform.
+This initial local verification exercised PDL 2.106. The subsequent CI
+execution, including the declared PDL 2.081 minimum and the Windows native
+build, is recorded in the expanded verification below.
 
 ## Review corrections (2026-10-24)
 
@@ -139,3 +138,61 @@ legacy C declarations were rejected by the latest Linux compiler. The legacy
 combination therefore uses Ubuntu 22.04; current PDL remains tested on the
 latest Linux runner. This is a dependency build constraint, not evidence of
 successful tests on the failed runner.
+
+The author job in the expanded run passed the ordinary suite (1,274 assertions
+across 16 files), all five author test files, distribution extraction/tests,
+archive analysis and an isolated installation with the examples. Production
+coverage was 1,239/1,248 statements (99.28%) and 414/420 branches (98.57%).
+No uncovered path was exempted to meet the gates.
+
+### Completed CI run (2026-10-24)
+
+All 12 jobs passed in [run 40086118418](https://github.com/gipidevdor/ham-cw/actions/runs/40086118418), testing
+commit `4e0a7e79a8e5d5fa76040d89d8c852c603667d67` on `codex/fast-platform-ci`.
+This is a successful GitHub Actions run, not a CPAN Testers certification.
+
+| FAST environment | Actual Perl | Actual PDL | Result |
+| --- | --- | --- | --- |
+| Linux | v5.40.5 | 2.106 | PASS |
+| macOS ARM64 | v5.40.5 | 2.106 | PASS |
+| macOS Intel | v5.40.5 | 2.106 | PASS |
+| Windows / Strawberry | v5.40.4 | 2.106 | PASS |
+| Linux / minimum versions | v5.20.3 | 2.081 | PASS |
+
+The other seven successful jobs comprise six Pure Perl combinations and the
+author/distribution checks. The Pure Perl matrix covers Linux Perl 5.20,
+5.34, 5.40 and 5.44, plus macOS and Windows with Perl 5.40.
+
+The Windows FAST build used Strawberry Perl, as recommended by the
+[PDL installation guide](https://metacpan.org/pod/PDL::InstallGuide).
+The earlier default Windows toolchain failed to build PDL; this successful
+result applies to the Strawberry configuration.
+
+### Observed PDL/Perl speed ratios
+
+Each cell is PDL calls/second divided by Perl calls/second on the same runner.
+Values above 1 favour PDL; values below 1 favour Perl. These are short,
+single-run observations on shared hosted machines. Small differences and
+differences between runs should not be treated as stable backend rankings.
+
+| Operation | Linux | macOS ARM64 | macOS Intel | Windows | Linux minimum |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Audio generation | 4.71x | 3.73x | 6.00x | 3.54x | 3.60x |
+| Detection, complete array | 5.10x | 6.84x | 6.39x | 4.86x | 5.97x |
+| Detection, 4096-sample feeds | 5.32x | 3.96x | 6.62x | 4.29x | 5.01x |
+| PCM WAV read, 8-bit | 0.96x | 1.64x | 1.11x | 0.75x | 0.95x |
+| PCM WAV read, 16-bit | 1.15x | 0.93x | 1.16x | 0.88x | 1.05x |
+| PCM WAV read, 24-bit | 1.16x | 0.77x | 1.21x | 1.13x | 0.99x |
+| PCM WAV write, 8-bit | 1.39x | 1.05x | 1.54x | 1.35x | 1.41x |
+| PCM WAV write, 16-bit | 1.46x | 1.82x | 1.60x | 1.39x | 1.48x |
+| PCM WAV write, 24-bit | 1.39x | 1.22x | 1.41x | 1.25x | 1.31x |
+
+PDL gives a substantial synthesis and detection benefit in these cases.
+PCM conversion has a smaller, workload-dependent benefit; several cases
+are slower with PDL. The automatic selector currently chooses according
+to availability, not according to these timing results.
+
+The five `benchmark-*` artifacts on the [run page](https://github.com/gipidevdor/ham-cw/actions/runs/40086118418)
+contain absolute rates and the underlying iteration counts, elapsed times
+and environment metadata. They allow the ratios to be checked without
+copying console logs into the release notes.
