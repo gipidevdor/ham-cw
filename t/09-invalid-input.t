@@ -170,4 +170,15 @@ is(
     'SOS',
     'facade configuration and reception options'
 );
+
+for my $class (
+    qw(Ham::CW Ham::CW::Audio Ham::CW::Encoder Ham::CW::Decoder
+    Ham::CW::Generator Ham::CW::Detector Ham::CW::MIDI Ham::CW::Result Ham::CW::Error)
+    )
+{
+    error_is('CW_E_ARGUMENT', sub { $class->new('wpm') }, 'odd option list rejected');
+}
+error_is('CW_E_ARGUMENT', sub { Ham::CW->new(wpm => 20, wpm => 30) }, 'duplicate option rejected');
+error_is('CW_E_ARGUMENT', sub { Ham::CW->new(undef, 20) }, 'undefined option name rejected');
+error_is('CW_E_ARGUMENT', sub { Ham::CW->new([],    20) }, 'reference option name rejected');
 done_testing;

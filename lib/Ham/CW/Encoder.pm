@@ -3,11 +3,12 @@ use 5.020;
 use strict;
 use warnings;
 use Ham::CW::_Internal::Symbols  qw(alphabet prosigns);
-use Ham::CW::_Internal::Validate qw(fail number options);
+use Ham::CW::_Internal::Validate qw(fail number options named_arguments);
 our $VERSION = '0.001';
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args, qw(wpm effective_wpm unknown));
     my $wpm       = number('wpm',           $args{wpm}           // 20,   1, 200);
     my $effective = number('effective_wpm', $args{effective_wpm} // $wpm, 1, $wpm);

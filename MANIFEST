@@ -37,7 +37,8 @@ lib/Ham/CW/MIDI.pm
 lib/Ham/CW/Result.pm
 LICENSE
 maint/archive.pl
-maint/build-corpus.py
+maint/build-corpus.pl
+maint/check-dist.pl
 maint/coverage.pl
 Makefile.PL
 MANIFEST			This list of files

@@ -8,11 +8,12 @@ use Ham::CW::Generator;
 use Ham::CW::Detector;
 use Ham::CW::Audio;
 use Ham::CW::MIDI;
-use Ham::CW::_Internal::Validate qw(fail options);
+use Ham::CW::_Internal::Validate qw(fail options named_arguments);
 our $VERSION = '0.001';
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args,
         qw(wpm effective_wpm frequency sample_rate amplitude attack_ms release_ms unknown));
     my %encoder = map { exists($args{$_}) ? ($_ => $args{$_}) : () } qw(wpm effective_wpm unknown);
@@ -27,7 +28,8 @@ sub events { my ($s, $text)  = @_; return Ham::CW::Encoder->new(%{$s->{encoder}}
 sub decode { my ($s, $morse) = @_; return Ham::CW::Decoder->new->decode($morse) }
 
 sub generate_wav {
-    my ($self, $text, $fh, %args) = @_;
+    my ($self, $text, $fh, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args, qw(bits max_bytes));
     my $events = $self->events($text);
     my $rate   = $self->{generator}{sample_rate} // 16000;
@@ -50,12 +52,14 @@ sub generate_wav {
 }
 
 sub generate_midi {
-    my ($self, $text, $fh, %args) = @_;
+    my ($self, $text, $fh, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     return Ham::CW::MIDI->new(%args)->write($fh, $self->events($text));
 }
 
 sub decode_wav {
-    my ($self, $fh, %args) = @_;
+    my ($self, $fh, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args,
         qw(frequency wpm effective_wpm stereo max_bytes min_frequency max_frequency frequency_step)
     );

@@ -2,14 +2,15 @@ package Ham::CW::Detector;
 use 5.020;
 use strict;
 use warnings;
-use Ham::CW::_Internal::Validate qw(fail number integer options samples);
+use Ham::CW::_Internal::Validate qw(fail number integer options samples named_arguments);
 use Ham::CW::Decoder;
 use Ham::CW::Result;
 our $VERSION = '0.001';
 my $PI = 4 * atan2(1, 1);
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args,
         qw(sample_rate frequency min_frequency max_frequency frequency_step wpm effective_wpm max_frames min_contrast)
     );
@@ -18,6 +19,7 @@ sub new {
     my $high = number('max_frequency',  $args{max_frequency}  // 1500, $low, $rate / 2 - 1);
     my $step = number('frequency_step', $args{frequency_step} // 50,   10,   500);
     my @frequencies;
+
     if (defined $args{frequency}) {
         @frequencies = (number('frequency', $args{frequency}, 1, $rate / 2 - 1));
     }

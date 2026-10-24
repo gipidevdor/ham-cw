@@ -5,11 +5,12 @@ use warnings;
 use Ham::CW::_Internal::WavWriter;
 use Ham::CW::_Internal::IO       qw(read_exact write_bytes);
 use Scalar::Util                 qw(openhandle);
-use Ham::CW::_Internal::Validate qw(fail integer options samples);
+use Ham::CW::_Internal::Validate qw(fail integer options samples named_arguments);
 our $VERSION = '0.001';
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args, qw(max_bytes stereo block_samples));
     my $policy = $args{stereo} // 'mix';
     fail('CW_E_ARGUMENT', 'stereo must be left, right or mix')
@@ -138,7 +139,8 @@ sub read {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 }
 
 sub writer {
-    my ($self, $fh, %args) = @_;
+    my ($self, $fh, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args, qw(sample_rate sample_count bits));
     my $rate = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
     my $bits = $args{bits} // 16;
@@ -171,7 +173,8 @@ sub writer {
 }
 
 sub write {    ## no critic (Subroutines::ProhibitBuiltinHomonyms)
-    my ($self, $fh, $values, %args) = @_;
+    my ($self, $fh, $values, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     samples($values, 100000000);
     my $writer = $self->writer($fh, %args, sample_count => scalar @{$values});
     for (my $i = 0; $i < @{$values}; $i += 4096) {

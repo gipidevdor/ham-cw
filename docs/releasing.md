@@ -9,7 +9,8 @@
 4. Require the Linux Perl 5.20 job and the macOS/Windows jobs to succeed on the
    exact candidate commit. A configured matrix is not a test result.
 5. Run `make dist`, `make disttest` and `make distcheck`. Inspect META.json,
-   META.yml, MANIFEST and the archive contents. Install the extracted archive
+   META.yml, MANIFEST and the archive contents. Check the archive
+   with `perl maint/check-dist.pl Ham-CW-VERSION.tar.gz`. Install the extracted archive
    into a temporary prefix and run both examples from that installation.
 6. Review documented limitations. In particular, do not advertise field-proven
    DSP reception until an independently sourced, licensed recording corpus

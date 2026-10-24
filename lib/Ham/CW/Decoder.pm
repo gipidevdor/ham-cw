@@ -5,12 +5,13 @@ use warnings;
 use Storable                     qw(dclone);
 use Ham::CW::Events              qw(validate_events to_timed);
 use Ham::CW::_Internal::Symbols  qw(reverse_alphabet prosigns);
-use Ham::CW::_Internal::Validate qw(fail number integer options);
+use Ham::CW::_Internal::Validate qw(fail number integer options named_arguments);
 use Ham::CW::Result;
 our $VERSION = '0.001';
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args, qw(wpm effective_wpm prefer_prosigns max_segments));
     number('wpm',           $args{wpm},           1, 200) if defined $args{wpm};
     number('effective_wpm', $args{effective_wpm}, 1, $args{wpm} // 200)

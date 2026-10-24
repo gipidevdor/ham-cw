@@ -4,11 +4,12 @@ use strict;
 use warnings;
 use Storable                     qw(dclone);
 use Hash::Util                   qw(lock_hash);
-use Ham::CW::_Internal::Validate qw(options);
+use Ham::CW::_Internal::Validate qw(options named_arguments);
 our $VERSION = '0.001';
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args, qw(text morse events frequency wpm warnings complete diagnostics));
     my $self = bless dclone(
         {

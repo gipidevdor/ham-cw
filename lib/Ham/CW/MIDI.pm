@@ -5,11 +5,12 @@ use warnings;
 use Scalar::Util                 qw(openhandle);
 use Ham::CW::Events              qw(validate_events to_timed);
 use Ham::CW::_Internal::IO       qw(write_bytes);
-use Ham::CW::_Internal::Validate qw(fail integer number options);
+use Ham::CW::_Internal::Validate qw(fail integer number options named_arguments);
 our $VERSION = '0.001';
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args, qw(note velocity channel program bpm ppqn max_bytes));
     return bless {
         note      => integer('note',     $args{note}     // 77,  0, 127),

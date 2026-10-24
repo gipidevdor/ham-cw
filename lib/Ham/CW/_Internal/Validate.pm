@@ -5,11 +5,25 @@ use warnings;
 use Exporter 'import';
 use Scalar::Util qw(looks_like_number);
 use Ham::CW::Error;
-our @EXPORT_OK = qw(fail number integer options samples);
+our @EXPORT_OK = qw(fail number integer options samples named_arguments);
 
 sub fail {
     my ($code, $message) = @_;
     return Ham::CW::Error->throw(code => $code, message => $message);
+}
+
+sub named_arguments {
+    my (@pairs) = @_;
+    fail('CW_E_ARGUMENT', 'Options must be name/value pairs') if @pairs % 2;
+    my %args;
+    for (my $i = 0; $i < @pairs; $i += 2) {
+        my $name = $pairs[$i];
+        fail('CW_E_ARGUMENT', 'Option names must be defined scalars')
+            if !defined($name) || ref($name);
+        fail('CW_E_ARGUMENT', 'Duplicate option name') if exists $args{$name};
+        $args{$name} = $pairs[$i + 1];
+    }
+    return %args;
 }
 
 sub number {

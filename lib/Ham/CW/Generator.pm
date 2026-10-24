@@ -3,12 +3,13 @@ use 5.020;
 use strict;
 use warnings;
 use Ham::CW::Events              qw(validate_events to_samples);
-use Ham::CW::_Internal::Validate qw(fail number integer options);
+use Ham::CW::_Internal::Validate qw(fail number integer options named_arguments);
 our $VERSION = '0.001';
 my $PI = 4 * atan2(1, 1);
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @pairs) = @_;
+    my %args = named_arguments(@pairs);
     options(\%args, qw(sample_rate frequency amplitude attack_ms release_ms max_samples));
     my $rate = integer('sample_rate', $args{sample_rate} // 16000, 1000, 384000);
     my $self = bless {

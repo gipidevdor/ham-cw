@@ -8,7 +8,11 @@ use Storable qw(dclone);
 our $VERSION = '0.001';
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, @pairs) = @_;
+    if (@pairs % 2) {
+        croak $class->new(code => 'CW_E_ARGUMENT', message => 'Options must be name/value pairs');
+    }
+    my %args = @pairs;
     return bless {
         code    => $args{code}    // 'CW_E_INTERNAL',
         message => $args{message} // 'Unspecified error',

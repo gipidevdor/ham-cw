@@ -19,6 +19,8 @@ cpanm --installdeps --with-develop .
 perlcritic lib Makefile.PL
 prove -lr xt
 make disttest
+make dist
+perl maint/check-dist.pl Ham-CW-0.001.tar.gz
 ```
 
 The author checks require `META.yml` from `make distmeta` or `make dist`.

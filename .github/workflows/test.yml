@@ -65,3 +65,5 @@ jobs:
         run: |
           make distcheck
           make disttest
+          make dist
+          perl maint/check-dist.pl Ham-CW-0.001.tar.gz
