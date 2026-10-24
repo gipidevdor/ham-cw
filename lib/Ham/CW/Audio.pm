@@ -2,7 +2,6 @@ package Ham::CW::Audio;
 use 5.020;
 use strict;
 use warnings;
-use Storable ();
 use Ham::CW::_Internal::WavWriter;
 use Ham::CW::_Internal::IO       qw(read_exact write_bytes with_file);
 use Scalar::Util                 qw(openhandle);
@@ -134,7 +133,12 @@ sub read_blocks {
             my %metadata =
                 map { ($_ => $reader->{$_}) } qw(sample_rate bits channels sample_count warnings);
             while (my $block = $reader->{next}->()) {
-                $callback->($block, Storable::dclone(\%metadata));
+                $callback->(
+                    $block,
+                    {
+                        %metadata, warnings => [map { +{%{$_}} } @{$metadata{warnings}}]
+                    }
+                );
             }
             return \%metadata;
         }
@@ -324,6 +328,14 @@ C<write(handle, samples, sample_rate =E<gt> ..., bits =E<gt> ...)>
 is the collecting convenience method. Handles remain owned by the caller;
 check close errors when writing files. Output streams need not seek because
 the sample count is known before writing. Limits include header and padding.
+
+=head2 Replacement file semantics
+
+Explicit C<overwrite =E<gt> 1> preserves an existing regular destination's
+permission bits. Symbolic-link destinations, including dangling links, are
+rejected with C<CW_E_IO>. A new path follows the process umask. Replacement
+uses a new file identity; ownership, ACLs and other hard links are not
+transferred. See F<docs/architecture.md> for the shared file contract.
 
 =head1 LICENSE
 

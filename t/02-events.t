@@ -58,8 +58,7 @@ for my $bad (
     isa_ok($@, 'Ham::CW::Error', 'invalid events');
 }
 eval { to_samples({unit => 'us', segments => [{state => 'on', duration => 1}]}, 1000) };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
-    'CW_E_TIMING', 'insufficient resolution rejected');
+is((ref($@) ? $@->code : "$@"), 'CW_E_TIMING', 'insufficient resolution rejected');
 my $auto = Ham::CW::Decoder->new;
 $auto->feed(Ham::CW::Encoder->new(wpm => 17)->events('CQ TEST'));
 is($auto->finish->text, 'CQ TEST', 'estimate timing from mixed marks');

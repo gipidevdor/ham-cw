@@ -40,7 +40,7 @@ jobs:
           perl -Ilib examples/receive.pl example.wav
           perl -Ilib examples/midi.pl example.mid CQ DE TESTCALL
           perl -Ilib examples/workflows.pl
-  fast:
+  pdl:
     name: ${{ matrix.check }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -60,9 +60,9 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
           distribution: ${{ startsWith(matrix.os, 'windows-') && 'strawberry' || 'default' }}
-      - name: Install PDL with build diagnostics
-        run: cpanm --verbose --notest PDL@${{ matrix.pdl }}
-      - name: Verify FAST backend and compatibility
+          install-modules: PDL@${{ matrix.pdl }}
+          install-modules-args: --notest
+      - name: Verify PDL backend and compatibility
         env:
           HARNESS_PERL_SWITCHES: -Mwarnings=FATAL,all
         run: |
@@ -71,7 +71,7 @@ jobs:
           prove -lr t
       - name: Compare synthesis, streaming reception and PCM
         run: perl maint/benchmark-platforms.pl --seconds 1 --json benchmark.json
-      - name: Save benchmark evidence
+      - name: Save benchmark results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: benchmark-${{ matrix.os }}-perl-${{ matrix.perl }}-pdl-${{ matrix.pdl }}
@@ -85,10 +85,12 @@ jobs:
       - uses: shogo82148/actions-setup-perl@84c44b5a14f12b311f1bf3d2a70c8807f30b7ab2 # v1
         with:
           perl-version: '5.40'
+          install-modules: |
+            PDL@2.106
+            Perl::Tidy@20260826
+          install-modules-args: --notest
       - name: Install author tools
         run: |
-          cpanm --notest 'Perl::Tidy@20260826'
-          cpanm --notest PDL
           cpanm --notest --installdeps --with-develop .
       - name: Build and check metadata, POD and style
         run: |

@@ -127,6 +127,14 @@ output. Set C<overwrite =E<gt> 1> to explicitly replace an existing file via
 a temporary sibling file; failed generation preserves the old contents.
 For ordinary text, use L<Ham::CW/write_midi> instead.
 
+=head2 Replacement file semantics
+
+Explicit C<overwrite =E<gt> 1> preserves an existing regular destination's
+permission bits. Symbolic-link destinations, including dangling links, are
+rejected with C<CW_E_IO>. A new path follows the process umask. Replacement
+uses a new file identity; ownership, ACLs and other hard links are not
+transferred. See F<docs/architecture.md> for the shared file contract.
+
 =head1 LICENSE
 
 Artistic License 2.0. See F<LICENSE>.

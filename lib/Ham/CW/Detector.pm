@@ -5,6 +5,7 @@ use warnings;
 use Ham::CW::_Internal::Validate qw(fail number integer options samples named_arguments);
 use Ham::CW::Decoder;
 use Ham::CW::Result;
+use Ham::CW::_Internal::Result;
 use Ham::CW::_Internal::Backend;
 our $VERSION = '0.001';
 my $PI = 4 * atan2(1, 1);
@@ -221,7 +222,8 @@ sub _analyze {
     my @frames = @{$self->{frames}};
     my $empty  = sub {
         my ($code, $message, $diagnostics) = @_;
-        return Ham::CW::Result->new(
+        return Ham::CW::_Internal::Result->from_owned(
+            'Ham::CW::Result',
             complete    => $complete,
             events      => {sample_rate => $self->{sample_rate}, segments => []},
             warnings    => [{code => $code, message => $message}],
@@ -269,7 +271,7 @@ sub _analyze {
         analyzed_samples       => $self->{total_samples},
         frequency_grid_step_hz => defined($self->{frequency}) ? 0 : ($self->{frequency_step} // 50)
     };
-    return Ham::CW::Result->new(%{$h});
+    return Ham::CW::_Internal::Result->from_owned('Ham::CW::Result', %{$h});
 }
 
 sub result {

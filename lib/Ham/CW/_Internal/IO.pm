@@ -40,6 +40,18 @@ sub _file_error {
     );
 }
 
+sub _replacement_mode {
+    my ($path) = @_;
+    my @info = lstat $path;
+    if (!@info) {
+        _file_error($path, 'inspect', "$!") unless $!{ENOENT};
+        return oct('0666') & ~umask;
+    }
+    _file_error($path, 'replace', 'symbolic link destinations are not supported') if -l _;
+    _file_error($path, 'replace', 'destination must be a regular file') unless -f _;
+    return $info[2] & oct('07777');
+}
+
 sub with_file {
     my ($path, $mode, $action, $overwrite) = @_;
     fail('CW_E_ARGUMENT', 'File path must be a nonempty string without NUL characters')
@@ -48,6 +60,7 @@ sub with_file {
     my $flags   = $writing ? O_WRONLY | O_CREAT | O_EXCL : O_RDONLY;
     my ($handle, $temporary);
     if ($writing && $overwrite) {
+        _replacement_mode($path);
         my $opened = eval {
             ($handle, $temporary) = tempfile('.ham-cw-XXXXXX', DIR => dirname($path), UNLINK => 0);
             1;
@@ -61,6 +74,11 @@ sub with_file {
     my $ok = eval {
         binmode $handle, ':raw' or _file_error($path, 'set binary mode on', "$!");
         $value = $action->($handle);
+        if (defined $temporary) {
+            my $permissions = _replacement_mode($path);
+            chmod($permissions, $temporary) == 1
+                or _file_error($path, 'set permissions on', "$!");
+        }
         1;
     };
     my $error       = $@;

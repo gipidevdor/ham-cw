@@ -3,10 +3,10 @@ use 5.020;
 use strict;
 use warnings;
 use Storable                     qw(dclone);
-use Hash::Util                   qw(lock_hash);
 use Ham::CW::_Internal::Validate qw(fail number integer options named_arguments);
 use Ham::CW::_Internal::Data     qw(plain_data);
 use Ham::CW::Events              qw(validate_events);
+use Ham::CW::_Internal::Result;
 our $VERSION = '0.001';
 
 sub new {
@@ -36,22 +36,9 @@ sub new {
             || !defined($warning->{message})
             || ref($warning->{message});
     }
-    my $self = bless dclone(
-        {
-            text        => '',
-            morse       => '',
-            events      => {unit => 'us', segments => []},
-            frequency   => undef,
-            wpm         => undef,
-            warnings    => [],
-            complete    => 0,
-            diagnostics => {},
-            %args
-        }
-    ), $class;
-    lock_hash(%{$self});
-    return $self;
+    return Ham::CW::_Internal::Result->from_owned($class, %{dclone(\%args)});
 }
+
 sub has_text     { my ($self) = @_; return length($self->{text}) ? 1 : 0 }
 sub has_warnings { my ($self) = @_; return @{$self->{warnings}}  ? 1 : 0 }
 sub text         { my ($self) = @_; return $self->{text} }

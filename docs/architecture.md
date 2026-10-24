@@ -11,7 +11,13 @@ representation and writes SMF type 0.
 The facade offers `write_wav(text, path)`, `write_midi(text, path)` and
 `read_wav(path)`. They delegate to the existing handle methods, owning only
 the handles they open. New output files use exclusive creation, so existing
-files and symlinks are not overwritten. Callback failure closes the handle,
+files and symlinks are not overwritten. Explicit `overwrite => 1` generates
+into a temporary sibling file, preserves an existing regular file's permission
+bits, and replaces the directory entry after generation and close succeed.
+Symbolic-link destinations are rejected, including dangling links. A new path
+uses the ordinary 0666 permissions filtered through the process umask.
+Atomic replacement creates a new file identity: ownership, ACLs and other
+hard links are not transferred. Callback failure closes the handle,
 attempts to unlink a newly created output and rethrows the original error;
 close failures become structured I/O errors. Caller-managed handle methods
 retain their original ownership contract. Constructor generation timing and
@@ -61,7 +67,11 @@ gap has closed. Finish confirms the final mark group. Auto-timing and detector
 snapshots remain provisional: more evidence can revise timing, thresholds and
 text. Unchanged provisional snapshots and finalized results are cached. Successful
 feeds invalidate provisional caches; rejected feeds preserve them. Reset clears
-all cached results. Snapshot fields are copied. They are not a stream of new characters to
+all cached results. Each new snapshot still covers the retained history, so requesting one after
+every small feed has a cumulative cost. Unchanged snapshots are cached.
+Internal snapshots reuse validated, immutable segment records and copy the
+segment list; public Result construction still validates and deep-copies
+caller data. Reference-valued accessors return independent copies. They are not a stream of new characters to
 append repeatedly.
 
 ## Reception assumptions
@@ -69,7 +79,10 @@ append repeatedly.
 Each 5 ms frame is DC-removed and Hann-windowed. A Goertzel bank measures
 candidate frequencies. Analysis uses accumulated candidate energy, spectral
 purity, envelope contrast, adaptive peak/noise tracking and hysteresis; short interior impulses are merged.
-The symbolic decoder fits 1:3 mark durations or uses the supplied WPM.
+The symbolic decoder samples the complete range of distinct mark widths,
+with at most 128 timing candidates, or uses the supplied WPM. When both mark
+classes are present, their separation estimates dot length while allowing a
+bounded common width offset from envelope shaping and frame quantization.
 Warnings record ambiguous timing and rejected groups. Unknown or implausible
 mark groups do not become guessed words.
 

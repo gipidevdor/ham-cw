@@ -10,15 +10,16 @@ Revision history for Ham-CW
     - Robust envelope seeding for sparse messages and isolated 5 ms impulses.
     - Catchable broken-pipe errors, direct sampled-event MIDI tick rounding,
       canonical decoder segment limits and validated result/error payloads.
-    - Complete-source coverage gates, archive completeness checks and
-      phase-integrated independent drift fixtures.
     - Optional PDL acceleration, selected explicitly or through auto fallback;
       the default Perl backend uses only core dependencies.
     - Explicit overwrite for WAV and MIDI file output; failed replacements
       preserve existing files.
     - Independent signal fixtures, reception matrix, backend comparisons and
       regression tests. Benchmark tooling reports local workload measurements.
-    - Consolidate the quality-review and FAST branches, retaining both workload
-      and cross-platform PCM benchmark tools.
+    - Correct automatic speed estimates for long recordings and shaped marks;
+      repeated short marks no longer exclude dash evidence.
+    - Preserve regular-file permissions during replacement and reject symlink
+      destinations. New replacement paths respect the process umask.
+    - Avoid repeated validation and deep copies of internal decoding snapshots.
     - Verify the minimum PDL version and macOS Intel; use Strawberry Perl
       for Windows native builds and retain downloadable timing evidence.

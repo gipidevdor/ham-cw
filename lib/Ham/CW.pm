@@ -410,6 +410,14 @@ batches. Performance depends on chunk sizes and frequency candidate count;
 run F<maint/benchmark.pl> on the target machine. PDL requires a compatible
 native installation on each platform.
 
+=head2 Replacement file semantics
+
+Explicit C<overwrite =E<gt> 1> preserves an existing regular destination's
+permission bits. Symbolic-link destinations, including dangling links, are
+rejected with C<CW_E_IO>. A new path follows the process umask. Replacement
+uses a new file identity; ownership, ACLs and other hard links are not
+transferred. See F<docs/architecture.md> for the shared file contract.
+
 =head1 ERRORS
 
 Fatal failures throw L<Ham::CW::Error>. Stable public codes:

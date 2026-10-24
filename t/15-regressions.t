@@ -13,8 +13,7 @@ my @warnings;
     local $SIG{__WARN__} = sub { push @warnings, @_ };
     open my $fh, '>', \my $bytes or die $!;
     eval { Ham::CW::Audio->new->writer($fh, bits => 'abc', sample_count => 0) };
-    is(ref($@) ? (ref($@) ? $@->code : "$@") : "$@",
-        'CW_E_ARGUMENT', 'invalid bits structured error');
+    is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'invalid bits structured error');
 }
 is_deeply(\@warnings,                   [],                             'no raw numeric warning');
 is_deeply(Ham::CW::Result->new->events, {unit => 'us', segments => []}, 'canonical empty events');
@@ -23,11 +22,10 @@ for my $token (qw(BT KN BK KA VE)) {
 }
 for my $space ("\x{a0}", "\x{2003}") {
     eval { Ham::CW->new->encode("A${space}B") };
-    is(ref($@) ? (ref($@) ? $@->code : "$@") : "$@",
-        'CW_E_SYMBOL', 'Unicode separators follow symbol policy');
+    is(ref($@) ? $@->code : "$@", 'CW_E_SYMBOL', 'Unicode separators follow symbol policy');
 }
 eval { Ham::CW::Detector->new(wpm => 61) };
-is(ref($@) ? (ref($@) ? $@->code : "$@") : "$@", 'CW_E_ARGUMENT', 'receive speed limit explicit');
+is(ref($@) ? $@->code : "$@", 'CW_E_ARGUMENT', 'receive speed limit explicit');
 for my $level (0.01, 0.02, 0.08) {
     my $samples = noise(8000 * 62, $level);
     my $signal  = reference_sos();

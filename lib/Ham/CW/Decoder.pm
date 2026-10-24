@@ -7,6 +7,8 @@ use Ham::CW::Events              qw(validate_events to_timed);
 use Ham::CW::_Internal::Symbols  qw(reverse_alphabet prosigns);
 use Ham::CW::_Internal::Validate qw(fail number integer options named_arguments);
 use Ham::CW::Result;
+use Ham::CW::_Internal::Result;
+use Ham::CW::_Internal::Data qw(plain_data);
 our $VERSION = '0.001';
 
 sub new {
@@ -67,6 +69,8 @@ sub feed {
     fail('CW_E_STATE', 'Decoder is finalized; reset before feeding')
         if $self->{state} eq 'FINISHED';
     my $kind = validate_events($events);
+    fail('CW_E_ARGUMENT', 'Event segments must contain plain, acyclic data, at most 64 levels deep')
+        unless plain_data($events->{segments});
     my $rate = $events->{sample_rate};
     fail('CW_E_ARGUMENT', 'Event units or sample rate changed')
         if defined($self->{kind})
@@ -98,23 +102,51 @@ sub feed {
     return $self;
 }
 
+sub _fit_dot {
+    my ($counts, $widths, $candidate) = @_;
+    my (%total, %count);
+    for my $duration (@{$widths}) {
+        my $units = $duration < 2 * $candidate ? 1 : 3;
+        $total{$units} += $duration * $counts->{$duration};
+        $count{$units} += $counts->{$duration};
+    }
+    my ($dot, $offset) = ($candidate, 0);
+    if ($count{1} && $count{3}) {
+        my $short  = $total{1} / $count{1};
+        my $long   = $total{3} / $count{3};
+        my $fitted = ($long - $short) / 2;
+
+        # Envelope shaping and frame rounding can shorten both mark classes.
+        # Their separation estimates a dot without that common width offset.
+        if ($fitted >= 20000 && $fitted <= 240000 && abs($short - $fitted) <= 0.25 * $fitted) {
+            ($dot, $offset) = ($fitted, $short - $fitted);
+        }
+    }
+    my $loss = 0;
+    for my $duration (@{$widths}) {
+        my $ratio    = ($duration - $offset) / $dot;
+        my $distance = abs($ratio - 1) < abs($ratio - 3) ? abs($ratio - 1) : abs($ratio - 3);
+        $loss += $counts->{$duration} * $distance * $distance;
+    }
+    return ($dot, $loss);
+}
+
 sub _estimate_dot {
     my ($segments) = @_;
-    my @on = sort { $a <=> $b } map { $_->{duration} }
-        grep { $_->{state} eq 'on' } @{$segments};
+    my %counts;
+    ++$counts{$_->{duration}} for grep { $_->{state} eq 'on' } @{$segments};
+    my @on = sort { $a <=> $b } keys %counts;
     return (undef, []) unless @on;
+
+    # Sample the entire range of distinct widths, with a bounded candidate bank.
+    # Repeated short marks must not crowd all dash evidence out of the fit.
+    my @values = @on <= 64 ? @on : @on[map { int($_ * $#on / 63) } 0 .. 63];
     my ($best, $cost);
-    for my $value (@on[0 .. ($#on < 31 ? $#on : 31)]) {
+    for my $value (@values) {
         for my $candidate ($value, $value / 3) {
             next if $candidate < 20000 || $candidate > 240000;
-            my $loss = 0;
-            for my $duration (@on) {
-                my $ratio = $duration / $candidate;
-                my $distance =
-                    abs($ratio - 1) < abs($ratio - 3) ? abs($ratio - 1) : abs($ratio - 3);
-                $loss += $distance * $distance;
-            }
-            if (!defined($cost) || $loss < $cost) { ($best, $cost) = ($candidate, $loss) }
+            my ($dot, $loss) = _fit_dot(\%counts, \@on, $candidate);
+            if (!defined($cost) || $loss < $cost) { ($best, $cost) = ($dot, $loss) }
         }
     }
     my @warnings;
@@ -176,13 +208,14 @@ sub _translate {
 sub _snapshot {
     my ($self, $complete) = @_;
     my $events = {
-        segments => $self->{segments},
+        segments => [@{$self->{segments}}],
         ($self->{kind} // 'duration') eq 'samples' ? (sample_rate => $self->{rate}) : (unit => 'us')
     };
     my $timed = ($self->{kind} // '') eq 'samples' ? to_timed($events) : $events;
     my ($dot, $warnings) =
         defined($self->{wpm}) ? (1_200_000 / $self->{wpm}, []) : _estimate_dot($timed->{segments});
-    return Ham::CW::Result->new(
+    return Ham::CW::_Internal::Result->from_owned(
+        'Ham::CW::Result',
         complete => $complete,
         events   => $events,
         warnings => [{code => 'CW_W_NO_TIMING', message => 'No usable timing evidence'}]
@@ -226,7 +259,8 @@ sub _snapshot {
     }
     my $groups = _groups($timed->{segments}, $dot, $spacing, $complete, $warnings);
     my $text   = $self->_translate($groups, $warnings);
-    return Ham::CW::Result->new(
+    return Ham::CW::_Internal::Result->from_owned(
+        'Ham::CW::Result',
         text        => $text,
         morse       => join(' ', @{$groups}),
         events      => $events,
@@ -292,7 +326,9 @@ idempotent. Repeated C<result> calls without a successful feed reuse the
 cached snapshot; reference-valued accessors still return copies. C<reset> discards history. C<state> returns READY, ACTIVE or FINISHED.
 Feeding after finalization raises C<CW_E_STATE>.
 
-Without WPM, timing is fitted to 1:3 mark lengths within 5..60 WPM. A stream
+Without WPM, timing is fitted within 5..60 WPM using candidates across the
+complete range of distinct mark widths. When dots and dashes are both present,
+their width separation removes a bounded common envelope/quantization offset. A stream
 containing only one mark length is ambiguous and produces a warning. Specify
 WPM for short messages. Farnsworth requires C<effective_wpm> for dependable
 word boundaries. Repeated internal gaps longer than eight dots warn about

@@ -7,8 +7,8 @@
 3. Run the ordinary suite, author checks, formatter check and coverage. Inspect
    failures and the untested paths. Targets: 95% statement and 90% branch coverage.
 4. Require every configured check on the exact candidate commit: the six
-   ordinary Perl jobs, the three PDL platform jobs and the author/distribution
-   job. Keep these ten job names in main's required status checks. A configured
+   ordinary Perl jobs, the five PDL configurations and the author/distribution
+   job. Keep these twelve job names in main's required status checks. A configured
    matrix is not a test result.
 5. Run `make dist`, `make disttest` and `make distcheck`. Inspect META.json,
    META.yml, MANIFEST and the archive contents. Check the archive

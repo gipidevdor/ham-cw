@@ -66,8 +66,7 @@ eval {
         frequency_step => 10
     );
 };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"),
-    'CW_E_RESOURCE', 'frequency candidate resource limit');
+is((ref($@) ? $@->code : "$@"), 'CW_E_RESOURCE', 'frequency candidate resource limit');
 my $snapshot = Ham::CW::Result->new(warnings => [{code => 'CW_W_TEST', message => 'sample'}]);
 my $warnings = $snapshot->warnings;
 $warnings->[0]{code} = 'BAD';

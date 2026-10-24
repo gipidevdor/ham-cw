@@ -38,7 +38,7 @@ for my $segment (@{$events->{segments}}) {
 is($decoder->finish->text, 'CQ TEST', 'split event stream');
 is($decoder->finish->text, 'CQ TEST', 'idempotent event finish');
 eval { $decoder->feed($events) };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_STATE', 'post-finish decoder feed');
+is((ref($@) ? $@->code : "$@"), 'CW_E_STATE', 'post-finish decoder feed');
 $decoder->reset;
 $decoder->feed(to_samples($events, 11025));
 is($decoder->finish->text, 'CQ TEST', 'sampled event decoding');
@@ -46,6 +46,6 @@ my $d = Ham::CW::Decoder->new(wpm => 20);
 $d->feed({unit => 'us', segments => [{state => 'on', duration => 60000}]});
 my $before = $d->result->as_hash;
 eval { $d->feed({sample_rate => 16000, segments => []}) };
-is((ref($@) ? (ref($@) ? $@->code : "$@") : "$@"), 'CW_E_ARGUMENT', 'unit change rejected');
+is((ref($@) ? $@->code : "$@"), 'CW_E_ARGUMENT', 'unit change rejected');
 is_deeply($d->result->as_hash, $before, 'rejected feed preserves snapshot');
 done_testing;
