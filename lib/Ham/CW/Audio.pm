@@ -457,14 +457,6 @@ by this class. A failed direct write can leave partial output.
 L<Ham::CW> for text-to-WAV and WAV decoding, L<Ham::CW::Generator> for sample
 generation, L<Ham::CW::Result/WARNINGS> for the trailing-byte warning.
 
-=head2 Replacement file semantics
-
-Explicit C<overwrite =E<gt> 1> preserves an existing regular destination's
-permission bits. Symbolic-link destinations, including dangling links, are
-rejected with C<CW_E_IO>. A new path follows the process umask. Replacement
-uses a new file identity; ownership, ACLs and other hard links are not
-transferred. See F<docs/architecture.md> for the shared file contract.
-
 =head1 LICENSE
 
 Artistic License 2.0. See F<LICENSE>.
