@@ -1,10 +1,11 @@
 use strict;
 use warnings;
 use Test::More;
-use File::Temp qw(tempdir);
+use File::Temp qw(tempdir tempfile);
 use File::Spec;
 use Cwd qw(abs_path);
 use JSON::PP;
+use IPC::Open3 qw(open3);
 
 my $root = abs_path('.');
 
@@ -19,23 +20,34 @@ sub read_text {
 sub execute_example {
     my ($name, @arguments) = @_;
     my $temporary = tempdir(CLEANUP => 1);
-    my $log       = File::Spec->catfile($temporary, 'example.log');
-    my $driver    = File::Spec->catfile($temporary, 'run.pl');
-    open my $out, '>', $driver or die $!;
-    print {$out} q{BEGIN {
-        open STDOUT, '>', $ENV{HAM_CW_EXAMPLE_LOG} or die $!;
-        open STDERR, '>&', \*STDOUT or die $!;
-    }
-    exec $^X, '-Mwarnings=FATAL,all', '-I' . $ENV{HAM_CW_EXAMPLE_LIB}, @ARGV;
-    die "Cannot start example: $!";
-    } or die $!;
-    close $out or die $!;
-    local $ENV{HAM_CW_EXAMPLE_LOG} = $log;
-    local $ENV{HAM_CW_EXAMPLE_LIB} = File::Spec->catdir($root, 'lib');
+    my ($in)      = tempfile(TMPDIR => 1, UNLINK => 1);
+    my ($out)     = tempfile(TMPDIR => 1, UNLINK => 1);
+    my ($err)     = tempfile(TMPDIR => 1, UNLINK => 1);
+    binmode $_, ':raw' or die $! for $in, $out, $err;
+    no warnings 'once';
+    local *EXAMPLE_PROCESS_IN  = $in;
+    local *EXAMPLE_PROCESS_OUT = $out;
+    local *EXAMPLE_PROCESS_ERR = $err;
+    my ($read, $write, $error) = (
+        '<&main::EXAMPLE_PROCESS_IN', '>&main::EXAMPLE_PROCESS_OUT', '>&main::EXAMPLE_PROCESS_ERR'
+    );
     chdir $temporary or die $!;
-    my $status = system $^X, $driver, File::Spec->catfile($root, 'examples', $name), @arguments;
+
+    # Wait for the directly spawned process before reading or removing its
+    # output files; an extra exec wrapper races handle cleanup on Windows.
+    my $pid = open3(
+        $read, $write, $error, $^X, '-Mwarnings=FATAL,all',
+        '-I' . File::Spec->catdir($root, 'lib'),
+        File::Spec->catfile($root, 'examples', $name), @arguments
+    );
+    waitpid($pid, 0) == $pid or die $!;
+    my $status = $?;
     chdir $root or die $!;
-    return ($status, read_text($log));
+    seek $_, 0, 0 or die $! for $out, $err;
+    my $output     = do { local $/; <$out> };
+    my $diagnostic = do { local $/; <$err> };
+    close $_ or die $! for $out, $err;
+    return ($status, ($output // '') . ($diagnostic // ''));
 }
 
 my $routes   = decode_json(read_text('examples/routes.json'));
@@ -52,6 +64,12 @@ for my $route (@{$routes}) {
         my @arguments = $route->{backend} ? ($backend) : ();
         my ($status, $output) = execute_example($route->{file}, @arguments);
         is($status, 0, "$route->{file} / $backend executes independently") or diag($output);
+        (my $name = $route->{file}) =~ s/\.pl\z//x;
+        my $completion =
+            $name eq 'workflows'
+            ? qr/All[ ]workflows[ ]completed/x
+            : qr/Example[ ]completed:[ ]\Q$name\E/x;
+        like($output, $completion, "$route->{file} / $backend actually completes");
     }
 }
 my %manual  = map { $_ => 1 } qw(send.pl receive.pl midi.pl run-all.pl);
@@ -92,4 +110,5 @@ like($output, qr/reception-channels/, 'runner list includes the multichannel pat
 is($status, 0, 'runner executes a selected example from an empty directory') or diag($output);
 ($status, $output) = execute_example('run-all.pl', '--only', 'unknown');
 isnt($status, 0, 'runner rejects a misspelled scenario');
+like($output, qr/No matching example/, 'runner rejection is the expected scenario error');
 done_testing;
