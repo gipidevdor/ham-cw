@@ -40,6 +40,8 @@ jobs:
           perl -Ilib examples/receive.pl example.wav
           perl -Ilib examples/midi.pl example.mid CQ DE TESTCALL
           perl -Ilib examples/workflows.pl
+      - name: Installed command and launcher
+        run: perl maint/check-cli-install.pl "cli-install tools" --build
   pdl:
     name: ${{ matrix.check }}
     runs-on: ${{ matrix.os }}

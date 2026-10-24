@@ -38,7 +38,7 @@ separate maintainer action; no repository workflow uploads to CPAN.
    ```
 
    The installation check extracts/builds/tests in a temporary directory,
-   installs to a temporary prefix and runs the installed command-line examples
+   installs to a temporary prefix and runs the installed CLI, command-line examples
    and workflow tour. It does not publish anything. Rerun `make distmeta`
    before author metadata checks if distribution commands removed staging data.
 7. Update [verification](verification.md) with the source revision, commands,
@@ -51,3 +51,6 @@ separate maintainer action; no repository workflow uploads to CPAN.
 9. After acceptance, tag the tested commit and publish the distribution and
    checksum through the project's release process. Review CPAN Testers reports;
    fix attributable failures with regressions and a subsequent release.
+
+The ordinary platform matrix also runs `maint/check-cli-install.pl` to verify
+the installed executable and Windows launcher, including paths with spaces.

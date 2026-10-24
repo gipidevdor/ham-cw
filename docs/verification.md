@@ -17,7 +17,7 @@ to this source revision; historical timings are kept separately below.
 | Production branch coverage | 97.00% (518/534); PASS |
 | Distribution build/test, archive checks and isolated installation | PASS |
 
-Coverage requires all 18 production modules, including the PDL implementation
+Coverage checks require every production module, including the PDL implementation
 and the internal snapshot builder. Missing or duplicate production paths fail
 the gate before percentages are considered. No path was exempted to meet the
 95% statement and 90% branch thresholds.
@@ -142,3 +142,13 @@ Default reception retains at most 24000 frames, approximately 120 seconds
 including silence. Longer recordings require a larger explicit `max_frames`
 and more retained memory. The time needed to transmit or receive the audio
 in real time remains its full audio duration.
+
+## CLI integration
+
+The installed `ham-cw` command shares the library's encoding, file and
+reception paths. The integrated tests include subprocess UTF-8/CRLF input,
+text and binary outputs, option validation, exit codes, bounded WAV stdin,
+strict warnings, protected output replacement and closed pipes. The installer
+checks all six commands and the Windows launcher in a path containing spaces.
+Earlier coverage numbers above describe the pre-CLI correction snapshot;
+coverage for the combined candidate is established by its complete CI gate.

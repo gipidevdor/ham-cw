@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use File::Find qw(find);
 use Perl::Tidy;
-my @files = ('Makefile.PL');
+my @files = ('Makefile.PL', 'bin/ham-cw');
 find(sub { push @files, $File::Find::name if /\.(?:pm|pl|t)\z/ }, qw(lib t xt examples maint));
 for my $file (sort @files) {
     open my $input, '<', $file or die $!;

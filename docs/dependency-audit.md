@@ -47,9 +47,12 @@ The additional exporter uses `Ham::CW::MIDI` within the same checked prefix.
 ## Runtime footprint
 
 Only core modules are required: Carp, Exporter, Hash::Util, Scalar::Util,
-Storable, Fcntl, File::Basename and File::Temp, plus strict/warnings and Perl
-itself. File::Temp provides temporary output for safe file replacement. Test::More and
-JSON::PP are test requirements. ExtUtils::MakeMaker builds the distribution.
+Storable, Fcntl, File::Basename, File::Temp, Encode, Getopt::Long, IO::Handle
+and JSON::PP, plus strict/warnings and Perl itself. The command-line frontend
+uses core Getopt::Long, Encode and JSON::PP rather than a CLI framework.
+File::Temp provides safe replacement output and bounded seekable WAV stdin.
+Test::More is a test requirement. ExtUtils::MakeMaker installs the executable,
+its manual and the Windows batch launcher alongside the library.
 Perl::Critic, Perl::Tidy, Devel::Cover and metadata/POD checkers are author-only.
 The default backend requires no Text::Morse, MIDI, Audio::Wav, PDL, compiler
 or external player. The optional PDL backend requires PDL 2.081 or later,
