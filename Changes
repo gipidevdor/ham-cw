@@ -1,6 +1,8 @@
 Revision history for Ham-CW
 
 0.001  2026-10-24
+    - Name detector power heuristics and document their roles, units and
+      tuning tradeoffs without changing thresholds.
     - Group command controls by task, show units and defaults, guide recovery
       from usage errors and make example discovery easier.
     - Refresh measured performance and verification records, retain provenance

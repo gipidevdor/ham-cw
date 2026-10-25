@@ -142,6 +142,51 @@ Fresh analysis costs O(KN log N), with per-channel O(N) working memory;
 unchanged snapshots are cached. Throttle previews, for example once a second.
 Unlimited-duration reception is outside this version's contract.
 
+## Detector power heuristics
+
+The private lexical settings near the top of `lib/Ham/CW/Detector.pm` name the
+acquisition and envelope-tracker settings. These module-private bindings are
+initialized once and are not per-detector options. They operate on **power**,
+not waveform amplitude. They are engineering heuristics, not values derived from
+ITU Morse timing or a calibrated statistical noise model. The repository does
+not provide a parameter-sweep study establishing that these values are optimal.
+The rationale below explains their role and tradeoffs, not a mathematical
+calibration. Naming them preserves the existing values and arithmetic.
+
+| Named setting | Value | Role and tuning tradeoff |
+| --- | ---: | --- |
+| `GUARD_NOISE_MARGIN` | 1.3 | Multiplies the lower-median guard power before acquisition. Adds a conservative margin (about 1.14 dB) to that estimate; increasing it rejects more candidates, including weak genuine tones. It is not a proven bias correction for the guard median. |
+| `ENVELOPE_NOISE_GATE_RATIO` | 12 | Keeps the switching threshold at least twelve times the **initial** channel noise floor, preventing the decaying tracker from admitting low-level activity. Increasing it can lose faint marks. This is a linear power ratio, about 10.8 dB, not the separate 12 dB `min_snr_db` default. |
+| `TRACKED_PEAK_FLOOR_FRACTION` | 0.05 | Seeds and bounds the tracked peak at `floor + 0.05 * (seeded_peak - floor)`. Prevents peak decay from collapsing the relative threshold toward the noise floor; increasing it makes faded marks harder to retain. It is not a 5% amplitude cutoff or the final switching threshold. |
+| `KEY_ON_FRACTION` / `KEY_HOLD_FRACTION` | 0.22 / 0.12 | Enter ON above 22% of the tracked peak-to-noise range, but retain ON down to 12%, subject to the initial-floor gate. This hysteresis reduces chatter and split marks. A higher entry fraction can miss weak attacks; a higher hold fraction can shorten tails or split fading marks. |
+| `TRACKED_PEAK_CLAMP_RATIO` | 2 | Limits each observation used by the peak tracker to twice the seeded peak. The same boundary identifies an unusually strong run for burst trimming. Raising it lets impulses pull the tracker farther above message power. |
+| `NOISE_UPDATE_THRESHOLD_FRACTION` | 0.25 | Allows noise updates only while OFF and below one quarter of the switching threshold. Keeps fading attacks and filter tails out of the noise estimate. Raising it admits more signal residue; lowering it leaves fewer background observations. |
+| `NOISE_UPDATE_RATE` | 0.02 | Moves the noise estimate 2% toward each eligible OFF-hop observation. At nominal 5 ms hops, about 50 eligible observations give one e-fold of adaptation (about 0.25 seconds only if every hop qualifies). Faster adaptation also follows contamination faster. |
+| `BURST_TRIM_FRACTION` | 0.22 | In an ON run whose maximum exceeds the peak clamp, suppresses hops below 22% of that run's maximum **only when they remain above the clamp**. This narrows a smeared strong burst while leaving message-level hops eligible. Raising it trims more of the burst and can remove genuine strong activity. |
+
+The two 22% settings have separate meanings: one enters the ordinary keyed
+state using a tracked peak and noise estimate; the other trims an exceptional
+burst using that run's own maximum. Their equal numeric value does not make
+them one parameter. Likewise, other 25% checks in purity/peak support are not
+the OFF-noise-update rule.
+
+For clarity, the switching rule is
+`max(initial_floor * ENVELOPE_NOISE_GATE_RATIO,
+tracked_noise + fraction * (tracked_peak - tracked_noise))`, where `fraction`
+is the hold or entry fraction according to the preceding state. This gate is
+separate from acquisition (`min_snr_db`) and subsequent sample-weighted mark
+admission (`mark_snr_db`); both public options convert dB to power ratios with
+`10 ** (dB / 10)`.
+
+When tuning, run `t/27-mark-snr.t` for local-noise boundaries, partial-hop
+weighting and weak/strong burst admission; `t/26-channel-reception.t` for
+channel separation, interference and chunk/backend equivalence; and
+`t/17-reception-matrix.t` for independent synthetic timing, fading and noise.
+Check the real clips with `perl maint/reception-corpus.pl` as well. These are
+regression evidence, not proof of optimal thresholds or general field accuracy.
+Record any changed values with the competing signal/noise cases and compare
+text, event boundaries and warnings across both backends and feed sizes.
+
 ## Optional PDL backend
 
 The internal backend resolver accepts `perl`, `pdl`, and `auto`. Only the PDL backend

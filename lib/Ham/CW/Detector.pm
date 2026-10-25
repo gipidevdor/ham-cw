@@ -11,6 +11,19 @@ use Ham::CW::_Internal::Biquad;
 our $VERSION = '0.001';
 my $PI = 4 * atan2(1, 1);
 
+# Internal power-domain heuristics, not calibrated receiver SNR. Keep the
+# two 22% decisions independent; rationale and tuning evidence are documented
+# under "Detector power heuristics" in docs/architecture.md.
+my $GUARD_NOISE_MARGIN              = 1.3;
+my $ENVELOPE_NOISE_GATE_RATIO       = 12;
+my $TRACKED_PEAK_FLOOR_FRACTION     = 0.05;
+my $KEY_ON_FRACTION                 = 0.22;
+my $KEY_HOLD_FRACTION               = 0.12;
+my $TRACKED_PEAK_CLAMP_RATIO        = 2;
+my $NOISE_UPDATE_THRESHOLD_FRACTION = 0.25;
+my $NOISE_UPDATE_RATE               = 0.02;
+my $BURST_TRIM_FRACTION             = 0.22;
+
 sub new {
     my ($class, @pairs) = @_;
     my %args = named_arguments(@pairs);
@@ -305,7 +318,7 @@ sub _acquire {
     my @gates;
     for my $i (0 .. $#{$self->{frequencies}}) {
         my @guard  = sort { $a <=> $b } @{$powers}[@{$self->{acquire_guards}[$i]}];
-        my $noise  = @guard ? $guard[int($#guard / 2)] * 1.3 : 0;
+        my $noise  = @guard ? $guard[int($#guard / 2)] * $GUARD_NOISE_MARGIN : 0;
         my $signal = $powers->[$self->{acquire_centres}[$i]];
         push @gates, $signal > 1e-12 && $signal >= $noise * $self->{snr_ratio} ? 1 : 0;
     }
@@ -431,19 +444,22 @@ sub _purity {
 
 sub _key_state {
     my ($tracker, $power) = @_;
-    my $limited = $power < 2 * $tracker->{ceiling} ? $power : 2 * $tracker->{ceiling};
+    my $limited =
+          $power < $TRACKED_PEAK_CLAMP_RATIO * $tracker->{ceiling}
+        ? $power
+        : $TRACKED_PEAK_CLAMP_RATIO * $tracker->{ceiling};
     my $decayed = $tracker->{peak} * $tracker->{decay};
     $tracker->{peak} = $limited > $decayed ? $limited : $decayed;
     $tracker->{peak} = $tracker->{minimum} if $tracker->{peak} < $tracker->{minimum};
-    my $fraction  = $tracker->{state} eq 'on' ? 0.12 : 0.22;
+    my $fraction  = $tracker->{state} eq 'on' ? $KEY_HOLD_FRACTION : $KEY_ON_FRACTION;
     my $threshold = $tracker->{noise} + ($tracker->{peak} - $tracker->{noise}) * $fraction;
     $threshold = $tracker->{gate} if $threshold < $tracker->{gate};
     $tracker->{state} = $power >= $threshold ? 'on' : 'off';
 
     # Fading attacks and filter tails just below the switching threshold are
     # not reliable background observations. Keep them out of the noise floor.
-    if ($tracker->{state} eq 'off' && $power < 0.25 * $threshold) {
-        $tracker->{noise} += 0.02 * ($power - $tracker->{noise});
+    if ($tracker->{state} eq 'off' && $power < $NOISE_UPDATE_THRESHOLD_FRACTION * $threshold) {
+        $tracker->{noise} += $NOISE_UPDATE_RATE * ($power - $tracker->{noise});
     }
     return $tracker->{state};
 }
@@ -451,11 +467,11 @@ sub _key_state {
 sub _segment {
     my ($self, $frames, $powers, $floor, $peak) = @_;
     my @segments;
-    my $minimum = $floor + 0.05 * ($peak - $floor);
+    my $minimum = $floor + $TRACKED_PEAK_FLOOR_FRACTION * ($peak - $floor);
     my $tracker = {
         state   => 'off',
         noise   => $floor,
-        gate    => $floor * 12,
+        gate    => $floor * $ENVELOPE_NOISE_GATE_RATIO,
         peak    => $minimum,
         minimum => $minimum,
         ceiling => $peak,
@@ -466,7 +482,7 @@ sub _segment {
         push @noises, $tracker->{noise};
         push @states, _key_state($tracker, $powers->[$i]);
     }
-    _trim_bursts(\@states, $powers, 2 * $peak);
+    _trim_bursts(\@states, $powers, $TRACKED_PEAK_CLAMP_RATIO * $peak);
     for my $i (0 .. $#{$frames}) {
         my $state = $states[$i];
         if (@segments && $segments[-1]{state} eq $state) {
@@ -518,7 +534,7 @@ sub _trim_bursts {
     # The tracker clamps anything above twice the seeded peak, so a burst far
     # stronger than the message keeps every smeared hop above the switching
     # threshold. Within such a run, hops below 22% of its top yet still above
-    # the clamp can only be the burst's own smear; hops at message level may
+    # the clamp are treated as burst smear; hops at message level may
     # be a genuine mark underneath the burst and stay keyed.
     my $i = 0;
     while ($i < @{$states}) {
@@ -529,7 +545,8 @@ sub _trim_bursts {
         $top = $powers->[$_] > $top ? $powers->[$_] : $top for $i .. $end;
         if ($top > $ceiling) {
             $states->[$_] = 'off'
-                for grep { $powers->[$_] < 0.22 * $top && $powers->[$_] > $ceiling } $i .. $end;
+                for grep { $powers->[$_] < $BURST_TRIM_FRACTION * $top && $powers->[$_] > $ceiling }
+                $i .. $end;
         }
         $i = $end + 1;
     }
