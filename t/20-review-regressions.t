@@ -58,6 +58,21 @@ for my $backend (@backends) {
     }
 }
 
+# A strong burst inside a weak dash must neither split nor shorten it.
+for my $backend (@backends) {
+    my $samples = reference_sos(amplitude => 0.05);
+    $samples->[8000 + $_] += 0.4 * sin(2 * 3.14159265358979 * 650 * (8000 + $_) / 8000)
+        for 0 .. 39;
+    my $result = Ham::CW->new->decode_samples(
+        $samples,
+        sample_rate => 8000,
+        frequency   => 650,
+        wpm         => 20,
+        backend     => $backend
+    );
+    is($result->text, 'SOS', "$backend burst inside a mark leaves the mark intact");
+}
+
 # Exercise every tenth-WPM value including equal fractional configured speeds.
 my @failed;
 for my $tenth (50 .. 600) {

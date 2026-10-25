@@ -113,9 +113,11 @@ can be recovered simultaneously; co-channel sources cannot be unmixed.
 
 Median smoothing, sustained-support peak caps, adaptive OFF noise and keyed
 peak tracking with one-second decay and hysteresis reduce impulsive errors.
-An ON run whose power exceeds twice the seeded peak is narrowed to the hops
-above 22% of its own top, so a burst smeared by the analysis window cannot
-pass as a mark. Carrier intervals and sub-tolerance short marks are excluded.
+In an ON run whose power exceeds twice the seeded peak, hops below 22% of
+its own top but still above that clamp are dropped, so a burst smeared by
+the analysis window cannot pass as a mark while a genuine mark underneath
+the burst stays keyed. Carrier intervals and sub-tolerance short marks are
+excluded.
 Valid multi-mark
 Morse groups anchor margin cleanup; adjacent valid short letters and one
 neighboring damaged multi-mark group are retained. Unsupported activity beyond

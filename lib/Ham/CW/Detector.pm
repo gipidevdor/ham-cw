@@ -517,8 +517,9 @@ sub _trim_bursts {
 
     # The tracker clamps anything above twice the seeded peak, so a burst far
     # stronger than the message keeps every smeared hop above the switching
-    # threshold. Such a run is only as wide as its own power above 22% of its
-    # top, the same fraction that admits an ordinary mark.
+    # threshold. Within such a run, hops below 22% of its top yet still above
+    # the clamp can only be the burst's own smear; hops at message level may
+    # be a genuine mark underneath the burst and stay keyed.
     my $i = 0;
     while ($i < @{$states}) {
         if ($states->[$i] ne 'on') { ++$i; next }
@@ -527,7 +528,8 @@ sub _trim_bursts {
         my $top = 0;
         $top = $powers->[$_] > $top ? $powers->[$_] : $top for $i .. $end;
         if ($top > $ceiling) {
-            $states->[$_] = 'off' for grep { $powers->[$_] < 0.22 * $top } $i .. $end;
+            $states->[$_] = 'off'
+                for grep { $powers->[$_] < 0.22 * $top && $powers->[$_] > $ceiling } $i .. $end;
         }
         $i = $end + 1;
     }
@@ -975,9 +977,10 @@ sample-weighted mean power at least C<10 ** (mark_snr_db / 10)> times the
 tracker's noise estimate at the start of that run. Failed runs become OFF;
 adjacent OFF runs merge before the existing short-interior-glitch cleanup.
 A run whose power exceeds twice the seeded peak is far stronger than the
-message; it is narrowed to the hops above 22% of its own top before
-admission, so a short burst smeared by the analysis window does not become
-a mark.
+message; hops below 22% of its own top but still above that clamp are
+removed before admission, so a short burst smeared by the analysis window
+does not become a mark, while message-level hops underneath the burst stay
+keyed.
 The gate and its noise reference use the same smoothed channel powers as
 the tracker. OFF observations must also be below one quarter of the switching
 threshold to update the noise estimate; this avoids treating a fading attack
