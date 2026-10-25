@@ -1,30 +1,10 @@
 Revision history for Ham-CW
 
 0.001  2026-10-25
-    - Add task-oriented documentation navigation and a focused installation
-      guide; streamline file recipes and command-specific help.
-    - Refresh release performance measurements, real-time factors and PDL
-      implementation limits; distinguish temporary optimization probes.
-    - Add a PAUSE-readable README, static metadata and release-contract checks;
-      align installed authorship and license notices across public modules.
-    - Name detector power heuristics and document their roles, units and
-      tuning tradeoffs without changing thresholds.
-    - Group command controls by task, show units and defaults, guide recovery
-      from usage errors and make example discovery easier.
-    - Refresh measured performance and verification records, retain provenance
-      and separate historical observations from current evidence.
-    - Keep local assistant settings out of distribution archives.
-    - Streamline getting started, guide navigation and command-specific help;
-      add help for the example runner.
-    - Speed up audio reception: acquisition combines one projection per hop
-      instead of transforming the whole window, channels that fail
-      acquisition skip the recurrence, and both filter sections run in one
-      pass. Shorten the slowest ordinary tests.
-    - Add executable examples for every public API method and WAV writer
-      operation, with a catalog, backend runner and cross-platform checks.
-    - Initial release for ITU-R M.1677-1 Morse symbols, operational signals and Farnsworth timing.
-    - Timed/sample events, tone generation, experimental multichannel reception and mark SNR.
-    - PCM WAV and standard MIDI files, with optional PDL acceleration.
-    - Library and command-line interfaces for files, bytes and sample streams.
-    - Structured errors, diagnostic results and explicit output replacement.
-    - POD references, runnable examples, licensed fixtures and release/security checks.
+    - Initial release for ITU-R M.1677-1 Morse symbols and operational signals.
+    - Control Farnsworth timing and produce timed or sample-based events.
+    - Generate tones, PCM WAV audio and standard MIDI files.
+    - Use library and command-line interfaces for files, bytes and sample streams.
+    - Audio reception is experimental, with multichannel decoding and mark SNR.
+    - Include structured errors, diagnostics, POD references and runnable examples.
+    - Require Perl 5.20 or later; PDL is an optional numerical backend.
