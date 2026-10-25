@@ -85,6 +85,38 @@ and guide recipes independently in temporary directories with warnings fatal.
 `xt/pod.t` validates POD syntax. Preview installed-style output with
 `perldoc lib/Ham/CW.pm` or the corresponding module path.
 
+## Building the documentation website
+
+GitHub Pages publishes the complete documentation at
+<https://gipidevdor.github.io/ham-cw/>. `maint/build-site.pl` renders every
+manifest-listed Markdown guide, every module/command with POD, the example
+sources, release notes, license and attribution. It includes licensed corpus
+audio and raw evidence files. Links between source documents become local HTML
+links; third-party API references continue to use MetaCPAN.
+
+The website tools require Perl 5.26 or later, independently of the library's
+Perl 5.20 runtime minimum. Install them in the Perl used to build the site:
+
+```sh
+cpanm Markdown::Perl@1.14 Pod::Simple@3.48 HTML::Tree@5.07 URI@5.40
+perl maint/build-site.pl --output _site
+perl maint/build-site.pl --check _site
+```
+
+Choose a new or empty output directory; the builder preserves existing output.
+`_site/` is ignored by Git and excluded from release archives. Serve that directory
+with any static HTTP server to preview it. `prove -lv xt/site.t` checks complete
+POD/Markdown publication, rendering, deterministic output and rejection of broken
+pages, anchors and links that would escape the repository's Pages subpath.
+
+The **Documentation** Actions workflow runs these checks and builds a Pages
+artifact from a clean checkout on every PR and push to `main`. Only `main` can
+deploy, through the `github-pages` environment. Enable Pages with **GitHub Actions**
+as its publishing source. The deployment job alone receives Pages/OIDC write
+permissions; PR builds have read-only access. No Ruby, Jekyll, Python or Node site
+generator is required. The pinned official Pages Actions handle artifact upload
+and deployment. A manual workflow dispatch can rebuild and republish `main`.
+
 ## Executable examples
 
 Keep `examples/routes.json` synchronized with runnable examples and public

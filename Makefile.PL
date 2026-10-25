@@ -87,6 +87,10 @@ WriteMakefile(
                     'PPI'                     => '1.291',
                     'Module::CPANTS::Analyse' => '1.03',
                     'Test::Kwalitee'          => 0,
+                    'Pod::Simple'             => '3.48',
+                    'Markdown::Perl'          => '1.14',
+                    'HTML::Tree'              => '5.07',
+                    'URI'                     => '5.00',
                 }
             }
         },

@@ -13,5 +13,6 @@
 ^\.github/
 ^\.(?:gitignore|gitattributes|editorconfig)$
 ^local/
+^_site/
 ^corpus/morse\.wav$
 ^\.claude/

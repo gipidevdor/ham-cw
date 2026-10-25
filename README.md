@@ -7,7 +7,8 @@ Use the `ham-cw` command or the Perl library. Perl 5.20 or later is required;
 the default backend uses only core modules. PDL is optional; its performance
 depends on the operation and workload.
 
-[Documentation](docs/README.md) · [Examples](examples/README.md) ·
+[Online documentation](https://gipidevdor.github.io/ham-cw/) ·
+[Guides](docs/README.md) · [Examples](examples/README.md) ·
 [API reference](lib/Ham/CW.pm) · [Contributing](CONTRIBUTING.md)
 
 ## Start here

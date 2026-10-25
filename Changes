@@ -8,3 +8,4 @@ Revision history for Ham-CW
     - Audio reception is experimental, with multichannel decoding and mark SNR.
     - Include structured errors, diagnostics, POD references and runnable examples.
     - Require Perl 5.20 or later; PDL is an optional numerical backend.
+    - Publish complete POD and Markdown documentation through GitHub Pages.

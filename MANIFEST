@@ -83,11 +83,13 @@ maint/audit-dependencies.pl
 maint/benchmark-platforms.pl
 maint/benchmark.pl
 maint/build-corpus.pl
+maint/build-site.pl
 maint/check-cli-install.pl
 maint/check-dist.pl
 maint/check-install.pl
 maint/coverage.pl
 maint/reception-corpus.pl
+maint/site.css
 t/00-load.t
 t/01-symbols.t
 t/02-events.t
@@ -129,4 +131,5 @@ xt/metadata.t
 xt/pod.t
 xt/release-tools.t
 xt/security-audit.t
+xt/site.t
 xt/tidy.t

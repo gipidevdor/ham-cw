@@ -4,6 +4,9 @@
 
 Choose the guide for what you want to do.
 
+The [complete HTML documentation](https://gipidevdor.github.io/ham-cw/) includes
+these guides, the POD API and command reference, executable examples and evidence.
+
 | You want to… | Start here |
 | --- | --- |
 | Install or check your environment | [Installation](installing.md) |
