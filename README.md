@@ -119,6 +119,8 @@ For development, start with [contributing](CONTRIBUTING.md). For publication,
 follow the [release procedure](docs/releasing.md). Report vulnerabilities through
 [the private reporting process](SECURITY.md).
 
+Security CI currently flags upstream Perl/File::Temp advisories and historical dependency ranges; applicability to Ham::CW remains under review ([details](docs/security-ci.md)).
+
 Copyright © 2026 Giacomo Picchiarelli. Project code and original material use
 [Artistic License 2.0](LICENSE). Third-party audio retains its CC0 or CC BY-SA
 3.0 terms; see [NOTICE](NOTICE) and [recording licenses](corpus/real/LICENSES.md).
