@@ -5,25 +5,22 @@
 ## Current local measurements, 2026-10-25
 
 Measured source: `c635a8ad588558a2d12bb0557d863cd571b61349`.
-Environment: macOS ARM64, Perl 5.44.0, PDL 2.106. The
-[raw performance record](performance-results.json) retains commands, sample
-counts, CPU/wall totals, derived ratios and SHA-256 hashes of all measured
-modules and the benchmark tool. Measurements use the shipped implementation;
-no experimental batching, vectorized acquisition or compiled filter bank is applied.
+Environment: macOS ARM64, Perl 5.44.0, PDL 2.106.
+[Raw results](performance-results.json) include commands, sample counts,
+CPU/wall totals, ratios and source hashes. These runs use the shipped implementation.
 
 All cases generate `CQ CQ DE TESTCALL` at 20 WPM and 650 Hz: **9.18 seconds
 of audio**, fed in 4,096-sample blocks. Searches cover 300–1500 Hz at 50 Hz
 spacing, or 25 candidates. The known-tone case supplies 650 Hz but no speed
-hint to reception. Each time is total wall time divided by three calls: an
-arithmetic mean, not a median. The three workloads ran sequentially without
-concurrent project tests or coverage collection.
+hint to reception. Times are the mean of three calls. Workloads ran sequentially,
+without concurrent tests or coverage collection.
 
 ### Sample reception
 
 `R` is processing seconds divided by audio seconds. Lower is better; `R < 1`
 means this in-memory recording was processed faster than playback duration.
-Its inverse, `1/R`, is the number of audio seconds processed per wall second.
-Neither measure includes live capture latency or guarantees uninterrupted streaming.
+Its inverse, `1/R`, is audio seconds processed per wall second. Live capture
+latency is excluded.
 
 | Workload | Perl time | PDL time | Perl R | PDL R |
 | --- | ---: | ---: | ---: | ---: |
@@ -34,9 +31,8 @@ Neither measure includes live capture latency or guarantees uninterrupted stream
 At 8 kHz, the measured sample receiver processes approximately **3.18× audio
 speed with Perl and 2.94× with PDL** during tone search. With the tone supplied,
 the figures are **30.70× and 36.55×**. At 16 kHz with search they fall to
-**1.74× and 1.52×**. These are this workload's observations; a 5× search target
-at 16 kHz is not met by this local run. No Linux or Raspberry Pi target is
-established by these macOS measurements.
+**1.74× and 1.52×**, below the 5× target at 16 kHz. These measurements are for
+macOS; Linux and Raspberry Pi throughput were not measured in this run.
 
 ### Complete WAV decoding
 
@@ -50,8 +46,7 @@ These calls also include in-memory WAV reading, PCM conversion and close:
 
 ### Generation
 
-The following use the search workloads' generation measurements; receiver
-hints do not change the generated signal. WAV generation includes PCM conversion.
+WAV generation includes PCM conversion.
 
 | Sample rate | Samples, Perl | Samples, PDL | WAV, Perl | WAV, PDL |
 | --- | ---: | ---: | ---: | ---: |
@@ -69,15 +64,11 @@ The [current implementation](../lib/Ham/CW/_Internal/PDL.pm) uses PDL for tone
 synthesis, PCM operations and filtered spectral projections. Acquisition
 projections, guard/ring processing and biquad recurrences still run in Perl.
 Each receiver batch copies filtered history windows into Perl arrays, builds
-a PDL tensor and exports powers/energies back to arrays. Acquisition, filtering,
-allocation and conversion therefore remain costs of the PDL path.
+a PDL tensor and exports powers/energies back to arrays.
 
-The shipped batch cap is **128 hops**. A smaller 16-hop cap was investigated
-with a temporary local probe, but is not integrated or included in the current
-table. Neither a compiled PDL::PP biquad kernel, persistent PDL feature storage
-nor vectorized acquisition is implemented. Their potential gains remain
-unmeasured release work, not performance promises. Any such change must be
-checked against frame powers/energies, event boundaries, text and warnings.
+The batch cap is **128 hops**. A separate 16-hop experiment is excluded from
+these results. Compiled PDL::PP filters, persistent feature storage and vectorized
+acquisition have not been implemented or measured in the release.
 
 ## What the timers include
 
@@ -90,14 +81,11 @@ outside the operation timers. Disk I/O, devices, Perl startup and module loading
 are excluded. Memory use, 128-candidate searches and sustained long-recording
 throughput were not measured.
 
-The existing benchmark retains a prepared detector for snapshot measurements
-while timing each backend. Operations and backends run in a fixed order within
-one process. Allocation history and retained data can influence results;
-these are that protocol's timings, not fresh-process one-shot latency.
-The raw output also includes analyzer rebuilds and batches of 100 cached
-snapshot reads. Tiny or negative CPU deltas for cached reads reflect timer
-precision; they do not imply zero cost. Three calls on one machine do not
-establish variance, percentile latency or a universal backend ranking.
+Operations and backends run in a fixed order within one process, with a
+prepared detector retained for snapshot measurements. Allocation history can
+affect the timings. Raw output also includes analyzer rebuilds and batches of
+100 cached snapshot reads; tiny or negative CPU deltas reflect timer precision.
+Three calls are insufficient to estimate variance or percentile latency.
 
 ## Repeat the measurements
 
@@ -149,10 +137,9 @@ observations, not stable platform rankings or processor comparisons.
 | Write PCM WAV, 16-bit | 1.49x | 1.14x | 1.36x | 1.32x | 1.42x |
 | Write PCM WAV, 24-bit | 1.33x | 1.32x | 1.34x | 1.20x | 1.28x |
 
-Generation benefits from PDL in these cases. Reception and PCM conversion vary
-by platform and feed pattern; the earlier blanket reception speedup claim is
-not supported by this receiver. Compare absolute rates in the raw record when
-planning throughput, and repeat your actual workload before choosing a backend.
+PDL improves generation in these runs. Reception and PCM conversion vary by
+platform and feed pattern. Compare absolute rates in the raw record and measure
+your own workload before choosing a backend.
 
 ## Historical evidence
 

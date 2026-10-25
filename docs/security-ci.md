@@ -2,18 +2,15 @@
 
 [Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
 
-The latest remote results are recorded below with their exact source revision.
-Earlier local counts remain historical evidence. No fresh local audit or
-new vulnerability applicability assessment is claimed. See
-[verification status](verification.md).
+Recorded runs and advisory results are listed below by source revision and
+date. See [verification](verification.md) for the corresponding test results.
 
 `.github/workflows/security.yml` runs on pull requests, pushes to main,
 manual dispatch and every Monday at 06:23 UTC. The weekly scan refreshes the
 advisory database even when no code changes. The final **Security checks**
-job fails unless every security job succeeds, including when another job is
-skipped, fails to install a tool or cannot produce its report. Configure this
-check as required in GitHub branch protection/rulesets to block merging;
-adding a workflow alone does not change repository rules.
+job requires every security job to succeed. Skipped jobs, installation errors
+and missing reports also fail it. To block merges on this result, make the
+check required in GitHub's branch protection settings.
 
 | Check | Scope and failure behavior |
 | --- | --- |
@@ -75,26 +72,19 @@ that ecosystem configuration.
 
 ## Limits and responses
 
-A CVE match is a signal to review the exact version, vendor patches and input
-conditions, not proof of exploitation in Ham::CW. Core Perl advisories may
-require upgrading the interpreter or restricting the deployment environment;
-changing Ham::CW's source does not patch the interpreter. Legacy Perl versions
-in the compatibility matrix are not certified free of vulnerabilities by a
-Perl 5.44 security run. Optional/native dependencies and newly disclosed
-issues still require assessment.
+A CVE match needs an applicability review: version, vendor patches and input
+conditions. Perl advisories may require an interpreter upgrade. This audit
+runs on Perl 5.44; it does not scan the older interpreters in the test matrix.
 
-The CPAN advisory database only knows recorded advisories and module-to-dist
-mappings. A distribution absent from that database (currently including PDL
-in the database used locally on 2026-10-24) is not independently certified safe. Installed
-versions and constraints are audited where the database has entries. Tool or
-network failures must be investigated, not converted to passing scans.
+Coverage depends on the database's advisories and module-to-distribution
+mappings. PDL had no entry in the database used on 2026-10-24, so this audit
+could not assess it. Tool and network failures must remain failures.
 
 CodeQL does not support Perl source. Perl::Critic provides targeted source
 checks, not full taint/dataflow analysis. zizmor runs without GitHub API access;
 API-dependent checks such as commit provenance cannot be established offline.
-These gates supplement code review and parser tests; they are not an exhaustive
-security audit. Secrets detected in history require credential rotation and
-review of exposure, even if the current source has removed them.
+Secrets found in history require credential rotation and exposure review,
+even after removal from the current source.
 
 Any future exception needs an exact advisory/fingerprint, evidence explaining
 why it does not apply, an owner and an expiry/review date. Do not add broad
@@ -111,9 +101,7 @@ declared dependency audits both failed, with no scanner errors.
 CPAN::Audit 20261013.002 with CPANSA::DB 20261018.001 reported two installed
 matches (File::Temp and Perl) and 38 unique declared distribution/advisory
 matches: 29 Perl, three Encode, three Storable, two PathTools and one File::Temp.
-This confirms the counts from the earlier corrective review in a fresh remote
-environment. It does not establish exploitability in Ham::CW, and the existing
-applicability questions remain unresolved. No advisory exclusion was added.
+Applicability to Ham::CW remains unresolved. No advisory exclusion was added.
 
 The [verification record](verification.md) distinguishes this remote source
 from the documentation working tree. The [raw summary](current-results.json)

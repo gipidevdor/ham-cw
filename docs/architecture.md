@@ -2,33 +2,27 @@
 
 [Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
 
-The text path is `Encoder → Morse`, or `Decoder → text`. Neither path needs
-DSP or third-party Morse modules. The timing path is `Encoder → TimedEvents →
-SampledEvents → Generator`. The reception path is `Audio reader → Detector →
-SampledEvents → Decoder → Result`. The MIDI exporter consumes either event
-representation and writes SMF type 0.
+- Text: `Encoder → Morse`, `Decoder → text`.
+- Timing and synthesis: `Encoder → TimedEvents → SampledEvents → Generator`.
+- Reception: `Audio reader → Detector → SampledEvents → Decoder → Result`.
+- MIDI: timed or sampled events to SMF type 0.
 
 ## File convenience boundary
 
-The facade offers `write_wav(text, path)`, `write_midi(text, path)` and
-`read_wav(path)`. They delegate to the existing handle methods, owning only
-the handles they open. New output files use exclusive creation, so existing
-files and symlinks are not overwritten. Explicit `overwrite => 1` generates
-into a temporary sibling file, preserves an existing regular file's permission
-bits, and replaces the directory entry after generation and close succeed.
-Preparation rejects detected symbolic-link destinations, including dangling
-links. Inspection and rename are separate filesystem operations: a destination
-changed concurrently after inspection can still be replaced. This helper does
-not provide an atomic no-symlink guarantee; use a directory whose entries are
-not being changed by other writers. A new path
-uses the ordinary 0666 permissions filtered through the process umask.
-Atomic replacement creates a new file identity: ownership, ACLs and other
-hard links are not transferred. Callback failure closes the handle,
-attempts to unlink a newly created output and rethrows the original error;
-close failures become structured I/O errors. Caller-managed handle methods
-retain their original ownership contract. Constructor generation timing and
-tone are never implicit reception hints. `has_text` and `has_warnings` expose
-result presence checks without claiming confidence.
+`write_wav(text, path)`, `write_midi(text, path)` and `read_wav(path)` open and
+close their own handles. New output uses exclusive creation. With
+`overwrite => 1`, data is written to a temporary sibling and renamed after
+generation and close succeed.
+
+Replacement preserves regular-file permission bits, but creates a new file
+identity: ownership, ACLs and other hard links are not transferred. New files
+use 0666 filtered through the process umask. Detected symlinks, including
+dangling ones, are rejected. Inspection and rename are separate operations;
+use a directory protected from concurrent writers.
+
+On callback failure, the helper closes the handle, attempts to remove the new
+output and rethrows the original error. Close failures become structured I/O
+errors. Methods receiving caller-owned handles leave them open.
 
 ## Event boundaries
 
@@ -68,17 +62,18 @@ FAILED; replace it and its output rather than continuing a corrupt file.
 Atomic text/MIDI operations have no incremental lifecycle. Validation errors
 preserve object state. Caller-owned handles are never closed by the library.
 
-Decoder snapshots with configured WPM contain only characters whose following
-gap has closed. Finish confirms the final mark group. Auto-timing and detector
-snapshots remain provisional: more evidence can revise timing, thresholds and
-text. Unchanged provisional snapshots and finalized results are cached. Successful
-feeds invalidate provisional caches; rejected feeds preserve them. Reset clears
-all cached results. Each new snapshot still covers the retained history, so requesting one after
-every small feed has a cumulative cost. Unchanged snapshots are cached.
-Internal snapshots reuse validated, immutable segment records and copy the
-segment list; public Result construction still validates and deep-copies
-caller data. Reference-valued accessors return independent copies. They are not a stream of new characters to
-append repeatedly.
+With configured WPM, decoder snapshots include characters whose following gap
+has closed; finish confirms the final group. Auto-timing and detector previews
+can revise earlier text, timing and thresholds.
+
+Snapshots cover the full retained history. Replace the previous snapshot
+rather than appending it. Successful feeds invalidate the preview cache;
+rejected feeds preserve it, and reset clears it. Request previews periodically
+to avoid repeatedly processing the same history.
+
+Internal snapshots share immutable segment records and copy the segment list.
+Public Result construction validates and deep-copies caller data; accessors
+return independent copies of reference fields.
 
 ## Reception assumptions
 

@@ -4,10 +4,8 @@
 
 ## Working principles
 
-Make the common path easy to find. Show a working example before advanced
-options, name units explicitly, and keep detailed contracts in the module POD.
-Command output should be useful in a pipeline; diagnostics belong on stderr.
-Preserve existing files by default and make replacement an explicit choice.
+Show a working example before advanced options. Keep API contracts in POD and
+diagnostics on stderr. Preserve existing files unless replacement is requested.
 
 Ham::CW supports Perl 5.20 or later. Keep the default backend dependent only
 on core modules available with that Perl. Optional features must declare their
@@ -30,9 +28,8 @@ is an alternative that reads `lib` directly and needs no installation.
 
 Author checks additionally need PDL, Perl::Critic, the pinned Perl::Tidy release,
 Devel::Cover and the POD/metadata tools declared under development prerequisites.
-The following uses `cpanm` from App::cpanminus; if absent, install it first using
-your Perl package manager or `cpan App::cpanminus`. These installation commands
-need network access and a writable module installation directory.
+These commands use `cpanm` from App::cpanminus. Install it through your Perl
+package manager or with `cpan App::cpanminus` if needed.
 
 ```sh
 cpanm --notest Perl::Tidy@20260826
@@ -87,15 +84,11 @@ and guide recipes independently in temporary directories with warnings fatal.
 
 ## Building the documentation website
 
-GitHub Pages publishes the complete documentation at
-<https://gipidevdor.github.io/ham-cw/>. `maint/build-site.pl` renders every
-manifest-listed Markdown guide, every module/command with POD, the example
-sources, release notes, license and attribution. It includes licensed corpus
-audio and raw evidence files. Links between source documents become local HTML
-links; third-party API references continue to use MetaCPAN.
+`maint/build-site.pl` builds the [documentation site](https://gipidevdor.github.io/ham-cw/)
+from the files in MANIFEST: POD, Markdown, examples, release notes and licenses.
+It includes corpus audio and raw results, with local links between pages.
 
-The website tools require Perl 5.26 or later, independently of the library's
-Perl 5.20 runtime minimum. Install them in the Perl used to build the site:
+The site builder requires Perl 5.26 or later; the library still supports 5.20.
 
 ```sh
 cpanm Markdown::Perl@1.14 Pod::Simple@3.48 HTML::Tree@5.07 URI@5.40 PPI@1.291
@@ -103,24 +96,18 @@ perl maint/build-site.pl --output _site
 perl maint/build-site.pl --check _site
 ```
 
-Choose a new or empty output directory; the builder preserves existing output.
-`_site/` is ignored by Git and excluded from release archives. Serve that directory
-with any static HTTP server to preview it. `prove -lv xt/site.t` checks complete
-POD/Markdown publication, rendering, deterministic output and rejection of broken
-pages, anchors and links that would escape the repository's Pages subpath.
+Use a new or empty output directory. `_site/` is ignored by Git and excluded
+from archives. Serve it with a static HTTP server to preview the site.
+`prove -lv xt/site.t` checks rendering, reproducibility, page coverage and local links.
 
-The **Documentation** Actions workflow runs these checks and builds a Pages
-artifact from a clean checkout on every PR and push to `main`. Only `main` can
-deploy, through the `github-pages` environment. Enable Pages with **GitHub Actions**
-as its publishing source. The deployment job alone receives Pages/OIDC write
-permissions; PR builds have read-only access. No Ruby, Jekyll, Python or Node site
-generator is required. The pinned official Pages Actions handle artifact upload
-and deployment. A manual workflow dispatch can rebuild and republish `main`.
+The **Documentation** workflow builds every PR and push to `main`. Only `main`
+deploys, through the `github-pages` environment and the pinned Pages Actions.
+Set the Pages source to **GitHub Actions**. PR builds have read-only access;
+the deploy job alone receives Pages/OIDC write permissions. Manual dispatch
+rebuilds and republishes `main`.
 
-The site's original theme uses POD directives, Perl notation and system fonts.
-PPI tokenizes Perl examples for highlighting without executing them or changing
-the downloadable source. The layout and CSS are project material under Artistic
-2.0; the footer links the separate recording credits and licenses on every page.
+PPI highlights Perl examples without executing them. The layout and CSS use
+Artistic 2.0; recording credits and licenses are linked from every page.
 
 ## Executable examples
 

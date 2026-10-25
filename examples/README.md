@@ -4,30 +4,28 @@
 
 ## First run
 
-Start with the compact tour. It creates temporary files and cleans up after itself:
+Run a tour of the API:
 
 ```sh
 perl -Ilib examples/workflows.pl
 ```
 
-Choose one scenario before running the full catalog:
+List the examples, then run one:
 
 ```sh
 perl -Ilib examples/run-all.pl --list
 perl -Ilib examples/run-all.pl --only text-events
 ```
 
-Use the same pattern for files, streaming, MIDI, reception or error recovery.
-The [catalog](#choose-a-path) explains each route. To run everything:
+To run the full catalog:
 
 ```sh
 perl -Ilib examples/run-all.pl --backend perl
 ```
 
-Numerical examples also accept `--backend auto` or `--backend pdl` through the
-runner. Explicit `pdl` requires PDL 2.081 or later in the same Perl environment;
-`auto` uses PDL when available and falls back to Perl. It does not choose the
-faster backend. See [measured performance](../docs/benchmarks.md) for context.
+Numerical examples accept `--backend perl`, `auto` or `pdl`. PDL requires
+version 2.081 or later in the same Perl environment. `auto` uses PDL when
+available; see [performance](../docs/benchmarks.md) for speed comparisons.
 
 Individual numerical examples accept a positional backend:
 
@@ -36,20 +34,12 @@ perl -Ilib examples/pcm-streams.pl perl
 perl -Ilib examples/reception-channels.pl pdl
 ```
 
-Run `perl -Ilib examples/run-all.pl --help` for the runner's options. The
-`send.pl`, `receive.pl` and `midi.pl` tools also accept `-h` or `--help`; their
-help separates common controls, advanced settings and resource limits.
+The runner and the `send.pl`, `receive.pl` and `midi.pl` tools accept `--help`.
 
-After installing Ham::CW, omit `-Ilib` to use the installed library. Keep the
-examples directory and bundled corpus from the source distribution together.
-The runner passes its library search paths to child processes; it does not
-force a source-library path when the installed library is selected.
+After installation, omit `-Ilib`. Keep the examples and bundled corpus together.
 
-Each catalog example is independent, prints its result and exits nonzero if its
-illustrated invariant fails. Generated files use temporary directories and
-are removed automatically. Corpus examples read the bundled licensed audio;
-see [recording attribution](../corpus/real/LICENSES.md). No example downloads
-recordings, plays sound, opens a microphone or controls radio/MIDI hardware.
+Each example runs independently, checks its result and cleans up its temporary
+files. Corpus examples use the bundled [recordings](../corpus/real/LICENSES.md).
 
 ## Choose a path
 
@@ -67,39 +57,14 @@ recordings, plays sound, opens a microphone or controls radio/MIDI hardware.
 | [corpus-reception.pl](corpus-reception.pl) | Redistributable off-air recordings, references, warnings and attribution | perl / auto / pdl |
 | [workflows.pl](workflows.pl) | Common end-to-end workflows with temporary files | None |
 
-The WAV examples cover byte strings, caller-owned handles and library-owned
-paths; collected arrays, callback blocks and pull iterators; mono PCM
-8/16/24-bit output; and left/right/mix stereo input. The stereo fixture is a
-small, independently assembled 16-bit WAV because the public writer is mono.
-Handle examples close their own handles and check close errors.
-
-Reception examples distinguish a known tone/speed, automatic estimates,
-explicit Farnsworth spacing, multiple frequency-separated stations, provisional
-snapshots and empty/silent input. The mixed-station example deliberately uses
-clean synthetic data. The corpus example prints both reference and received
-text, including imperfect results and warnings; completion is not accuracy.
-
-The failure example covers argument, symbol, timing, resource, format,
-truncation, state and I/O errors, plus application-created structured errors.
-A small portable sink simulates a failed PCM write, demonstrating why a FAILED
-writer is discarded. Rejected validation/count operations instead allow recovery.
-It also checks protection of existing output on failed replacement and shows
-explicit PDL availability/selection failures.
-
-The CLI example starts real child processes with structured argument lists,
-keeps stdout/stderr separate, and uses file redirections to preserve binary
-bytes without pipe-buffer deadlocks. It exercises all six commands, timed and
-sampled JSON, UTF-8 input files/stdin, binary WAV/MIDI stdout, WAV stdin,
-station-array JSON, help/version and exit statuses 0/1/2/3. For interactive
-Windows shells, prefer named binary output files as described in
-[the command manual](../bin/ham-cw).
+`reception-channels.pl` uses synthetic signals. `corpus-reception.pl` prints
+reference and received text from radio recordings, with reception warnings.
+On Windows, prefer named binary files; see the [command manual](../bin/ham-cw).
 
 ## Public API index
 
-[The machine-readable catalog](routes.json) maps every current public library
-method and the four returned WAV-writer operations to executable scenarios.
-The following table is a navigation index; the module POD remains the full
-API reference for option ranges, defaults and errors.
+Find an example for each method below. The [JSON catalog](routes.json) is
+also used by the tests. Option details are in the module POD.
 
 | API | Methods/functions and example |
 | --- | --- |
@@ -115,14 +80,7 @@ API reference for option ranges, defaults and errors.
 | Ham::CW::Result | `new, text, morse, frequency, wpm, events, warnings, diagnostics, complete, has_text, has_warnings, as_hash` → [results.pl](results.pl) |
 | Ham::CW::Error | `new, throw, code, message, context, as_string` → [failure-recovery.pl](failure-recovery.pl) |
 
-Private implementation modules are reached through these supported public
-interfaces. The catalog describes public workflows and representative success,
-warning and failure paths; regression tests additionally exercise numerical
-boundaries, malformed-file variations and platform-specific I/O behavior.
-
 ## File tools
-
-These tools accept user-selected output/input paths and messages:
 
 ```sh
 perl -Ilib examples/send.pl --wpm 20 --frequency 650 practice.wav "CQ DE TESTCALL"
@@ -131,18 +89,13 @@ perl -Ilib examples/receive.pl --all-stations --json practice.wav
 perl -Ilib examples/midi.pl practice.mid "CQ DE TESTCALL"
 ```
 
-Destinations must be new unless `--overwrite` is explicit. `--help` documents
-these scripts. `workflows.pl` provides a compact tour using temporary files.
+Add `--overwrite` to replace an existing destination.
 
 ## Automated verification
 
-`prove -lv t/29-examples.t` runs every catalog entry from a separate empty
-working directory, checking both its exit status and completion output,
-with warnings fatal, using `perl`, plus `pdl` and `auto` when compatible PDL
-is installed. It verifies catalog completeness against
-public methods and WAV-writer documentation. New public methods and unknown
-catalog entries require the example index to be updated. The existing platform
-CI runs this ordinary test on Linux, macOS and Windows, including minimum PDL.
+`prove -lv t/29-examples.t` runs the catalog in isolated directories with
+warnings fatal and every available backend. It checks results and coverage of
+public methods, including WAV writers. CI runs it on Linux, macOS and Windows.
 
 The archive installation check runs the complete catalog again against the
 installed library. See [contributing](../CONTRIBUTING.md) and the

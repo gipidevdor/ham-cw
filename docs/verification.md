@@ -7,10 +7,9 @@
 Updated 2026-10-25. The latest timing run measures source
 `c635a8ad588558a2d12bb0557d863cd571b61349`; see
 [performance results](performance-results.json) and the [timing protocol](benchmarks.md).
-The earlier corpus, interface and CI evidence below retains its own scope and
-source in [the prior verification record](current-results.json), based on
-`85eb8f3`. The performance refresh does not rerun those test, coverage or
-security checks, and does not turn their results into certification of a later source.
+Corpus, interface and CI results below come from the
+[earlier record](current-results.json) on `85eb8f3`. Those checks were not rerun
+for the timing update.
 
 ## Checks and provenance
 
@@ -30,11 +29,9 @@ Local environment: macOS ARM64, Perl 5.44.0 and PDL 2.106.
 
 The coverage requirements remain 95% statements and 90% branches, with every
 production module included. These gates pass in the cited CI coverage run.
-Coverage was not recollected
-locally for the interface update; the numerical receiver has not changed.
-Condition instrumentation supports complete branch counts; no condition
-coverage percentage is claimed. See [contributing](../CONTRIBUTING.md) for
-collection instructions.
+Coverage was not recollected locally for the interface update. Condition
+instrumentation was used to collect branch counts. See
+[contributing](../CONTRIBUTING.md) for collection instructions.
 
 ## Reception evidence
 
@@ -56,19 +53,15 @@ divided by reference length; it can exceed 100%. The quality target is at most
 25% CER per clip and mode. The current regression budgets are stricter: 0%
 for all eight decodes. Both measures pass for this fixed corpus.
 
-These clips do not establish general accuracy, human-keyed QSO performance,
-co-channel separation, fading tolerance or a field error rate. Synthetic tests
+The corpus covers automated beacons, not human-keyed QSOs. Synthetic tests
 cover two messages at 150 Hz separation with explicit 20 WPM, independent
 20/25 WPM at 250 Hz separation, unequal levels and added noise, a stronger
 continuous carrier and independently varied mark/gap lengths. These are
-specific test cases, not universal resolving-power or signal-to-noise bounds.
+specific cases; field error rates and general resolving power remain unmeasured.
 
 Run `perl maint/reception-corpus.pl` to repeat the corpus measurement.
-Generation defaults to 10,000,000 samples; reception retains at most 24,000
-frames by default, approximately 120 seconds including silence. Streaming
-reduces block buffers but does not remove these retained-history limits.
-See [practical limits](usage.md#practical-limits) and the
-[Detector reference](../lib/Ham/CW/Detector.pm) for full contracts.
+For resource bounds, see [practical limits](usage.md#practical-limits) and
+the [Detector reference](../lib/Ham/CW/Detector.pm).
 
 ## Remote CI
 
@@ -82,9 +75,8 @@ names, outcomes and coverage counts.
 [Security run 40187441825](https://github.com/gipidevdor/ham-cw/actions/runs/40187441825)
 completed with failure on that same revision. Secret-history scanning, unsafe
 Perl construct checks and workflow checks passed; the dependency audit and
-aggregate security gate failed. The latest interface working tree passes the local suite above. It has no
-independent remote CI result of its own. A source
-revision must match the cited run before using its outcome.
+aggregate security gate failed. The later interface working tree passed the
+local suite above; no separate remote run is recorded for that update.
 
 ## Security status
 
@@ -98,14 +90,13 @@ historical releases; it is distinct from auditing installed versions.
 The [raw verification summary](current-results.json) retains advisory IDs by
 distribution, scope metadata, artifact hashes and job outcomes. The linked
 Security run supplies the original CI artifacts subject to retention. No
-current local dependency/secret/workflow scan or applicability reassessment
-is claimed. See [security CI](security-ci.md#remote-results-2026-10-25) for
-scope and unresolved issues. Ordinary parser/error tests and audit-adapter
-regression tests do not substitute for these scans.
+local dependency, secret or workflow scan was repeated for this record, and
+advisory applicability remains unresolved. See
+[security CI](security-ci.md#remote-results-2026-10-25).
 
 ## Historical records
 
 [Verification history](verification-history.md) retains earlier suite counts,
 coverage percentages, packaging results, CI runs and security observations.
 [Benchmark history](benchmark-history.md) retains older timings. Those records
-belong to their original dates and revisions; they do not certify this source.
+are dated and tied to their source revisions.
