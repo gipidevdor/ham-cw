@@ -1,0 +1,15 @@
+Revision history for Ham-CW
+
+0.001  2026-10-24
+    - Speed up audio reception: acquisition combines one projection per hop
+      instead of transforming the whole window, channels that fail
+      acquisition skip the recurrence, and both filter sections run in one
+      pass. Shorten the slowest ordinary tests.
+    - Add executable examples for every public API method and WAV writer
+      operation, with a catalog, backend runner and cross-platform checks.
+    - Initial release for ITU-R M.1677-1 Morse symbols, operational signals and Farnsworth timing.
+    - Timed/sample events, tone generation, experimental multichannel reception and mark SNR.
+    - PCM WAV and standard MIDI files, with optional PDL acceleration.
+    - Library and command-line interfaces for files, bytes and sample streams.
+    - Structured errors, diagnostic results and explicit output replacement.
+    - POD references, runnable examples, licensed fixtures and release/security checks.

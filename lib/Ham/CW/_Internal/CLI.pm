@@ -1,0 +1,348 @@
+package Ham::CW::_Internal::CLI;
+use 5.020;
+use strict;
+use warnings;
+use Encode       qw(encode decode FB_CROAK LEAVE_SRC);
+use Getopt::Long ();
+use IO::Handle   ();
+use JSON::PP;
+use File::Temp   qw(tempfile);
+use Scalar::Util qw(blessed);
+use Ham::CW;
+use Ham::CW::_Internal::IO       qw(with_file write_bytes);
+use Ham::CW::_Internal::Validate qw(fail integer);
+
+my %COMMANDS = (
+    encode => [qw(unknown max-input-bytes)],
+    decode => [qw(prefer-prosigns max-input-bytes)],
+    events => [qw(wpm effective-wpm unknown sample-rate max-input-bytes)],
+    wav    => [
+        qw(wpm effective-wpm unknown frequency sample-rate amplitude attack-ms release-ms
+            backend bits block-size max-bytes max-samples max-input-bytes)
+    ],
+    midi => [
+        qw(wpm effective-wpm unknown note velocity channel program bpm ppqn max-bytes max-input-bytes)
+    ],
+    receive => [
+        qw(frequency wpm effective-wpm backend stereo max-frames min-frequency max-frequency
+            frequency-step min-contrast min-purity filter-bandwidth min-snr-db mark-snr-db all-stations max-bytes block-samples json strict)
+    ],
+);
+my %FLAGS = map { $_ => 1 } qw(help version overwrite prefer-prosigns json strict all-stations);
+my %DESCRIPTIONS = (
+    unknown           => 'error|skip: unsupported symbols (default: error).',
+    'prefer-prosigns' => 'Prefer named prosigns for ambiguous Morse groups.',
+    wpm               => 'Character words/minute (generation: 20; receive: estimated).',
+    'effective-wpm'   => 'Farnsworth spacing speed (generation: WPM; receive: optional hint).',
+    frequency         => 'Tone in Hz (generation: 700; receive: estimated).',
+    'sample-rate'     => 'Samples/second, 1000..384000 (WAV: 16000; events: selects sample units).',
+    amplitude         => 'Normalized peak amplitude, 0..1 (default: 0.8).',
+    'attack-ms'       => 'Raised-cosine attack in milliseconds (default: 5).',
+    'release-ms'      => 'Raised-cosine release in milliseconds (default: 5).',
+    backend           => 'perl|pdl|auto (default: perl; PDL is optional).',
+    bits              => 'PCM bits per sample: 8, 16 or 24 (default: 16).',
+    'block-size'      => 'Generated samples per block (default: 4096).',
+    'block-samples'   => 'WAV input samples per block (default: 4096).',
+    'max-samples'     => 'Maximum generated sample count (default: 10000000).',
+    'max-input-bytes' => 'Text byte limit, 1..1048576 (default: 8192).',
+    'max-bytes'       => 'File byte limit (WAV/receive: 64000000; MIDI: 8000000).',
+    note              => 'MIDI note, 0..127 (default: 77).',
+    velocity          => 'MIDI velocity, 1..127 (default: 100).',
+    channel           => 'MIDI channel, 1..16 (default: 1).',
+    program           => 'Zero-based MIDI program, 0..127 (default: 80).',
+    bpm               => 'MIDI tempo, 4..1000 beats/minute (default: 120).',
+    ppqn              => 'MIDI ticks/quarter note, 1..32767 (default: 480).',
+    stereo            => 'mix|left|right for stereo input (default: mix).',
+    'max-frames'      => 'Retained 5 ms frames (default: 24000, about 120 seconds).',
+    'min-frequency'   => 'Lower tone-search bound in Hz (default: 300).',
+    'max-frequency'   => 'Upper tone-search bound in Hz (default: 1500, below Nyquist).',
+    'frequency-step'  => 'Tone-search grid step in Hz (default: 50).',
+    'min-contrast'    => 'Minimum keyed-envelope contrast, 0.01..1 (default: 0.60).',
+    'min-purity'      => 'Minimum spectral purity, 0.01..1 (default: 0.20).',
+    'filter-bandwidth' => 'Per-section band-pass width in Hz (default: max(40, 4*WPM), or 180).',
+    'min-snr-db'       => 'Acquisition tone/guard power threshold, 0..40 dB (default: 12).',
+    'mark-snr-db'      => 'Minimum mean mark/local-noise power ratio, 0..40 dB (default: 10).',
+    'all-stations'     => 'Return up to eight distinct keyed stations; JSON becomes an array.',
+    json               => 'Write the complete reception result, including warnings, as JSON.',
+    strict             => 'Return status 1 for any reception warning, including partial text.'
+);
+
+sub _bytes {
+    my ($text) = @_;
+    return encode('UTF-8', $text, FB_CROAK | LEAVE_SRC);
+}
+
+sub _write {
+    my ($handle, $bytes) = @_;
+    write_bytes($handle, $bytes);
+    $handle->flush or fail('CW_E_IO', 'Cannot flush output');
+    return;
+}
+
+sub _help {
+    my ($command) = @_;
+    my $text = <<'HELP';
+Usage: ham-cw COMMAND [OPTIONS] [TEXT ...]
+       ham-cw receive [OPTIONS] [FILE]
+
+Commands:
+  encode   Convert text to International Morse.
+  decode   Convert space-separated Morse groups to text; / separates words.
+  events   Export timed events as JSON; --sample-rate selects sampled events.
+  wav      Generate PCM WAV; --output FILE or --output - is required.
+  midi     Generate a standard MIDI file; --output FILE or --output - is required.
+  receive  Decode a PCM WAV file; omit FILE or use - to read standard input.
+
+Common options:
+  --input FILE, -i FILE   Read a file instead of positional text; - means stdin.
+  --output FILE, -o FILE  Write a file; - means stdout (default for text/JSON).
+  --overwrite             Explicitly replace an existing output file.
+  --help, -h              Show help, including command-specific options.
+  --version               Show the distribution version.
+
+Text is UTF-8. With no positional text, commands read UTF-8 from stdin.
+Use -- before text beginning with a dash. Quote text containing prosigns.
+Binary stdout requires explicit --output -. Diagnostics use stderr.
+Exit codes: 0 success; 1 no received text (or --strict warnings);
+            2 invalid usage/options; 3 input/output/processing error; 4 internal error.
+Run ham-cw help COMMAND for the available command-specific options.
+HELP
+    if (defined $command) {
+        $text .= "\nOptions for $command:\n";
+        for my $name (@{$COMMANDS{$command}}) {
+            $text .= sprintf "  %-25s %s\n", "--$name" . ($FLAGS{$name} ? '' : ' VALUE'),
+                $DESCRIPTIONS{$name};
+        }
+        $text .= "\nText input limit: 8192 bytes by default; --max-input-bytes allows 1..1048576.\n"
+            unless $command eq 'receive';
+        $text .=
+            "\nReceive stdin is spooled to a temporary seekable file, bounded by --max-bytes.\n"
+            if $command eq 'receive';
+    }
+    return $text;
+}
+
+sub _options {
+    my ($command, $arguments) = @_;
+    my (%options, @specification, $duplicate);
+    for my $name (qw(input output overwrite help version), @{$COMMANDS{$command}}) {
+        my $spec = $name;
+        $spec .= '|i' if $name eq 'input';
+        $spec .= '|o' if $name eq 'output';
+        $spec .= '|h' if $name eq 'help';
+        $spec .= $FLAGS{$name} ? '' : '=s';
+        my $key = $name;
+        $key =~ tr/-/_/;
+        push @specification, $spec => sub {
+            $duplicate //= $name if exists $options{$key};
+            $options{$key} = $_[1];
+        };
+    }
+    my $parser = Getopt::Long::Parser->new(
+        config => [qw(no_auto_abbrev no_ignore_case no_getopt_compat permute)]);
+    my @warnings;
+    my $ok;
+    {
+        local $SIG{__WARN__} = sub { push @warnings, @_ };
+        $ok = $parser->getoptionsfromarray($arguments, @specification);
+    }
+    if (!$ok) {
+        my $message = join '', @warnings;
+        $message =~ s/\s+\z//x;
+        fail('CW_E_ARGUMENT', $message || 'Invalid options');
+    }
+    fail('CW_E_ARGUMENT', "Duplicate option: --$duplicate") if defined $duplicate;
+    return \%options;
+}
+
+sub _copy {
+    my ($input, $limit, $consume) = @_;
+    my $total = 0;
+    while (1) {
+        my $size = $limit - $total + 1;
+        $size = 65536 if $size > 65536;
+        my $count = read($input, my $block, $size);
+        fail('CW_E_IO', 'Cannot read input') unless defined $count;
+        last                                 unless $count;
+        $total += $count;
+        fail('CW_E_RESOURCE', 'Input exceeds its configured byte limit') if $total > $limit;
+        $consume->($block);
+    }
+    return;
+}
+
+sub _unicode {
+    my ($bytes) = @_;
+    my $text;
+    my $ok = eval {
+        $text = utf8::is_utf8($bytes) ? $bytes : decode('UTF-8', $bytes, FB_CROAK | LEAVE_SRC);
+        _bytes($text);
+        1;
+    };
+    fail('CW_E_SYMBOL', 'Text input must be valid UTF-8') unless $ok;
+    return $text;
+}
+
+sub _text {
+    my ($arguments, $options, $stdin) = @_;
+    my $limit = integer('max_input_bytes', delete($options->{max_input_bytes}) // 8192, 1, 1048576);
+    my $path  = delete $options->{input};
+    fail('CW_E_ARGUMENT', 'Use positional text or --input, not both')
+        if defined($path) && @{$arguments};
+    my $text;
+    if (@{$arguments}) {
+        $text = join ' ', map { _unicode($_) } @{$arguments};
+        fail('CW_E_RESOURCE', 'Input exceeds its configured byte limit')
+            if length(_bytes($text)) > $limit;
+    }
+    else {
+        my $bytes = '';
+        my $read  = sub {
+            _copy($_[0], $limit, sub { $bytes .= $_[0] });
+        };
+        if (defined($path) && $path ne '-') { with_file($path, 'read', $read) }
+        else                                { $read->($stdin) }
+        $text = _unicode($bytes);
+    }
+    $text =~ s/\A\x{feff}//x;
+    return $text;
+}
+
+sub _receive {
+    my ($arguments, $options, $stdin) = @_;
+    my $path = delete $options->{input};
+    fail('CW_E_ARGUMENT', 'Use one WAV path or --input, not both')
+        if @{$arguments} > 1 || (defined($path) && @{$arguments});
+    $path //= $arguments->[0] // '-';
+    my $cw            = Ham::CW->new;
+    my $all           = delete $options->{all_stations};
+    my $path_method   = $all ? 'read_wav_channels'   : 'read_wav';
+    my $handle_method = $all ? 'decode_wav_channels' : 'decode_wav';
+    return $cw->$path_method($path, %{$options}) if $path ne '-';
+    my $audio = Ham::CW::Audio->new(
+        exists($options->{max_bytes}) ? (max_bytes => $options->{max_bytes}) : ());
+    my ($temporary) = eval { tempfile('ham-cw-stdin-XXXXXX', TMPDIR => 1, UNLINK => 1) };
+    fail('CW_E_IO', 'Cannot create temporary WAV input') unless $temporary;
+    binmode $temporary, ':raw' or fail('CW_E_IO', 'Cannot set temporary input mode');
+    _copy($stdin, $audio->{max_bytes}, sub { write_bytes($temporary, $_[0]) });
+    seek($temporary, 0, 0) or fail('CW_E_IO', 'Cannot rewind temporary input');
+    return $cw->$handle_method($temporary, %{$options});
+}
+
+sub _output {
+    my ($path, $overwrite, $stdout, $action) = @_;
+    if ($path eq '-') {
+        $action->($stdout);
+        $stdout->flush or fail('CW_E_IO', 'Cannot flush output');
+    }
+    else { with_file($path, 'write', $action, $overwrite) }
+    return;
+}
+
+sub _receive_output {
+    my ($result, $json, $strict, $stderr) = @_;
+    my ($bytes, $status);
+    my $all     = ref($result) eq 'ARRAY';
+    my @results = $all ? @{$result} : ($result);
+    $status = !(grep { $_->has_text } @results)
+        || ($strict && (grep { $_->has_warnings } @results)) ? 1 : 0;
+    $bytes =
+        $json
+        ? JSON::PP->new->utf8->canonical->pretty->encode(
+        $all ? [map { $_->as_hash } @results] : $result->as_hash)
+        : _bytes(
+        join('', map { ($all ? $_->frequency . " Hz: " : '') . $_->text . "\n" } @results));
+    if (!$json) {
+        for my $station (@results) {
+            _write($stderr, _bytes("$_->{code}: $_->{message}\n")) for @{$station->warnings};
+        }
+    }
+    return ($bytes, $status);
+}
+
+sub _execute {
+    my ($command, $arguments, $options, $streams) = @_;
+    my ($stdin, $stdout, $stderr) = @{$streams}{qw(stdin stdout stderr)};
+    my $explicit_output = exists $options->{output};
+    my $path            = delete($options->{output})    // '-';
+    my $overwrite       = delete($options->{overwrite}) // 0;
+    fail('CW_E_ARGUMENT', '--overwrite requires a named output file') if $overwrite && $path eq '-';
+    fail('CW_E_ARGUMENT', "$command requires --output FILE or --output -")
+        if ($command eq 'wav' || $command eq 'midi') && !$explicit_output;
+    my $json   = delete $options->{json};
+    my $strict = delete $options->{strict};
+    my ($bytes, $status) = ('', 0);
+
+    if ($command eq 'receive') {
+        my $result = _receive($arguments, $options, $stdin);
+        ($bytes, $status) = _receive_output($result, $json, $strict, $stderr);
+    }
+    else {
+        my $text = _text($arguments, $options, $stdin);
+        my $cw   = Ham::CW->new;
+        if ($command eq 'wav' || $command eq 'midi') {
+            my $method = "generate_$command";
+            _output($path, $overwrite, $stdout, sub { $cw->$method($text, $_[0], %{$options}) });
+            return 0;
+        }
+        if ($command eq 'events') {
+            my $rate = delete $options->{sample_rate};
+            my $events =
+                defined($rate)
+                ? $cw->sampled_events($text, %{$options}, sample_rate => $rate)
+                : $cw->events($text, %{$options});
+            $bytes = JSON::PP->new->utf8->canonical->pretty->encode($events);
+        }
+        else { $bytes = _bytes($cw->$command($text, %{$options}) . "\n") }
+    }
+    _output($path, $overwrite, $stdout, sub { _write($_[0], $bytes) });
+    return $status;
+}
+
+sub _dispatch {
+    my ($arguments, $stdin, $stdout, $stderr) = @_;
+    fail('CW_E_ARGUMENT', 'A command is required; use ham-cw --help') unless @{$arguments};
+    my $command = shift @{$arguments};
+    if ($command eq '--version' && !@{$arguments}) {
+        _write($stdout, "ham-cw $Ham::CW::VERSION\n");
+        return 0;
+    }
+    if ($command eq '--help' || $command eq '-h' || $command eq 'help') {
+        my $topic = shift @{$arguments};
+        fail('CW_E_ARGUMENT', 'Unknown help command or extra arguments')
+            if @{$arguments} || (defined($topic) && !exists $COMMANDS{$topic});
+        _write($stdout, _help($topic));
+        return 0;
+    }
+    fail('CW_E_ARGUMENT', "Unknown command '$command'; use ham-cw --help")
+        unless exists $COMMANDS{$command};
+    my $options = _options($command, $arguments);
+    if (delete $options->{help})    { _write($stdout, _help($command));              return 0 }
+    if (delete $options->{version}) { _write($stdout, "ham-cw $Ham::CW::VERSION\n"); return 0 }
+    return _execute($command, $arguments, $options,
+        {stdin => $stdin, stdout => $stdout, stderr => $stderr});
+}
+
+sub run {
+    my ($arguments, $stdin, $stdout, $stderr) = @_;
+    local $SIG{PIPE} = 'IGNORE' if exists $SIG{PIPE};
+    my $status;
+    my $ok = eval {
+        binmode($_, ':raw')
+            or fail('CW_E_IO', 'Cannot set standard stream mode')
+            for $stdin, $stdout, $stderr;
+        $status = _dispatch([@{$arguments}], $stdin, $stdout, $stderr);
+        1;
+    };
+    return $status if $ok;
+    my $error = $@;
+    my ($code, $message) =
+        blessed($error)
+        && $error->isa('Ham::CW::Error')
+        ? ($error->code, $error->message)
+        : ('CW_E_INTERNAL', 'Unexpected command failure');
+    $status = $code eq 'CW_E_ARGUMENT' ? 2 : $code eq 'CW_E_INTERNAL' ? 4 : 3;
+    eval { _write($stderr, _bytes("ham-cw: $code: $message\n")); 1 } or return 3;
+    return $status;
+}
+1;
