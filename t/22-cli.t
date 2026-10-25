@@ -78,6 +78,13 @@ for my $arguments (['--help'], ['-h'], ['help'],
     like($out, qr/Usage: ham-cw/, 'help identifies executable');
     is($err, '', 'help has no error output');
 }
+for my $command (qw(encode decode events wav midi receive)) {
+    ($status, $out) = cli(['help', $command]);
+    like($out, qr/Usage: ham-cw \Q$command\E \[OPTIONS\]/, 'help starts with the selected task');
+    like($out, qr/Example:\n  ham-cw \Q$command\E /,       'help includes a task-specific example');
+    unlike($out, qr/^Commands:/m, 'task help omits the unrelated command menu');
+    ok(!(grep { length($_) > 78 } split /\n/, $out), 'task help fits a narrow terminal');
+}
 for my $arguments (['--version'], ['encode', '--version']) {
     ($status, $out, $err) = cli($arguments);
     is($status, 0,                            'version succeeds');

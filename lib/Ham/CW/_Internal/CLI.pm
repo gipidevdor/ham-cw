@@ -8,6 +8,7 @@ use IO::Handle   ();
 use JSON::PP;
 use File::Temp   qw(tempfile);
 use Scalar::Util qw(blessed);
+use Text::Wrap   ();
 use Ham::CW;
 use Ham::CW::_Internal::IO       qw(with_file write_bytes);
 use Ham::CW::_Internal::Validate qw(fail integer);
@@ -81,44 +82,88 @@ sub _write {
 
 sub _help {
     my ($command) = @_;
-    my $text = <<'HELP';
+    my %examples = (
+        encode  => 'ham-cw encode "CQ TEST"',
+        decode  => 'ham-cw decode -- "-.-. --.- / - . ... -"',
+        events  => 'ham-cw events --wpm 20 "SOS"',
+        wav     => 'ham-cw wav --wpm 20 --output practice.wav "CQ TEST"',
+        midi    => 'ham-cw midi --output practice.mid "CQ TEST"',
+        receive => 'ham-cw receive --frequency 700 --wpm 20 recording.wav',
+    );
+    my $text;
+    if (defined $command) {
+        my $input = $command eq 'receive' ? '[FILE]' : '[TEXT ...]';
+        $text = "Usage: ham-cw $command [OPTIONS] $input\n\n";
+        $text .= "Example:\n  $examples{$command}\n\nOptions for $command:\n";
+        for my $name (@{$COMMANDS{$command}}) {
+            local $Text::Wrap::columns = 78;
+            $text .= "  --$name" . ($FLAGS{$name} ? '' : ' VALUE') . "\n";
+            my $description = $DESCRIPTIONS{$name};
+            if ($command eq 'receive') {
+                $description = 'Tone in Hz (default: estimated).' if $name eq 'frequency';
+                $description = 'Character words/minute, 1..60 (default: estimated).'
+                    if $name eq 'wpm';
+                $description = 'Farnsworth spacing speed (optional hint).'
+                    if $name eq 'effective-wpm';
+                $description = 'File byte limit (default: 64000000).' if $name eq 'max-bytes';
+            }
+            $text .= Text::Wrap::wrap('      ', '      ', $description) . "\n";
+        }
+    }
+    else {
+        $text = <<'HELP';
 Usage: ham-cw COMMAND [OPTIONS] [TEXT ...]
        ham-cw receive [OPTIONS] [FILE]
 
+Morse, from text to signal and back.
+
 Commands:
-  encode   Convert text to International Morse.
-  decode   Convert space-separated Morse groups to text; / separates words.
-  events   Export timed events as JSON; --sample-rate selects sampled events.
-  wav      Generate PCM WAV; --output FILE or --output - is required.
-  midi     Generate a standard MIDI file; --output FILE or --output - is required.
-  receive  Decode a PCM WAV file; omit FILE or use - to read standard input.
+  encode   Text to Morse.
+  decode   Morse to text; spaces separate letters, / separates words.
+  events   Timed keying events as JSON.
+  wav      Text to a PCM WAV file.
+  midi     Text to a standard MIDI file.
+  receive  Recorded PCM WAV to text.
+
+Start here:
+  ham-cw encode "CQ TEST"
+  ham-cw wav --output practice.wav "CQ TEST"
+  ham-cw receive --frequency 700 --wpm 20 practice.wav
+
+Run ham-cw help COMMAND for options and an example.
+HELP
+    }
+    $text .= <<'HELP';
 
 Common options:
-  --input FILE, -i FILE   Read a file instead of positional text; - means stdin.
-  --output FILE, -o FILE  Write a file; - means stdout (default for text/JSON).
-  --overwrite             Explicitly replace an existing output file.
-  --help, -h              Show help, including command-specific options.
-  --version               Show the distribution version.
-
-Text is UTF-8. With no positional text, commands read UTF-8 from stdin.
-Use -- before text beginning with a dash. Quote text containing prosigns.
-Binary stdout requires explicit --output -. Diagnostics use stderr.
-Exit codes: 0 success; 1 no received text (or --strict warnings);
-            2 invalid usage/options; 3 input/output/processing error; 4 internal error.
-Run ham-cw help COMMAND for the available command-specific options.
+  -i, --input FILE    Read a file; - reads stdin.
+  -o, --output FILE   Write a file; - writes stdout.
+  --overwrite        Replace an existing output file deliberately.
+  -h, --help         Show help.
+  --version          Show the distribution version.
 HELP
-    if (defined $command) {
-        $text .= "\nOptions for $command:\n";
-        for my $name (@{$COMMANDS{$command}}) {
-            $text .= sprintf "  %-25s %s\n", "--$name" . ($FLAGS{$name} ? '' : ' VALUE'),
-                $DESCRIPTIONS{$name};
-        }
-        $text .= "\nText input limit: 8192 bytes by default; --max-input-bytes allows 1..1048576.\n"
-            unless $command eq 'receive';
+    if (defined($command) && $command eq 'receive') {
         $text .=
-            "\nReceive stdin is spooled to a temporary seekable file, bounded by --max-bytes.\n"
-            if $command eq 'receive';
+            "\nOmit FILE or use - to read WAV from stdin (temporary file; --max-bytes limit).\n";
+        $text .= "Inspect reception warnings even when text is present; --json includes them.\n";
     }
+    else {
+        $text .= "\nText is UTF-8. Omit TEXT to read stdin, or use --input FILE.\n";
+        $text .= "Use -- before text beginning with a dash. Quote text containing prosigns.\n";
+    }
+    $text .= "Existing output files are protected; use --overwrite to replace them.\n";
+    $text .= "WAV and MIDI require --output FILE; binary stdout requires --output -.\n"
+        if !defined($command) || $command eq 'wav' || $command eq 'midi';
+    $text .= <<'HELP';
+Diagnostics use stderr. Text and JSON default to stdout.
+
+Exit codes:
+  0  Success.
+  1  No received text, or reception warnings with --strict.
+  2  Invalid usage or options.
+  3  Input, output or processing error.
+  4  Unexpected internal error.
+HELP
     return $text;
 }
 

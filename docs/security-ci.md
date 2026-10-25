@@ -1,5 +1,7 @@
 # Security checks in CI
 
+[Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
+
 `.github/workflows/security.yml` runs on pull requests, pushes to main,
 manual dispatch and every Monday at 06:23 UTC. The weekly scan refreshes the
 advisory database even when no code changes. The final **Security checks**

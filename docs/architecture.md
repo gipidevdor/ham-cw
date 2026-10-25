@@ -1,5 +1,7 @@
 # Architecture
 
+[Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
+
 The text path is `Encoder → Morse`, or `Decoder → text`. Neither path needs
 DSP or third-party Morse modules. The timing path is `Encoder → TimedEvents →
 SampledEvents → Generator`. The reception path is `Audio reader → Detector →

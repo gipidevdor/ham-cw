@@ -1,8 +1,21 @@
 # Executable examples
 
+[Overview](../README.md) · [Task guide](../docs/usage.md) · [Contributing](../CONTRIBUTING.md)
+
+## First run
+
+Start with the compact tour. It creates temporary files and cleans up after itself:
+
+```sh
+perl -Ilib examples/workflows.pl
+```
+
+Then choose a scenario from the [catalog](#choose-a-path), or run the full set:
+
 Run these commands from a source checkout or an extracted CPAN distribution:
 
 ```sh
+perl -Ilib examples/run-all.pl --help
 perl -Ilib examples/run-all.pl --list
 perl -Ilib examples/run-all.pl --backend perl
 perl -Ilib examples/run-all.pl --backend auto

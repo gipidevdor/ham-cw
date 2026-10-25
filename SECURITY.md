@@ -3,7 +3,7 @@
 For a suspected vulnerability involving untrusted WAV/MIDI/event input,
 use the repository's private vulnerability reporting form:
 
-https://github.com/gipidevdor/ham-cw/security/advisories/new
+[Report a vulnerability privately](https://github.com/gipidevdor/ham-cw/security/advisories/new)
 
 Include the affected version, a minimal input or reproduction and the
 observed impact. Avoid attaching private radio traffic or credentials.

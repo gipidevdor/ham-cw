@@ -1,5 +1,7 @@
 # Release procedure
 
+[Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
+
 Run from a clean source checkout using the candidate Perl environment. Use
 its make program (`gmake` on some Windows installations). Publication is a
 separate maintainer action; no repository workflow uploads to CPAN.

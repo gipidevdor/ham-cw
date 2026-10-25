@@ -1,5 +1,7 @@
 # Reference corpus
 
+[Overview](../README.md) · [Reception guide](../docs/usage.md#simultaneous-stations) · [Verification](../docs/verification.md) · [Recording licenses](real/LICENSES.md)
+
 `vectors.json` contains fixed symbolic expectations, independent of the
 implementation's table. The symbol reference is ITU-R M.1677-1 (2009), Annex 1.
 

@@ -1,5 +1,7 @@
 # Historical benchmark observations
 
+[Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
+
 These measurements were recorded on 2026-10-24 before the current documentation
 revision. They describe their stated source/workload, not guaranteed performance
 of every later checkout. PDL is the optional numerical backend; the `perl`

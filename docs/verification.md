@@ -1,5 +1,7 @@
 # Verification
 
+[Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
+
 The corrections below were checked locally on 2026-10-24. The table below
 predates the channelized receiver; its coverage and packaging
 figures must not be interpreted as measurements of the new DSP implementation.

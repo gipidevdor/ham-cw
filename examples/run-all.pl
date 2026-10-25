@@ -8,10 +8,30 @@ use FindBin;
 use Getopt::Long qw(GetOptions);
 use JSON::PP;
 
-my ($backend, $only, $list) = ('perl', undef, 0);
-GetOptions('backend=s' => \$backend, 'only=s' => \$only, 'list' => \$list)
+my ($backend, $only, $list, $help) = ('perl', undef, 0, 0);
+GetOptions('backend=s' => \$backend, 'only=s' => \$only, 'list' => \$list, 'help|h' => \$help)
     or croak
     'Usage: perl -Ilib examples/run-all.pl [--backend perl|auto|pdl] [--only NAME] [--list]';
+if ($help) {
+    print <<'HELP';
+Usage: perl -Ilib examples/run-all.pl [OPTIONS]
+
+Explore the library through independent, runnable examples.
+
+  --list                   List scenarios without running them.
+  --only NAME              Run one scenario from the list.
+  --backend perl|auto|pdl   Select a numerical backend (default: perl).
+  -h, --help               Show help.
+
+Start here:
+  perl -Ilib examples/run-all.pl --list
+  perl -Ilib examples/run-all.pl --only text-events
+
+Generated files use temporary directories and are removed automatically.
+Explicit pdl selection requires PDL 2.081 or later; auto falls back to Perl.
+HELP
+    exit 0;
+}
 croak 'Unexpected arguments' if @ARGV;
 croak 'Unknown backend' unless $backend =~ /\A(?:perl|auto|pdl)\z/x;
 open my $input, '<:raw', File::Spec->catfile($FindBin::Bin, 'routes.json') or croak $!;

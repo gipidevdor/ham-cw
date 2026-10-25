@@ -35,7 +35,8 @@ WriteMakefile(
         'Encode'         => 0,
         'Getopt::Long'   => 0,
         'IO::Handle'     => 0,
-        'JSON::PP'       => 0
+        'JSON::PP'       => 0,
+        'Text::Wrap'     => 0
     },
     TEST_REQUIRES => {
         'Test::More'  => '0.98',

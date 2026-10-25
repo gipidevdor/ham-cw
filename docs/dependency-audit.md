@@ -1,5 +1,7 @@
 # Dependency and namespace audit
 
+[Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
+
 Checked on 2026-10-24. Exact release metadata and declared dependencies for
 the initial text/audio candidates are preserved in [cpan-audit.json](cpan-audit.json). The metadata comes from the
 [MetaCPAN API](https://fastapi.metacpan.org/). Release age alone is not evidence
@@ -46,8 +48,9 @@ an upload using the maintainer's authorized PAUSE account.
 
 Only core modules are required: Carp, Exporter, Hash::Util, Scalar::Util,
 Storable, Fcntl, File::Basename, File::Temp, Encode, Getopt::Long, IO::Handle
-and JSON::PP, plus strict/warnings and Perl itself. The command-line frontend
+JSON::PP and Text::Wrap, plus strict/warnings and Perl itself. The command-line frontend
 uses core Getopt::Long, Encode and JSON::PP rather than a CLI framework.
+Text::Wrap keeps command help readable on narrow terminals.
 File::Temp provides safe replacement output and bounded seekable WAV stdin.
 Test::More is a test requirement. Corpus hash verification also requires
 Digest::SHA 5.96 or later for tests, excluding its historical CVE-2016-1238

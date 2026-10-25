@@ -1,6 +1,8 @@
 Revision history for Ham-CW
 
 0.001  2026-10-24
+    - Streamline getting started, guide navigation and command-specific help;
+      add help for the example runner.
     - Speed up audio reception: acquisition combines one projection per hop
       instead of transforming the whole window, channels that fail
       acquisition skip the recurrence, and both filter sections run in one
