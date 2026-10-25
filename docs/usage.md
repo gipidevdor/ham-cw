@@ -512,10 +512,11 @@ Install PDL 2.081 or later into the Perl environment running your application,
 then select `backend => 'pdl'` in the constructor or supported operation.
 `backend => 'perl'` is the default. `backend => 'auto'` selects PDL when loadable,
 otherwise Perl; it does not benchmark the workload. PDL needs a compatible
-native build. Its benefit depends on the operation: the local measurements
-show faster generation and slower reception with automatic tone search;
-a known tone changes the reception comparison.
-See [measured timings](benchmarks.md) before selecting a backend.
+native build. Its benefit depends on operation, sample rate, tone hints and
+buffer allocation. Acquisition and the biquad filters still run in Perl;
+PDL accelerates the filtered spectral projections. See
+[measured timings and real-time factors](benchmarks.md) before selecting a
+backend. Experimental batching results are not release performance claims.
 
 Both backends use the same public arrays and file/event formats. Floating-point
 values can differ slightly, including one PCM unit near a rounding boundary.

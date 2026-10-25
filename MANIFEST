@@ -31,6 +31,7 @@ docs/benchmarks.md
 docs/cpan-audit.json
 docs/current-results.json
 docs/dependency-audit.md
+docs/performance-results.json
 docs/platform-history-results.json
 docs/platform-results.json
 docs/releasing.md

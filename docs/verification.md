@@ -4,12 +4,13 @@
 
 ## Scope of this record
 
-Updated 2026-10-25. Timing and corpus measurements identify source revision
-`85eb8f3fce614d30cb53eaeb0da6b978dbc3dacc` in the
-[raw results](current-results.json). The documentation update on top of that
-revision preserves the numerical generation and reception implementation.
-Command help, example discovery and usage diagnostics have since been refined. Each check below states its own
-scope; earlier PASS results are not carried forward as current measurements.
+Updated 2026-10-25. The latest timing run measures source
+`c635a8ad588558a2d12bb0557d863cd571b61349`; see
+[performance results](performance-results.json) and the [timing protocol](benchmarks.md).
+The earlier corpus, interface and CI evidence below retains its own scope and
+source in [the prior verification record](current-results.json), based on
+`85eb8f3`. The performance refresh does not rerun those test, coverage or
+security checks, and does not turn their results into certification of a later source.
 
 ## Checks and provenance
 
@@ -18,14 +19,14 @@ Local environment: macOS ARM64, Perl 5.44.0 and PDL 2.106.
 | Check | Result and scope |
 | --- | --- |
 | Ordinary and author suite | PASS: 3,034 assertions across 39 files, with all Perl warnings fatal, after the interface refinements |
-| Timing | Two sequential, three-iteration local workloads; [results and protocol](benchmarks.md) |
+| Timing | Three sequential, three-iteration workloads on `c635a8a`: 8 kHz searched/known tone and 16 kHz searched tone; [protocol](benchmarks.md) |
 | Corpus reception | Eight decodes across four clips; CER 0% and no warnings in either mode |
-| Documentation links | PASS: local targets and heading anchors checked; count in raw record |
-| Production coverage | CI on measured revision: statements 99.03% (2,245/2,267), branches 96.28% (751/780) |
-| Local distribution | Manifest inventory, archive build and archive indicators pass on this update |
-| Isolated installation | PASS in CI on measured revision, including installed CLI and examples |
-| Other Perl/platform combinations | All twelve CI test jobs pass on measured revision |
-| Security CI | FAIL on measured revision: installed and declared dependency advisory checks; other scanner jobs pass |
+| Documentation links | Checked during the timing refresh; count in [performance results](performance-results.json) |
+| Production coverage | CI on `85eb8f3`: statements 99.03% (2,245/2,267), branches 96.28% (751/780) |
+| Local distribution | Recorded PASS in the earlier interface review; not rerun in this timing refresh |
+| Isolated installation | PASS in CI on `85eb8f3`, including installed CLI and examples |
+| Other Perl/platform combinations | All twelve CI test jobs pass on `85eb8f3` |
+| Security CI | FAIL on `85eb8f3`: installed and declared dependency advisory checks; other scanner jobs pass |
 
 The coverage requirements remain 95% statements and 90% branches, with every
 production module included. These gates pass in the cited CI coverage run.

@@ -2,10 +2,11 @@
 
 [Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
 
-These measurements were recorded on 2026-10-24, before the current receiver
-implementation. See [current measurements](benchmarks.md). They describe their stated source/workload, not guaranteed performance
-of every later checkout. PDL is the optional numerical backend; the `perl`
-backend is the default. Automatic selection uses availability, not these timings.
+These sections retain measurements from their stated dates and source revisions.
+They are not fresh results for the current checkout. See
+[current measurements](benchmarks.md). The older platform tables predate the
+channelized receiver; the later local section identifies its own source.
+PDL is optional and backend selection uses availability, not these timings.
 
 ## Cross-platform comparison
 
@@ -87,3 +88,38 @@ workloads, complete WAV operations and snapshot measurements.
 [Earlier raw local observations](benchmark-results.json) are also retained;
 they predate subsequent reception corrections. Always record source revision,
 Perl/PDL versions, workload, block size and environment with new timings.
+
+## Local observations before CPAN preparation, 2026-10-25
+
+Measured source: `85eb8f3fce614d30cb53eaeb0da6b978dbc3dacc`.
+Environment: macOS ARM64, Perl 5.44.0, PDL 2.106. The
+[raw measurement record](current-results.json) includes full environment details,
+commands, CPU and wall totals, corpus results and SHA-256 hashes of measured
+modules, tools and recording inputs. This update does not change the
+measured numerical implementation. Command-help and example-interface
+refinements do not alter these numerical paths.
+
+The workload is `CQ CQ DE TESTCALL`, 20 WPM, 650 Hz, 8,000 samples/second:
+73,440 samples, or **9.18 seconds of audio**. The sample receiver is fed in
+4,096-sample blocks. Each table entry is total wall time divided by three
+iterations; it is an arithmetic mean, not a median or a percentile. Workloads
+were run sequentially without concurrent project tests or coverage collection.
+
+| Operation | Perl | PDL |
+| --- | ---: | ---: |
+| Generate samples | 0.042 s | 0.012 s |
+| Receive samples, tone search | 2.877 s | 3.166 s |
+| Generate WAV | 0.076 s | 0.029 s |
+| Decode WAV, tone search | 2.909 s | 3.591 s |
+| Receive samples, known tone | 0.295 s | 0.252 s |
+| Decode WAV, known tone | 0.303 s | 0.263 s |
+
+In this local workload, PDL generates samples and WAV faster. With automatic
+tone search it receives samples and decodes WAV slower than Perl. With the
+650 Hz tone supplied, PDL is modestly faster for reception. Knowing the tone
+reduces processing time substantially for both backends. These observations
+are specific to this signal, environment and measurement protocol.
+
+`perl` remains the default. `auto` selects PDL when available, regardless of
+speed. Choose a backend using measurements of the operation and hints your
+application actually uses. No universal backend speedup is claimed.

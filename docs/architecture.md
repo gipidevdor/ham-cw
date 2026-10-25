@@ -198,5 +198,13 @@ Detection uses squared sinusoidal projections, mathematically equivalent to
 Goertzel power, with cached kernels per frame length and batches of at most
 128 frames. Partial final hops enter the same fixed history/window and are flushed once.
 Acquisition and biquad states are shared with the scalar pipeline; PDL batches
-only the equivalent filtered projections.
+only the equivalent filtered projections. Acquisition projections and the
+sample-by-sample biquad loops still run in Perl. Each PDL batch copies filtered
+history windows into Perl arrays, constructs a PDL tensor and exports powers
+and energies back to Perl arrays. There is no compiled PDL::PP filter-bank
+kernel or persistent PDL feature store in the shipped implementation.
+
+A 16-hop batch was tested in a temporary local probe; the shipped cap remains
+128 hops. That experiment and proposed vectorized acquisition are separate
+from [current release timings](benchmarks.md).
 Existing validation precedes processing and retained history stays bounded.
