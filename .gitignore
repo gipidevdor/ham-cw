@@ -15,6 +15,7 @@
 /examples/*.wav
 .DS_Store
 /local/
+/_site/
 
 # Local recording without documented redistribution provenance.
 /corpus/morse.wav
