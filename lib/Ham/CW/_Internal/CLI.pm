@@ -164,7 +164,7 @@ sub _help {
         my $input  = $command eq 'receive'                   ? '[FILE]'         : '[TEXT ...]';
         my $output = $command eq 'wav' || $command eq 'midi' ? ' --output FILE' : '';
         $text = "Usage: ham-cw $command [OPTIONS]$output $input\n\n";
-        $text .= "Example:\n  $examples{$command}\n\nOptions for $command:\n";
+        $text .= "Example:\n  $examples{$command}\n";
         $text .= _help_options($command);
     }
     else {
@@ -218,7 +218,10 @@ Diagnostics use stderr. Text and JSON default to stdout.
 
 Exit codes:
   0  Success.
-  1  No received text, or reception warnings with --strict.
+HELP
+    $text .= "  1  No received text, or reception warnings with --strict.\n"
+        if !defined($command) || $command eq 'receive';
+    $text .= <<'HELP';
   2  Invalid usage or options.
   3  Input, output or processing error.
   4  Unexpected internal error.

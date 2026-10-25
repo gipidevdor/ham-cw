@@ -2,12 +2,19 @@
 
 [Overview](../README.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
 
-Start with a command or choose a library recipe. Installation, interface
-selection and detailed reception limits follow the recipes.
+Start with a command or choose a library recipe. New environment? Follow
+[installation](installing.md). For the wider project, open the
+[documentation index](README.md).
 
 [Commands](#command-line-use) · [Library](#library-recipes) ·
-[Installation](#requirements-and-installation) · [Recovery](#when-you-need-help) ·
+[Installation](installing.md) · [Recovery](#when-you-need-help) ·
 [Limits](#practical-limits)
+
+## Requirements and installation
+
+Use Perl 5.20 or later. The [installation guide](installing.md) covers build
+requirements, platform make programs, user-owned paths and a quick verification.
+From a checkout, commands can run without installation using `perl -Ilib bin/ham-cw`.
 
 ## Command-line use
 
@@ -393,65 +400,16 @@ API index and self-contained paths for PCM, streaming, station reception,
 results, errors and CLI processes. Run a selected scenario with
 `perl -Ilib examples/run-all.pl --only pcm-streams --backend auto`.
 
-## Requirements and installation
-
-You need Perl 5.20 or later and ExtUtils::MakeMaker 7.22 or later. The newer
-MakeMaker avoids an older build-tool search-path issue and supports
-installation paths containing spaces; CPAN clients install it as a configure
-prerequisite, while a manual build with an older bundled MakeMaker needs
-`cpanm ExtUtils::MakeMaker` first. From an extracted distribution or
-repository root:
-
-```sh
-perl Makefile.PL
-make
-make test
-make install
-```
-
-Use the make program supplied with your Perl installation (`gmake` on some
-Windows installations). The final command needs write permission to Perl's
-library directory. For a user-owned destination, configure with
-`perl Makefile.PL INSTALL_BASE=/your/install/directory` and include its
-`lib/perl5` directory in `PERL5LIB` when running applications.
-
-To use a checkout without installing, run scripts from the repository root
-with `perl -Ilib script.pl`. The CPAN distribution name is `Ham-CW`, the Perl
-package is `Ham::CW`, and this repository is named `ham-cw`.
-
-
 ## Save and receive files
 
-```perl
-use strict;
-use warnings;
-use Ham::CW;
-
-my $cw = Ham::CW->new(wpm => 20, frequency => 700);
-$cw->write_wav('CQ TEST', 'cw-demo.wav');
-$cw->write_midi('CQ TEST', 'cw-demo.mid');
-my $result = $cw->read_wav('cw-demo.wav', frequency => 700, wpm => 20);
-print $result->text, "\n";
-for my $warning (@{$result->warnings}) {
-    warn "$warning->{code}: $warning->{message}\n";
-}
-```
-
-The path methods open and close their files. Parent directories must exist.
-Existing output files are protected: rerunning this example raises `CW_E_IO`.
-To replace these files deliberately, add `overwrite => 1` to each writing
-call. Replacement is prepared in a temporary sibling and renamed only after
-successful generation and close. Existing regular-file permission bits are
-preserved; detected symbolic-link destinations are rejected during preparation.
-Inspection and rename are separate operations, so this is not an atomic
-no-symlink guarantee against concurrent directory changes. Replacement creates a
-new file identity. A processing failure preserves the old
-contents and attempts temporary-file cleanup.
+The [practice-file recipe](#farnsworth-practice-and-files) creates WAV and MIDI
+files, reads the WAV and checks reception warnings. It uses temporary paths
+so it can run repeatedly. For your own files, choose existing parent directories;
+use `overwrite => 1` for deliberate replacement. Path methods own and close
+the handles they open; see the recipe for replacement and failure behavior.
 
 `write_wav` returns a statistics hash containing `state` and `samples`;
 `write_midi` returns its byte count. `read_wav` returns a `Ham::CW::Result`.
-MIDI stores notes and timing; a separate player/synthesizer determines sound.
-
 
 ## Symbol policy
 
@@ -464,7 +422,6 @@ and `$` are rejected. The accepted operational tokens are `<AR>`, `<AS>`,
 ITU signals. `<BK>`, `<KN>`, `<KA>`, `<VE>` and `<SOS>` are not accepted.
 `SOS` remains valid as three letters. `×` is encoded as X and decodes as X.
 See [Encoder POD](../lib/Ham/CW/Encoder.pm) for the complete table and rules.
-
 
 ## Speed, spacing and reception
 
@@ -485,7 +442,6 @@ Inspect `warnings` even when both are true. Argument, file, state and resource
 failures throw `Ham::CW::Error`; uncertain reception produces Result warnings.
 The [Result reference](../lib/Ham/CW/Result.pm) explains every warning and diagnostic.
 
-
 ## Choose an interface
 
 | Task | Interface | Reference |
@@ -505,7 +461,6 @@ module and installed with it. Read it using `perldoc Ham::CW` after installation
 or `perldoc lib/Ham/CW.pm` from the checkout. Use the corresponding module name
 or file path for other references. Each public method has its own section.
 
-
 ## Optional PDL backend
 
 Install PDL 2.081 or later into the Perl environment running your application,
@@ -523,7 +478,6 @@ values can differ slightly, including one PCM unit near a rounding boundary.
 Use `perl maint/benchmark.pl --help` and `perl maint/benchmark-platforms.pl --help`
 for workload measurements. [Verification](verification.md) states which checks were rerun and archives
 earlier measurements.
-
 
 ## Practical limits
 

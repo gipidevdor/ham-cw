@@ -1,6 +1,8 @@
 Revision history for Ham-CW
 
 0.001  2026-10-25
+    - Add task-oriented documentation navigation and a focused installation
+      guide; streamline file recipes and command-specific help.
     - Refresh release performance measurements, real-time factors and PDL
       implementation limits; distinguish temporary optimization probes.
     - Add a PAUSE-readable README, static metadata and release-contract checks;

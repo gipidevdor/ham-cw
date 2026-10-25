@@ -7,7 +7,7 @@ Use the `ham-cw` command or the Perl library. Perl 5.20 or later is required;
 the default backend uses only core modules. PDL is optional; its performance
 depends on the operation and workload.
 
-[Task guide](docs/usage.md) · [Examples](examples/README.md) ·
+[Documentation](docs/README.md) · [Examples](examples/README.md) ·
 [API reference](lib/Ham/CW.pm) · [Contributing](CONTRIBUTING.md)
 
 ## Start here
@@ -34,7 +34,7 @@ make install
 
 Use the make program supplied with your Perl. Manual builds need
 ExtUtils::MakeMaker 7.22 or later. For upgrades and a user-owned installation,
-see [installation options](docs/usage.md#requirements-and-installation).
+see [installation options](docs/installing.md).
 After installation, use `ham-cw` directly.
 
 ## Make a practice recording
@@ -112,18 +112,12 @@ MIDI device control belong to the application using it.
 
 ## Explore the project
 
-| Resource | What you will find |
-| --- | --- |
-| [Task guide](docs/usage.md) | Installation, recipes, interfaces and limits |
-| [Examples](examples/README.md) | Independent, runnable workflows |
-| [Architecture](docs/architecture.md) | Data flow, ownership and lifecycle contracts |
-| [Contributing](CONTRIBUTING.md) | Development setup and verification |
-| [Release procedure](docs/releasing.md) | Packaging and installation checks |
-| [Measured performance](docs/benchmarks.md) | Local timings, backend comparison and reproduction |
-| [Verification](docs/verification.md) | Dated checks and the limits of the evidence |
-| [Reference corpus](corpus/README.md) | Recordings, provenance and reception measurements |
-| [Dependency decisions](docs/dependency-audit.md) | Core and optional dependency choices |
-| [Security](SECURITY.md) | Reporting a vulnerability |
+The [documentation index](docs/README.md) connects installation, recipes,
+architecture, measurements and reference material by task.
+
+For development, start with [contributing](CONTRIBUTING.md). For publication,
+follow the [release procedure](docs/releasing.md). Report vulnerabilities through
+[the private reporting process](SECURITY.md).
 
 Copyright © 2026 Giacomo Picchiarelli. Project code and original material use
 [Artistic License 2.0](LICENSE). Third-party audio retains its CC0 or CC BY-SA

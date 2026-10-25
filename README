@@ -42,7 +42,8 @@ Documentation and limits
     perldoc Ham::CW
     perldoc ham-cw
 
-README.md is the repository overview. docs/usage.md contains recipes;
+README.md is the repository overview. docs/README.md indexes the guides.
+docs/usage.md contains recipes;
 examples/README.md indexes independent runnable examples. The API reference
 is installed as POD with each public module.
 

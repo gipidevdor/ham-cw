@@ -1,6 +1,6 @@
 # Executable examples
 
-[Overview](../README.md) · [Task guide](../docs/usage.md) · [Contributing](../CONTRIBUTING.md)
+[Documentation](../docs/README.md) · [Task guide](../docs/usage.md) · [Contributing](../CONTRIBUTING.md)
 
 ## First run
 

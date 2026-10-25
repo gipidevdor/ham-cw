@@ -9,7 +9,6 @@ options, name units explicitly, and keep detailed contracts in the module POD.
 Command output should be useful in a pipeline; diagnostics belong on stderr.
 Preserve existing files by default and make replacement an explicit choice.
 
-
 Ham::CW supports Perl 5.20 or later. Keep the default backend dependent only
 on core modules available with that Perl. Optional features must declare their
 requirements separately. The public symbolic encoder/decoder are implemented
