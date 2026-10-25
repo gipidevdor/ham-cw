@@ -78,8 +78,8 @@ sub new {
     $self->{acquire_centres}     = \@centres;
     $self->{acquire_guards}      = \@guards;
     $self->_prepare_acquisition;
-    $self->{snr_ratio}            = 10**($self->{min_snr_db} / 10);
-    $self->{mark_snr_ratio}       = 10**($self->{mark_snr_db} / 10);
+    $self->{snr_ratio}      = 10**($self->{min_snr_db} / 10);
+    $self->{mark_snr_ratio} = 10**($self->{mark_snr_db} / 10);
     return $self->reset;
 }
 
@@ -188,10 +188,10 @@ sub _filtered_channels {
 
 sub _prepare_acquisition {
     my ($self) = @_;
-    my $hop   = $self->{frame_size};
-    my $hops  = $self->{acquire_hops} = 8;
-    my $total = $hop * $hops;
-    my $rate  = $self->{sample_rate};
+    my $hop    = $self->{frame_size};
+    my $hops   = $self->{acquire_hops} = 8;
+    my $total  = $hop * $hops;
+    my $rate   = $self->{sample_rate};
 
     # One Hann weight per hop: the mean of the periodic window over that hop.
     my @weights;
@@ -231,7 +231,7 @@ sub _prepare_acquisition {
 }
 
 sub _acquire_partial {
-    my ($self, $samples) = @_;
+    my ($self, $samples)  = @_;
     my ($cosines, $sines) = @{$self}{qw(acquire_cos acquire_sin)};
     my $count = @{$samples};
     my $pairs = $count - $count % 2;
@@ -265,6 +265,7 @@ sub _acquire_powers {
     $mean += $_->{sum} for @{$ring};
     $mean /= $self->{acquire_hops} * $self->{frame_size};
     my @powers;
+
     for my $j (0 .. $#{$offsets}) {
         my ($re, $im) = (0, 0);
         for my $k (0 .. $#{$ring}) {

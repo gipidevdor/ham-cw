@@ -26,11 +26,11 @@ sub new {
 sub delay_samples { my ($self) = @_; return $self->{delay} }
 
 sub process {
-    my ($self, $block) = @_;
-    my ($gain, $a1, $a2) = @{$self}{qw(gain a1 a2)};
-    my ($first, $second) = @{$self->{state}};
-    my ($p1, $p2) = @{$first};
-    my ($q1, $q2) = @{$second};
+    my ($self, $block)          = @_;
+    my ($gain, $a1, $a2)        = @{$self}{qw(gain a1 a2)};
+    my ($stage_one, $stage_two) = @{$self->{state}};
+    my ($p1, $p2)               = @{$stage_one};
+    my ($q1, $q2)               = @{$stage_two};
     my @out;
 
     # Both sections advance per sample; each output depends only on the
@@ -44,8 +44,8 @@ sub process {
         $q2 = -$gain * $middle - $a2 * $output;
         push @out, $output;
     }
-    @{$first}  = ($p1, $p2);
-    @{$second} = ($q1, $q2);
+    @{$stage_one} = ($p1, $p2);
+    @{$stage_two} = ($q1, $q2);
     return \@out;
 }
 1;
