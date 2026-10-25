@@ -457,8 +457,13 @@ by this class. A failed direct write can leave partial output.
 L<Ham::CW> for text-to-WAV and WAV decoding, L<Ham::CW::Generator> for sample
 generation, L<Ham::CW::Result/WARNINGS> for the trailing-byte warning.
 
-=head1 LICENSE
+=head1 AUTHOR
 
-Artistic License 2.0. See F<LICENSE>.
+Giacomo Picchiarelli
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2026 Giacomo Picchiarelli.
+Artistic License 2.0. See F<LICENSE> in the source distribution.
 
 =cut

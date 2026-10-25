@@ -280,8 +280,13 @@ Invalid event timing/resolution raises C<CW_E_TIMING>; excessive events or
 sample counts raise C<CW_E_RESOURCE>. Reuse without reset and invalidated
 iterators raise C<CW_E_STATE>. Validation errors preserve generator state.
 
-=head1 LICENSE
+=head1 AUTHOR
 
-Artistic License 2.0. See F<LICENSE>.
+Giacomo Picchiarelli
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2026 Giacomo Picchiarelli.
+Artistic License 2.0. See F<LICENSE> in the source distribution.
 
 =cut

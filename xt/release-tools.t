@@ -8,6 +8,8 @@ use File::Find qw(find);
 use IPC::Open3 qw(open3);
 use Symbol     qw(gensym);
 use Archive::Tar;
+use JSON::PP;
+use Ham::CW ();
 
 sub write_file {
     my ($path, $content) = @_;
@@ -102,4 +104,29 @@ for my $case (
     ($status, $output) = run("-I$temporary", 'maint/coverage.pl', 'test-db');
     is($status, 0, 'absolute Windows blib paths map to the production inventory') or diag($output);
 }
+
+# Check actual release bytes, including a metadata mismatch that basic archive
+# indicators can miss. make distmeta supplies the candidate staging directory.
+my $staging       = "Ham-CW-$Ham::CW::VERSION";
+my $candidate     = File::Spec->catfile($temporary, "Ham-CW-$Ham::CW::VERSION.tar.gz");
+my $candidate_raw = File::Spec->catfile($temporary, "Ham-CW-$Ham::CW::VERSION.tar");
+($status, $output) = run('maint/archive.pl', $candidate_raw, $staging);
+is($status, 0, 'candidate archive is built from the release inventory') or diag($output);
+my $release_tar = Archive::Tar->new($candidate_raw);
+$release_tar->write($candidate, 1) or die 'Cannot compress candidate archive';
+($status, $output) = run('maint/check-dist.pl', $candidate);
+is($status, 0, 'candidate passes archive indicators and release contract') or diag($output);
+my $candidate_tar  = Archive::Tar->new($candidate);
+my $meta_path      = "$staging/META.json";
+my $candidate_meta = decode_json($candidate_tar->get_content($meta_path));
+$candidate_meta->{provides}{'Ham::CW'}{version} = '999.999';
+$candidate_tar->replace_content($meta_path, JSON::PP->new->canonical->encode($candidate_meta));
+$candidate_tar->write($candidate, 1) or die 'Cannot write metadata mismatch fixture';
+($status, $output) = run('maint/check-dist.pl', $candidate);
+isnt($status, 0, 'archive rejects an indexed version that differs from its module');
+like(
+    $output,
+    qr/Failed release contract:.*indexed_version:Ham::CW/s,
+    'mismatch identifies the package that PAUSE would index incorrectly'
+);
 done_testing;

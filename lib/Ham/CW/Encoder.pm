@@ -271,8 +271,13 @@ The normative symbol table is
 L<ITU-R M.1677-1 (2009), Annex 1|https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en>.
 Operational tokens above are library labels for its admitted signals.
 
-=head1 LICENSE
+=head1 AUTHOR
 
-Artistic License 2.0. See F<LICENSE>.
+Giacomo Picchiarelli
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2026 Giacomo Picchiarelli.
+Artistic License 2.0. See F<LICENSE> in the source distribution.
 
 =cut

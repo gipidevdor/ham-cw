@@ -42,6 +42,9 @@ WriteMakefile(
         'Test::More'  => '0.98',
         'JSON::PP'    => 0,
         'Symbol'      => 0,
+        'Config'      => 0,
+        'Cwd'         => 0,
+        'IPC::Open3'  => 0,
         'File::Temp'  => 0,
         'File::Spec'  => 0,
         'Digest::SHA' => '5.96'
@@ -49,9 +52,11 @@ WriteMakefile(
     dist =>
         {TAR => '$(PERLRUN) maint/archive.pl', TARFLAGS => q{ }, COMPRESS => 'gzip -n -f --best'},
     META_MERGE => {
-        provides    => \%provides,
-        'meta-spec' => {version => 2},
-        resources   => {
+        provides       => \%provides,
+        dynamic_config => 0,
+        keywords       => [qw(morse cw amateur-radio wav midi)],
+        'meta-spec'    => {version => 2},
+        resources      => {
             repository => {
                 type => 'git',
                 url  => 'https://github.com/gipidevdor/ham-cw.git',
@@ -60,8 +65,11 @@ WriteMakefile(
             bugtracker => {web => 'https://github.com/gipidevdor/ham-cw/issues'},
             homepage   => 'https://github.com/gipidevdor/ham-cw',
         },
-        no_index => {directory => [qw(t xt examples maint)], namespace => ['Ham::CW::_Internal']},
-        prereqs  => {
+        no_index => {
+            directory => [qw(xt examples maint lib/Ham/CW/_Internal)],
+            namespace => ['Ham::CW::_Internal']
+        },
+        prereqs => {
             runtime => {recommends => {PDL => '2.081'}},
             develop => {
                 requires => {
@@ -70,6 +78,8 @@ WriteMakefile(
                     'Devel::Cover'            => 0,
                     'Test::Pod'               => '1.48',
                     'Test::CPAN::Meta'        => 0,
+                    'CPAN::Meta'              => 0,
+                    'ExtUtils::Manifest'      => 0,
                     'Test::CPAN::Changes'     => 0,
                     'Archive::Tar'            => '3.10',
                     'Pod::Man'                => 'v6.1.1',

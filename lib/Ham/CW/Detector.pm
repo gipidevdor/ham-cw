@@ -1042,8 +1042,13 @@ suppresses its guessed text and reports warnings. Individual damaged groups
 otherwise use replacement characters while retaining other text. Review
 L<Ham::CW::Result/WARNINGS>; completion is not a confidence estimate.
 
-=head1 LICENSE
+=head1 AUTHOR
 
-Artistic License 2.0. See F<LICENSE>.
+Giacomo Picchiarelli
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2026 Giacomo Picchiarelli.
+Artistic License 2.0. See F<LICENSE> in the source distribution.
 
 =cut

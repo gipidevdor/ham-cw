@@ -153,8 +153,13 @@ Input format/type errors raise C<CW_E_ARGUMENT>.
 
 L<Ham::CW::Encoder/events>, L<Ham::CW::Generator>, L<Ham::CW::Decoder>.
 
-=head1 LICENSE
+=head1 AUTHOR
 
-Artistic License 2.0. See F<LICENSE>.
+Giacomo Picchiarelli
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2026 Giacomo Picchiarelli.
+Artistic License 2.0. See F<LICENSE> in the source distribution.
 
 =cut

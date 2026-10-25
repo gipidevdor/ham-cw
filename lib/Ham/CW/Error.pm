@@ -133,8 +133,13 @@ that formatted representation should not be parsed as a protocol.
 
 L<Ham::CW/ERRORS>, L<Ham::CW::Result/WARNINGS>.
 
-=head1 LICENSE
+=head1 AUTHOR
 
-Artistic License 2.0. See F<LICENSE>.
+Giacomo Picchiarelli
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2026 Giacomo Picchiarelli.
+Artistic License 2.0. See F<LICENSE> in the source distribution.
 
 =cut

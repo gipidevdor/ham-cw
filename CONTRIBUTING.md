@@ -45,7 +45,11 @@ make distmeta
 prove -lr t xt
 ```
 
-`make distmeta` creates the distribution metadata used by the author tests.
+`make distmeta` creates the distribution metadata and candidate staging tree
+used by the author tests. Metadata checks validate JSON and legacy YAML, public
+indexing/version consistency and required release files. Release-tool tests
+exercise a valid candidate archive and reject a deliberately mismatched indexed
+version.
 After another distribution command removes its staging directory, run it again
 before repeating metadata checks. Source archives contain the formatter and
 critic configurations needed for the same checks.

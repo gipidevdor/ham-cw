@@ -437,8 +437,13 @@ raise C<CW_E_SYMBOL>; invalid event alternation/resolution raises
 C<CW_E_TIMING>; history/duration limits raise C<CW_E_RESOURCE>.
 Event timing uncertainty produces Result warnings, not argument exceptions.
 
-=head1 LICENSE
+=head1 AUTHOR
 
-Artistic License 2.0. See F<LICENSE>.
+Giacomo Picchiarelli
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2026 Giacomo Picchiarelli.
+Artistic License 2.0. See F<LICENSE> in the source distribution.
 
 =cut

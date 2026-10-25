@@ -1,6 +1,8 @@
 Revision history for Ham-CW
 
-0.001  2026-10-24
+0.001  2026-10-25
+    - Add a PAUSE-readable README, static metadata and release-contract checks;
+      align installed authorship and license notices across public modules.
     - Name detector power heuristics and document their roles, units and
       tuning tradeoffs without changing thresholds.
     - Group command controls by task, show units and defaults, guide recovery

@@ -7,6 +7,7 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 Makefile.PL
 NOTICE
+README
 README.md
 SECURITY.md
 bin/ham-cw

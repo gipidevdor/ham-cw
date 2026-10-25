@@ -144,8 +144,13 @@ Unexpected internal failure. Report it with the command and a minimal input.
 Errors include their stable C<CW_E_*> code on stderr. Receive warnings use
 C<CW_W_*> codes. See L<Ham::CW/ERRORS> for the library codes.
 
-=head1 LICENSE
+=head1 AUTHOR
 
-Artistic License 2.0. See LICENSE.
+Giacomo Picchiarelli
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2026 Giacomo Picchiarelli.
+Artistic License 2.0. See F<LICENSE> in the source distribution.
 
 =cut

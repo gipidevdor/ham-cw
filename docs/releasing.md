@@ -65,3 +65,49 @@ separate maintainer action; no repository workflow uploads to CPAN.
 
 The ordinary platform matrix also runs `maint/check-cli-install.pl` to verify
 the installed executable and Windows launcher, including paths with spaces.
+
+## CPAN package contract
+
+The source distribution includes a plain `README` for PAUSE's extracted readme
+and `README.md` for repository navigation. Keep the installation, minimum Perl,
+optional PDL and license statements consistent. All public module manuals and
+the command manual identify the author and project copyright/license; NOTICE
+and the recording-specific licenses retain the separate audio terms.
+
+`META.json` is the authoritative metadata v2 record. `META.yml` is generated
+for legacy clients: v1.4 merges test prerequisites into build prerequisites
+and cannot express the develop phase. Both are validated against their own
+specification; consumer constraints must agree after accounting for those
+format differences. Static configuration is declared because Makefile.PL does
+not select prerequisites from environment probes or interactive answers.
+
+`xt/metadata.t` checks all ten public modules, their versions, the explicit
+`provides` map, optional PDL and the exclusion of helper packages/files from
+indexing. Private helpers still ship and install because the public modules
+need them. `maint/check-dist.pl` additionally checks required files and actual
+module versions inside the archive, including agreement with the archive name.
+These project release checks supplement the local CPANTS indicators; neither
+is a PAUSE acceptance guarantee or a CPAN Testers result.
+
+For a reproducible candidate in one fixed toolchain, set `SOURCE_DATE_EPOCH`
+to the reviewed source commit's timestamp before `make dist`; gzip omits its
+own filename/timestamp and the archive normalizes ownership and permissions.
+Rebuild and compare SHA-256 values. Different Perl/build-tool versions can
+still change generated metadata, so record the toolchain with the checksum.
+The upload must use the exact archive that passed isolated installation.
+
+A public-index snapshot on 2026-10-25 found no `Ham::CW` or `Ham::CW::*` entries
+in either 02packages.details.txt.gz or 06perms.txt.gz. This is not a namespace
+reservation or authenticated permission check. The maintainer must confirm
+PAUSE account access, indexing rights, the final version/date and the upload
+filename immediately before publication. A previously uploaded code archive
+filename cannot simply be reused.
+
+The repository security gate must also be reviewed on the candidate revision.
+Existing dependency advisories and broad legacy-version constraints are tracked
+in [security CI](security-ci.md); a successful packaging check does not clear
+that gate. Do not turn its failures into a passing publication checklist.
+
+References: [PAUSE upload guidance](https://www.cpan.org/modules/04pause.html),
+[PAUSE indexing model](https://pause.perl.org/pause/query?ACTION=pause_operating_model)
+and [CPAN metadata specification](https://metacpan.org/pod/CPAN::Meta::Spec).

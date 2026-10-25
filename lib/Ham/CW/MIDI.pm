@@ -185,8 +185,13 @@ tick resolution raises C<CW_E_TIMING>; event/file size limits raise
 C<CW_E_RESOURCE>; file/handle failures raise C<CW_E_IO>. There is no
 incremental object state or C<finish> method.
 
-=head1 LICENSE
+=head1 AUTHOR
 
-Artistic License 2.0. See F<LICENSE>.
+Giacomo Picchiarelli
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2026 Giacomo Picchiarelli.
+Artistic License 2.0. See F<LICENSE> in the source distribution.
 
 =cut
