@@ -74,15 +74,14 @@ Ham::CW::Result - a cumulative decoding snapshot with text and diagnostics
 
 =head1 DESCRIPTION
 
-Decoder and Detector return Results. A Result represents all accepted input
-at one point, not just newly decoded characters. Previews can change after
-further input; do not append successive full snapshots as if they were deltas.
+Decoder and Detector return cumulative Results. Each snapshot includes all
+accepted input so far; later input may revise earlier text. Replace the previous
+snapshot rather than appending it.
 
-C<complete> means processing was finalized. C<has_text> means a nonempty
-string exists. Neither proves the decoded text is correct. Inspect warnings,
-including on complete/nonempty Results. Diagnostic numbers are not confidence
-probabilities. Treat object internals as private; reference-valued accessors
-return independent copies.
+C<complete> marks finalization; C<has_text> tests for nonempty text. Check
+C<warnings> before using the decoded text. Diagnostics describe processing,
+not confidence probabilities. Accessors return copies of arrays and hashes;
+the object's internal fields are private.
 
 =head1 METHODS
 

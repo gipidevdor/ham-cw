@@ -818,24 +818,19 @@ Ham::CW::Detector - incremental channelized CW audio reception
 
 =head1 DESCRIPTION
 
-Accepts normalized mono samples and returns cumulative decoding snapshots.
-The sample rate must match the incoming audio; no resampling is performed.
-For a WAV path or bytes, use L<Ham::CW/read_wav> or L<Ham::CW/decode_wav_bytes>
-so the header supplies the rate.
+Decodes normalized mono samples into cumulative snapshots. Supply the actual
+sample rate; the detector does not resample. For WAV input, L<Ham::CW/read_wav>
+and L<Ham::CW/decode_wav_bytes> read the rate from the header.
 
-Reception is experimental. Independent band-pass channels can recover
-simultaneous CW on distinct, sufficiently separated tones. C<result> and
-C<finish> return the strongest accepted channel; C<channels> returns up to
-eight station candidates, each with independent timing, text and warnings.
-A frequency hint restricts analysis to that one tone. This is spectral
-separation, not identification of transmitters: co-channel stations cannot be
-separated, and a candidate is not proof that a real station exists.
+Reception is experimental. Separate band-pass channels can recover CW on
+distinct tones. C<result> and C<finish> return the strongest accepted channel;
+C<channels> returns up to eight candidates with independent timing, text and
+warnings. A frequency hint restricts analysis to one tone.
 
-The detector cannot correct large frequency drift or validate the linguistic
-meaning of decoded text. Interference and fading can still hide a station or
-produce partial, wrong or empty text. Short messages may need tone/speed
-hints. At least three detected keyed marks are required, so isolated E or T
-cannot be identified as CW even with speed supplied.
+Co-channel signals cannot be separated. Noise can produce false candidates;
+fading, interference and large frequency drift can cause missing or incorrect
+text. Short messages may need tone and speed hints. Detection requires at
+least three keyed marks, so an isolated E or T cannot be recognized as CW.
 
 =head1 METHODS
 

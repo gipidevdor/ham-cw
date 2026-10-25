@@ -317,9 +317,7 @@ HTML
 sub render_body {
     my ($page, $pages, $markdown) = @_;
     if ($page->{kind} eq 'index') {
-        return
-'<h1>API reference</h1><p>The complete public library and command manuals, generated from their POD.</p><dl>'
-            . join(
+        return '<h1>API reference</h1><p>Library modules and command-line manual.</p><dl>' . join(
             '',
             map {
                       '<dt><a href="'
@@ -329,7 +327,7 @@ sub render_body {
                     . escape_html($_->{source}) . '</dd>'
                 }
                 grep { $_->{kind} eq 'pod' } @{$pages}
-            ) . '</dl>';
+        ) . '</dl>';
     }
     if ($page->{kind} eq 'guide') {
         return $markdown->convert(read_text("$ROOT/$page->{source}"));

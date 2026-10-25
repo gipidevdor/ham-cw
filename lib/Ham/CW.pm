@@ -281,16 +281,12 @@ C<overwrite =E<gt> 1>. File output does not play the recording.
 
 =head1 DESCRIPTION
 
-Ham::CW converts text to Morse notation, timed keying events, normalized
-samples, PCM WAV files and standard MIDI files. It also decodes Morse
-notation, event sequences and suitable audio. CW means continuous wave;
-here, keyed ON/OFF tones represent Morse marks and gaps.
+Ham::CW converts text to Morse, timed events, samples, PCM WAV and standard
+MIDI files. It decodes Morse notation, event sequences and recorded CW.
 
-The default implementation needs Perl 5.20 or later and core Perl modules.
-It does not capture a microphone, play audio, control a radio or communicate
-with MIDI hardware. PDL is an optional numerical backend, described below.
-Audio reception is experimental and targets a single reasonably stable tone.
-Inspect reception warnings before using the decoded message.
+Requires Perl 5.20 or later and core modules; PDL is optional. Audio reception
+is experimental. Check reception warnings before using the decoded text.
+Playback, capture and radio/MIDI device control belong to the calling application.
 
 =head1 INSTALLATION AND DOCUMENTATION
 

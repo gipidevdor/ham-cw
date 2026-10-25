@@ -2,24 +2,18 @@
 
 [Overview](../README.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
 
-Start with a command or choose a library recipe. New environment? Follow
-[installation](installing.md). For the wider project, open the
-[documentation index](README.md).
-
 [Commands](#command-line-use) · [Library](#library-recipes) ·
 [Installation](installing.md) · [Recovery](#when-you-need-help) ·
 [Limits](#practical-limits)
 
 ## Requirements and installation
 
-Use Perl 5.20 or later. The [installation guide](installing.md) covers build
-requirements, platform make programs, user-owned paths and a quick verification.
-From a checkout, commands can run without installation using `perl -Ilib bin/ham-cw`.
+Requires Perl 5.20 or later; see [installation](installing.md).
+From a checkout, run commands as `perl -Ilib bin/ham-cw`.
 
 ## Command-line use
 
-Installation supplies `ham-cw` and its manual. The command is a frontend to
-the same library, with core-only dependencies and an optional PDL backend.
+`ham-cw` uses the same API and defaults as the Perl library.
 
 | Task | Command |
 | --- | --- |
@@ -35,10 +29,10 @@ the same library, with core-only dependencies and an optional PDL backend.
 | Fail on reception warnings | `ham-cw receive --strict recording.wav` |
 
 Use `--input FILE` for UTF-8 text files or omit positional text to read stdin.
-Receive stdin is spooled to a temporary seekable file with a byte limit.
-Use `--output FILE` for named text, JSON, WAV or MIDI output. Existing outputs
-are preserved unless `--overwrite` is explicit; failed replacements retain
-the previous file. `--output -` explicitly selects raw stdout for binary data.
+WAV input from stdin is spooled to a temporary file, subject to `--max-bytes`.
+Use `--output FILE` for text, JSON, WAV or MIDI output, and `--overwrite` to
+replace an existing file. Failed replacements preserve the old file.
+`--output -` selects binary stdout.
 Named binary files avoid shell-specific redirection behavior on Windows.
 Options are case-sensitive, unabbreviated and may appear before or after
 positional arguments; repeats are errors. Use `--` before dash-leading Morse.
@@ -47,16 +41,15 @@ Quote shell metacharacters and prosigns; the examples use double quotes.
 Exit codes are 0 for success, 1 for empty reception or strict warnings,
 2 for invalid usage/options, 3 for invalid data, resource limits or I/O errors,
 and 4 for an unexpected internal failure. Text warnings and errors use stderr;
-receive JSON includes its warnings in the result object. Partial text remains
-available with `--strict`, but a nonzero status tells automation to inspect it.
-`--help`, `--version` and `ham-cw help COMMAND` provide installed guidance.
-The default text-input limit is 8192 bytes; `--max-input-bytes` may explicitly
-raise it to at most 1048576. Generation and reception retain their own limits.
+receive JSON includes its warnings. `--strict` preserves partial text and
+returns status 1 when warnings occur. Use `--help` or `ham-cw help COMMAND`
+for command help, and `--version` for the installed version.
+Text input is limited to 8192 bytes by default; `--max-input-bytes` raises it
+to at most 1048576.
 
 ## When you need help
 
-Start with `ham-cw help COMMAND`. Each help page shows an example, options
-by purpose, units and defaults. Usage errors also point to that page.
+`ham-cw help COMMAND` lists options, defaults and an example.
 
 | What you see | Next action |
 | --- | --- |
@@ -71,17 +64,13 @@ by purpose, units and defaults. Usage errors also point to that page.
 | PDL does not improve speed | Compare your operation and hints with the [measured workloads](benchmarks.md). `auto` selects availability. |
 | A resource limit is reached | Check recording length and the [retained-history limits](#practical-limits) before raising the corresponding limit explicitly. |
 
-Keep decoded text and warnings together when judging a recording. For scripts,
-`--strict` preserves recovered text but returns status 1 when warnings are present.
-Adjust advanced thresholds only after checking tone, timing and input channel.
+Check tone, speed and input channel before adjusting detection thresholds.
 
 ## Library recipes
 
-The installed API reference is POD embedded in the public modules. From a
-checkout, run `perldoc lib/Ham/CW.pm`; after installation, run `perldoc Ham::CW`.
-This guide provides runnable recipes. Each Perl block is a separate script;
-run it from the repository root with `perl -Ilib your-script.pl`, or without
-`-Ilib` after installing Ham::CW. No external audio program is required.
+Each Perl block below is a standalone script. Run it with
+`perl -Ilib your-script.pl` from a checkout, or `perl your-script.pl` after
+installation. For the full API, use `perldoc Ham::CW`.
 
 ## Choose the data representation
 
@@ -152,26 +141,20 @@ for my $warning (@{$result->warnings}) {
 }
 ```
 
-WPM measures character speed on a 50-unit reference scale. Effective WPM
-lengthens letter/word gaps. Generation defaults to 20 WPM and ordinary spacing.
-Constructor settings configure generation; reception hints must be supplied
-separately. A recording can come from a different sender. WAV files supply
-their rate in the header. MIDI notes/programs are independent of audio frequency;
-channels are 1–16, programs 0–127. Playback sound depends on the synthesizer.
+Generation defaults to 20 WPM. `effective_wpm` lengthens the letter and word
+gaps for Farnsworth practice. Supply reception hints separately from the
+constructor's generation settings. WAV files provide their sample rate in the
+header; MIDI uses channels 1–16 and programs 0–127.
 
-For permanent paths, replace the temporary paths with your own. Parent
-directories must exist. Output creation protects existing files; use
-`overwrite => 1` deliberately to prepare a replacement in a temporary sibling
-and rename it after successful writing. Failed generation preserves old
-contents. Existing regular-file permission bits are preserved; preparation
-checks reject detected symbolic-link destinations. Inspection and rename are
-separate operations, so concurrent directory-entry changes are not excluded. Replacement creates a new file identity and does
-not transfer ownership, ACLs or other hard links. Cleanup is attempted on failure.
+Parent directories must exist. To replace a file, pass `overwrite => 1`:
+output is written to a temporary sibling and renamed after a successful close.
+Failed generation preserves the old file. Permission bits are preserved;
+ownership, ACLs and other hard links are not transferred. Detected symlinks are
+rejected, but the directory must also be protected from concurrent writers.
+See the [file reference](../lib/Ham/CW.pm) for cleanup and replacement details.
 
-Generation calls can override defaults without changing the object. An
-explicit effective speed remains in force when overriding only `wpm`, so
-change both when necessary. The encoder/event decoder accept explicit 1–200
-WPM; audio reception accepts 1–60 WPM and automatic estimation covers 5–60.
+Per-call options leave the object's defaults unchanged. When changing `wpm`,
+also change any previously set `effective_wpm` that should no longer apply.
 
 ## Samples, streaming and incremental reception
 
@@ -206,19 +189,15 @@ sample rate/backend, but not generation tone or speed. A known tone is optional.
 Each facade stream owns an independent generator; changing block boundaries
 does not change its waveform within one backend.
 
-`finish` is idempotent and makes the object FINISHED. Feed after finish is an
-error until `reset`. Validation failures preserve history. Previews can revise
-earlier text and estimates as evidence arrives. Unchanged snapshots are cached;
-a fresh preview after feed still sorts/resegments the history in O(N log N),
-so real applications should throttle preview calls instead of calling per block. Returned snapshots remain
-independent after a reset. Manual `Generator->stream` instead requires its
-own READY object; reset invalidates old iterators.
+`finish` is idempotent. Call `reset` before feeding more data; validation
+failures preserve history. Previews can revise earlier text as audio arrives.
+Unchanged snapshots are cached, but a new preview sorts the retained history
+in O(N log N): request previews periodically, rather than after every block.
+Snapshots survive a reset. `Generator->stream` requires a READY object;
+resetting that generator invalidates its old iterators.
 
-`max_samples` bounds complete generation, `max_frames` bounds retained detector
-features and `max_segments` bounds retained event-decoder runs. The defaults are
-10,000,000 samples, 24,000 frames (about 120 seconds) and 100,000 runs. These are
-separate limits, including silence. Streaming controls block-buffer size; it
-does not provide unlimited-duration reception. See each module's POD for ranges.
+Streaming reduces buffer size. Retained detector history is still bounded;
+see [resource limits](#practical-limits).
 
 ## Custom events and MIDI export
 
@@ -328,17 +307,14 @@ if (!$ok) {
 }
 ```
 
-Byte methods collect complete binary files in memory; file/block methods are
-preferable for large data. Capture `$@` immediately after `eval`. Library error
-codes identify invalid arguments/symbols/timing, WAV format/truncation, I/O,
-resource limits and lifecycle errors; [Error POD](../lib/Ham/CW/Error.pm) and
-[main POD](../lib/Ham/CW.pm) describe them and optional context.
+Byte methods hold the complete file in memory; use file or block methods for
+large recordings. Capture `$@` immediately after `eval` and branch on the
+error's `code`. See the [error reference](../lib/Ham/CW/Error.pm).
 
-Results are cumulative snapshots. `has_text` only tests nonempty text, including
-replacement characters; `complete` only marks finalization. Neither certifies
-accuracy. Inspect warnings even if text exists. Accessor arrays/hashes are copies;
-diagnostic fields can be absent. [Result POD](../lib/Ham/CW/Result.pm) lists all
-fields, warning codes and suggested checks. No confidence probability is supplied.
+Results are cumulative snapshots. `has_text` tests presence; `complete` marks
+finalization. Check `warnings` before using the text. Arrays and hashes returned
+by accessors are copies, and diagnostic fields may be absent. See
+[Result](../lib/Ham/CW/Result.pm) for fields and warning codes.
 
 ## Option routing and next steps
 
@@ -351,19 +327,14 @@ its sample rate from the header. Unknown or duplicate option names are errors.
 
 `block_size` means generated samples per block; `block_samples` means reader
 frames per block. Rates and frequencies are Hz; attack/release values are
-milliseconds. Numeric ranges/defaults and method signatures are specified in
-the module POD, rather than repeated in a second option reference here.
+milliseconds. The module POD lists each option's range and default.
 
 `backend => 'perl'` needs only core Perl. `pdl` requires PDL 2.081 or later;
 `auto` chooses PDL by availability, not speed. Small blocks can favor Perl.
-See [verification](verification.md) for evidence boundaries and
-[architecture](architecture.md) for processing/lifecycle design.
+See [measurements](benchmarks.md) and [architecture](architecture.md).
 
-Run `perl -Ilib examples/workflows.pl` for the executable tour. Command-line
-sender, receiver and MIDI examples accept `--help`; quote prosigns in shell
-arguments and use `--overwrite` explicitly for repeated output. The receiver
-exits 0 for nonempty text and 1 for empty text; argument/I/O errors may exit
-with another nonzero status. `--json` includes warnings alongside text.
+Run `perl -Ilib examples/workflows.pl` for a tour of the API.
+The [example catalog](../examples/README.md) covers individual methods.
 
 ## Simultaneous stations
 
@@ -395,18 +366,14 @@ stations, even when text is present and no warning is emitted.
 
 ## Complete runnable scenarios
 
-See the [executable example catalog](../examples/README.md) for the full public
-API index and self-contained paths for PCM, streaming, station reception,
-results, errors and CLI processes. Run a selected scenario with
+The [example catalog](../examples/README.md) covers PCM, streaming, reception,
+results, errors and CLI use. Select an example with
 `perl -Ilib examples/run-all.pl --only pcm-streams --backend auto`.
 
 ## Save and receive files
 
-The [practice-file recipe](#farnsworth-practice-and-files) creates WAV and MIDI
-files, reads the WAV and checks reception warnings. It uses temporary paths
-so it can run repeatedly. For your own files, choose existing parent directories;
-use `overwrite => 1` for deliberate replacement. Path methods own and close
-the handles they open; see the recipe for replacement and failure behavior.
+See the [practice-file recipe](#farnsworth-practice-and-files) for WAV and MIDI
+output and WAV reception. Path methods open and close their own handles.
 
 `write_wav` returns a statistics hash containing `state` and `samples`;
 `write_midi` returns its byte count. `read_wav` returns a `Ham::CW::Result`.
@@ -436,11 +403,8 @@ WAV input supplies its own sample rate; raw sample input requires the actual
 rate. Audio reception accepts explicit 1–60 WPM and estimates within 5–60 WPM.
 The encoder and event decoder accept explicit speeds up to 200 WPM.
 
-A nonempty `text` value can still be wrong, partial or contain replacement
-characters. `has_text` checks presence only; `complete` means finalization.
-Inspect `warnings` even when both are true. Argument, file, state and resource
-failures throw `Ham::CW::Error`; uncertain reception produces Result warnings.
-The [Result reference](../lib/Ham/CW/Result.pm) explains every warning and diagnostic.
+Invalid arguments, I/O failures and resource errors throw `Ham::CW::Error`.
+Uncertain reception produces [Result warnings](../lib/Ham/CW/Result.pm).
 
 ## Choose an interface
 
@@ -456,10 +420,7 @@ The [Result reference](../lib/Ham/CW/Result.pm) explains every warning and diagn
 | MIDI export from custom events | `Ham::CW::MIDI` | [POD](../lib/Ham/CW/MIDI.pm) |
 | Snapshots and exceptions | `Ham::CW::Result`, `Ham::CW::Error` | [Results](../lib/Ham/CW/Result.pm), [errors](../lib/Ham/CW/Error.pm) |
 
-The API reference is POD, Perl's documentation format, embedded in each public
-module and installed with it. Read it using `perldoc Ham::CW` after installation,
-or `perldoc lib/Ham/CW.pm` from the checkout. Use the corresponding module name
-or file path for other references. Each public method has its own section.
+Read a module's manual with `perldoc`, for example `perldoc Ham::CW::Audio`.
 
 ## Optional PDL backend
 
@@ -470,14 +431,12 @@ otherwise Perl; it does not benchmark the workload. PDL needs a compatible
 native build. Its benefit depends on operation, sample rate, tone hints and
 buffer allocation. Acquisition and the biquad filters still run in Perl;
 PDL accelerates the filtered spectral projections. See
-[measured timings and real-time factors](benchmarks.md) before selecting a
-backend. Experimental batching results are not release performance claims.
+[measured timings](benchmarks.md) for comparisons.
 
 Both backends use the same public arrays and file/event formats. Floating-point
 values can differ slightly, including one PCM unit near a rounding boundary.
 Use `perl maint/benchmark.pl --help` and `perl maint/benchmark-platforms.pl --help`
-for workload measurements. [Verification](verification.md) states which checks were rerun and archives
-earlier measurements.
+to measure your own workload.
 
 ## Practical limits
 

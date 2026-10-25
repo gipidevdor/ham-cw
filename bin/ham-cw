@@ -25,11 +25,10 @@ ham-cw - Morse text, event, WAV and MIDI command-line tools
 
 =head1 DESCRIPTION
 
-C<ham-cw> is installed with L<Ham::CW>. It uses the same symbolic decoder,
-generation, reception, validation and resource limits as the library.
-It requires Perl 5.20 or later and core modules. PDL acceleration is optional.
-It exports files and processes recordings; it does not access a sound device
-or a live MIDI port. Reception remains experimental; inspect warnings.
+Command-line interface to L<Ham::CW> for Morse conversion, WAV/MIDI output
+and recorded CW reception. Requires Perl 5.20 or later and core modules;
+PDL is optional. Audio reception is experimental: check its warnings.
+Sound devices and live MIDI ports are outside its scope.
 
 =head1 COMMANDS
 
