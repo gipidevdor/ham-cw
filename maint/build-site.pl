@@ -16,14 +16,19 @@ use FindBin        qw($Bin);
 use Getopt::Long   qw(GetOptions);
 use HTML::Entities qw(encode_entities);
 use HTML::TreeBuilder 5.07;
+use HTML::Element;
 use JSON::PP;
 use Markdown::Perl 1.14;
 use Pod::Simple::XHTML 3.48;
+use PPI 1.291;
 use URI;
 use URI::Escape qw(uri_unescape);
 
-my $ROOT       = abs_path("$Bin/..");
-my $REPOSITORY = 'https://github.com/gipidevdor/ham-cw';
+my $ROOT          = abs_path("$Bin/..");
+my $REPOSITORY    = 'https://github.com/gipidevdor/ham-cw';
+my %PERL_KEYWORDS = map { $_ => 1 }
+    qw(use no my our sub return if elsif else unless for foreach while until last next
+    die warn print say package require state shift bless);
 
 sub read_text {
     my ($path) = @_;
@@ -151,6 +156,49 @@ sub rewrite_links {
     return;
 }
 
+sub highlight_perl {
+    my ($tree, $page) = @_;
+    for my $code ($tree->look_down(_tag => 'code')) {
+        next unless $code->parent && $code->parent->tag eq 'pre';
+        my $source = $code->as_text;
+        my $is_perl =
+               ($code->attr('class') // '') =~ /\blanguage-perl\b/x
+            || $page->{kind} eq 'example'
+            || ($page->{kind} eq 'pod' && $source =~ /\b(?:use|my|our|sub|package)\b|\$\w/x);
+        next unless $is_perl;
+        my $document = PPI::Document->new(\$source);
+        next unless $document;
+        my @tokens = $document->tokens;
+        next unless join('', map { $_->content } @tokens) eq $source;
+        my @nodes;
+
+        for my $token (@tokens) {
+            my $text = $token->content;
+            my $class;
+            $class = 'comment' if $token->isa('PPI::Token::Comment');
+            $class = 'string'
+                if $token->isa('PPI::Token::Quote')
+                || $token->isa('PPI::Token::QuoteLike');
+            $class = 'variable' if $token->isa('PPI::Token::Symbol');
+            $class = 'number'   if $token->isa('PPI::Token::Number');
+            $class = 'keyword'
+                if $token->isa('PPI::Token::Word')
+                && $PERL_KEYWORDS{$text};
+            if (defined $class) {
+                my $span = HTML::Element->new('span', class => "syn-$class");
+                $span->push_content($text);
+                push @nodes, $span;
+            }
+            else { push @nodes, $text }
+        }
+        $code->delete_content;
+        $code->push_content(@nodes);
+        $code->attr(class => 'language-perl');
+        $code->parent->attr('data-language' => 'Perl');
+    }
+    return;
+}
+
 sub body_and_contents {
     my ($html, $page, $site) = @_;
     my $tree = document_tree($html);
@@ -170,6 +218,7 @@ sub body_and_contents {
     }
     rewrite_links($tree, $page, $site)
         unless $page->{kind} eq 'index';
+    highlight_perl($tree, $page);
     my $body     = $tree->find_by_tag_name('body');
     my $rendered = join '',
         map { ref($_) ? $_->as_HTML(undef, '', {}) : escape_html($_) } $body->content_list;
@@ -191,14 +240,14 @@ sub navigation {
     my %featured  = map { $_           => 1 } @featured;
     my %by_source = map { $_->{source} => $_ } @{$pages};
     my @groups    = (
-        ['Start here',    map { $by_source{$_} } @featured],
-        ['API reference', grep { $_->{kind} eq 'pod' } @{$pages}],
+        ['Guides',  map { $by_source{$_} } @featured],
+        ['Modules', grep { $_->{kind} eq 'pod' } @{$pages}],
         [
-            'Guides and evidence',
+            'Documentation',
             grep { $_->{source} =~ m{\Adocs/}x && !$featured{$_->{source}} } @{$pages}
         ],
         [
-            'Project',
+            'Distribution',
             grep {
                        $_->{kind} ne 'example'
                     && $_->{kind} ne 'pod'
@@ -210,7 +259,10 @@ sub navigation {
     my $html = '';
     for my $group (@groups) {
         my ($title, @entries) = @{$group};
-        $html .= '<section><h2>' . escape_html($title) . '</h2><ul>';
+        $html .=
+              '<section><h2><span class="pod-directive" aria-hidden="true">=head1 </span>'
+            . escape_html($title)
+            . '</h2><ul>';
         for my $entry (@entries) {
             my $active = $entry->{target} eq $current ? ' aria-current="page"' : '';
             $html .=
@@ -230,13 +282,19 @@ sub page_html {
     my ($page, $body, $contents, $site) = @_;
     my ($pages, $version, $revision) = @{$site}{qw(pages version revision)};
     my $title      = escape_html($page->{title});
-    my $home       = escape_html(relative_url('index.html',      $page->{target}));
-    my $css        = escape_html(relative_url('assets/site.css', $page->{target}));
-    my $api        = escape_html(relative_url('api/index.html',  $page->{target}));
+    my $home       = escape_html(relative_url('index.html',                $page->{target}));
+    my $css        = escape_html(relative_url('assets/site.css',           $page->{target}));
+    my $api        = escape_html(relative_url('api/index.html',            $page->{target}));
+    my $guides     = escape_html(relative_url('docs/index.html',           $page->{target}));
+    my $license    = escape_html(relative_url('license.html',              $page->{target}));
+    my $recordings = escape_html(relative_url('corpus/real/LICENSES.html', $page->{target}));
     my $nav        = navigation($pages, $page->{target});
     my $source     = $page->{source} eq '@api' ? 'maint/build-site.pl' : $page->{source};
     my $source_url = escape_html("$REPOSITORY/blob/$revision/$source");
-    my $label      = $page->{kind} eq 'pod' ? 'POD reference' : 'Documentation';
+    my $label =
+        $page->{kind} eq 'pod'
+        ? 'perldoc ' . escape_html($page->{title})
+        : '=pod / Ham::CW documentation';
     $body =~ s{(\A\s*<h1\b[^>]*>.*?</h1>)}{$1$contents}sx;
     return <<"HTML";
 <!doctype html>
@@ -245,12 +303,13 @@ sub page_html {
 <meta name="generator" content="Pod::Simple::XHTML and Markdown::Perl">
 <title>$title · Ham::CW</title><link rel="stylesheet" href="$css"></head>
 <body><a class="skip" href="#content">Skip to content</a>
-<header class="masthead"><a class="brand" href="$home"><span aria-hidden="true">···· ·− −−</span> Ham::CW</a>
-<nav aria-label="Project"><a href="$api">API reference</a><a href="$REPOSITORY">GitHub</a><span class="version">v$version</span></nav></header>
+<header class="masthead"><a class="brand" aria-label="Ham::CW" href="$home"><span class="syn-keyword">use</span> <span>Ham::CW</span><span class="semicolon">;</span></a>
+<nav aria-label="Project"><a href="$api">perldoc</a><a href="$guides">Guides</a><a href="$REPOSITORY">Source</a><span class="version">\$VERSION = '$version';</span></nav></header>
 <div class="layout"><details class="navigation" open><summary>Documentation menu</summary>
 <nav aria-label="Documentation">$nav</nav></details>
 <main id="content"><div class="eyebrow">$label</div><article>$body</article>
-<footer>Ham::CW $version · Generated from Perl POD and Markdown · <a href="$source_url">Edit this page on GitHub</a></footer>
+<footer><div>Ham::CW $version · Built with Perl · <a href="$source_url">Page source</a></div>
+<div><a href="$license">Code and documentation: Artistic 2.0</a> · <a href="$recordings">Recording credits and licenses</a></div></footer>
 </main></div></body></html>
 HTML
 }
@@ -396,7 +455,8 @@ sub main {
                 version  => $version,
                 revision => $revision,
                 pages    => $pages,
-                renderers => {pod => $Pod::Simple::XHTML::VERSION, markdown => $Markdown::Perl::VERSION},
+                renderers => {pod => $Pod::Simple::XHTML::VERSION, markdown => $Markdown::Perl::VERSION,
+                    perl_tokens => $PPI::VERSION},
                 assets => [sort keys %assets]
             }
         )

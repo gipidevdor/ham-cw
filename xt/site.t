@@ -13,6 +13,7 @@ BEGIN {
         require HTML::TreeBuilder;
         require URI;
         require Pod::Simple::XHTML;
+        require PPI;
         1;
     } or plan skip_all => 'Install the development documentation prerequisites';
 }
@@ -68,8 +69,8 @@ for my $source (sort grep { /\.md\z/ } @sources) {
     ok(exists $published{$source}, "Markdown published: $source");
 }
 my $home = read_file("$site/index.html");
-like($home, qr{<table\b},                                'Markdown tables are real HTML tables');
-like($home, qr{<pre><code class="language-(?:sh|perl)"}, 'fenced code retains its language');
+like($home, qr{<table\b}, 'Markdown tables are real HTML tables');
+like($home, qr{<pre\b[^>]*><code class="language-(?:sh|perl)"}, 'fenced code retains its language');
 like($home, qr{href="api/Ham/CW.html"}, 'Markdown source links lead to rendered POD');
 my $pod = read_file("$site/api/Ham/CW.html");
 like($pod, qr{id="generate_wav"},     'public method headings have linkable anchors');
@@ -80,7 +81,26 @@ like(
     'external Perl references retain MetaCPAN links'
 );
 like($pod, qr{href="../../assets/site.css"}, 'nested pages resolve CSS below a project subpath');
-my $example = read_file("$site/examples/text-events.html");
+my $example     = read_file("$site/examples/text-events.html");
+my $tree        = HTML::TreeBuilder->new_from_content($example);
+my $source_code = $tree->look_down(_tag => 'code', class => 'language-perl');
+is(
+    $source_code->as_text,
+    read_file('examples/text-events.pl'),
+    'Perl highlighting preserves the complete executable source'
+);
+$tree->delete;
+like($example, qr{class="syn-variable"}, 'PPI identifies Perl variables for highlighting');
+like(
+    $home,
+    qr{href="license.html">Code and documentation: Artistic 2.0</a>},
+    'the project license is visible in the page footer'
+);
+like(
+    $home,
+    qr{href="corpus/real/LICENSES.html">Recording credits and licenses</a>},
+    'recording attribution and separate licenses are visible in the page footer'
+);
 like(
     $example,
     qr{download="download" href="text-events.pl"|href="text-events.pl" download="download"},

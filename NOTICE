@@ -3,6 +3,10 @@ Licensing of distributed files
 The project source, original documentation and original synthetic fixtures
 are distributed under the Artistic License 2.0 in LICENSE.
 
+The documentation website's layout, CSS and text-based Perl notation are
+original project material under the same license. The site uses system fonts;
+no third-party branding artwork or web fonts are bundled.
+
 The received-radio recordings in corpus/real/ are third-party works and retain
 their own terms:
 
