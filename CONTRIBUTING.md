@@ -98,7 +98,7 @@ The website tools require Perl 5.26 or later, independently of the library's
 Perl 5.20 runtime minimum. Install them in the Perl used to build the site:
 
 ```sh
-cpanm Markdown::Perl@1.14 Pod::Simple@3.48 HTML::Tree@5.07 URI@5.40
+cpanm Markdown::Perl@1.14 Pod::Simple@3.48 HTML::Tree@5.07 URI@5.40 PPI@1.291
 perl maint/build-site.pl --output _site
 perl maint/build-site.pl --check _site
 ```
@@ -116,6 +116,11 @@ as its publishing source. The deployment job alone receives Pages/OIDC write
 permissions; PR builds have read-only access. No Ruby, Jekyll, Python or Node site
 generator is required. The pinned official Pages Actions handle artifact upload
 and deployment. A manual workflow dispatch can rebuild and republish `main`.
+
+The site's original theme uses POD directives, Perl notation and system fonts.
+PPI tokenizes Perl examples for highlighting without executing them or changing
+the downloadable source. The layout and CSS are project material under Artistic
+2.0; the footer links the separate recording credits and licenses on every page.
 
 ## Executable examples
 

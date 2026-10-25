@@ -22,7 +22,7 @@ jobs:
         with:
           perl-version: '5.40'
       - name: Install Perl documentation tools
-        run: cpanm --notest Markdown::Perl@1.14 Pod::Simple@3.48 HTML::Tree@5.07 URI@5.40
+        run: cpanm --notest Markdown::Perl@1.14 Pod::Simple@3.48 HTML::Tree@5.07 URI@5.40 PPI@1.291
       - name: Test documentation generation and broken-link rejection
         run: prove -lv xt/site.t
       - name: Generate the complete site and check every local link
