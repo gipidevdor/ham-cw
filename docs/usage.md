@@ -37,6 +37,7 @@ available with `--strict`, but a nonzero status tells automation to inspect it.
 The default text-input limit is 8192 bytes; `--max-input-bytes` may explicitly
 raise it to at most 1048576. Generation and reception retain their own limits.
 
+## Library recipes
 
 The installed API reference is POD embedded in the public modules. From a
 checkout, run `perldoc lib/Ham/CW.pm`; after installation, run `perldoc Ham::CW`.

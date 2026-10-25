@@ -30,20 +30,17 @@ metadata, source links, change descriptions and applicable audio license when
 redistributing the corpus. [NOTICE](../../NOTICE) identifies the exceptions
 to the project's code license.
 
-Preparation decoded Ogg/Vorbis, averaged channels, resampled to 8000 Hz with
-`scipy.signal.resample_poly`, cropped the stated intervals, and stored signed
-16-bit mono PCM. No denoising or gain adjustment was applied. Python soundfile
-and SciPy were preparation tools only; running the tests needs neither.
+Every derivative was prepared from the retained source Ogg bytes, after
+checking their original SHA-256: decode Ogg/Vorbis, average channels,
+resample the complete recording to 8000 Hz with `scipy.signal.resample_poly`,
+crop the stated interval, then write signed 16-bit mono PCM. No denoising or
+gain adjustment was applied. The 4U1UN crop keeps its original interval and
+contains the identification before the calibration carriers; the other three
+crops were later shortened to the complete callsigns. Python soundfile and
+SciPy were preparation tools only; running the tests needs neither.
 `../real.json` records the source URLs, source/derivative SHA-256 hashes,
-intervals, transformations and transcript references.
-
-The 4U1UN derivative is unchanged and contains its identification before
-calibration carriers. The other three derivatives were regenerated directly
-from the retained source Ogg bytes, after checking their original SHA-256:
-decode Ogg, average channels, resample the complete recording to 8000 Hz with
-`scipy.signal.resample_poly`, crop, then write signed 16-bit mono PCM. No
-denoising or gain adjustment was applied. Preparation tool versions and each
-derivative's hash/interval are retained in `license-evidence.json`.
+intervals, transformations and transcript references, and
+`license-evidence.json` retains the preparation tool versions.
 
 | Clip | Source interval (s) | Reference | WPM hint |
 | --- | ---: | --- | ---: |

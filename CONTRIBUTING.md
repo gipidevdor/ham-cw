@@ -79,7 +79,7 @@ methods. Each catalog entry must execute independently from an empty working
 directory and use the supported public API. Numerical examples accept an
 optional `perl`, `auto` or `pdl` argument. Use temporary output and check expected
 results/errors explicitly. Recordings need the same provenance/license care as
-tests. `t/27-examples.t` runs the catalog across available backends, checks its
+tests. `t/29-examples.t` runs the catalog across available backends, checks its
 method/command inventory and smoke-tests the runner. The isolated installation
 check also runs the complete catalog against the installed library.
 

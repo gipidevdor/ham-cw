@@ -2,7 +2,8 @@
 
 Morse text, keying events, WAV audio and MIDI files for Perl.
 
-Ham::CW generates Morse and decodes notation, event timing and suitable audio.
+Ham::CW generates Morse and decodes notation, keying events and recordings of
+keyed tones.
 The default backend uses only core Perl modules. An optional PDL backend
 accelerates numerical work. The library creates data and files; it does not
 play audio, record a microphone, operate a radio or send MIDI to a device.
@@ -33,13 +34,12 @@ From an uninstalled checkout, use `perl -Ilib bin/ham-cw` instead of `ham-cw`.
 
 ## Requirements and installation
 
-You need Perl 5.20 or later. From an extracted distribution or repository root:
-
-Building requires ExtUtils::MakeMaker 7.22 or later, which avoids the older
-build-tool search-path issue and supports installation paths containing spaces.
-CPAN clients install this configure prerequisite.
-For a manual build with an older bundled MakeMaker, first run
-`cpanm ExtUtils::MakeMaker`.
+You need Perl 5.20 or later and ExtUtils::MakeMaker 7.22 or later. The newer
+MakeMaker avoids an older build-tool search-path issue and supports
+installation paths containing spaces; CPAN clients install it as a configure
+prerequisite, while a manual build with an older bundled MakeMaker needs
+`cpanm ExtUtils::MakeMaker` first. From an extracted distribution or
+repository root:
 
 ```sh
 perl Makefile.PL
@@ -259,8 +259,8 @@ station selection, margin suppression and preview limitations.
 ## Development and license
 
 See [contributing](CONTRIBUTING.md), [architecture](docs/architecture.md),
-[dependency decisions](docs/dependency-audit.md), [reference corpus](corpus/README.md)
-and [release procedure](docs/releasing.md) and [security reporting](SECURITY.md).
+[dependency decisions](docs/dependency-audit.md), [reference corpus](corpus/README.md),
+[release procedure](docs/releasing.md) and [security reporting](SECURITY.md).
 
 Project code and original material: copyright © 2026 Giacomo Picchiarelli,
 [Artistic License 2.0](LICENSE). Third-party audio retains its CC0 or CC BY-SA

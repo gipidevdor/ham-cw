@@ -2,7 +2,7 @@
   {
     "file": "text-events.pl",
     "backend": false,
-    "description": "ITU symbols, aliases, prosigns, Farnsworth events and incremental event decoding",
+    "description": "ITU symbols, shared waveforms, prosigns, Farnsworth events and incremental event decoding",
     "methods": {
       "Ham::CW": [
         "new",

@@ -31,8 +31,9 @@ recordings, with per-file attribution, audio licenses, source hashes and
 transformations in [real/LICENSES.md](real/LICENSES.md). These files retain
 their own CC0/CC BY-SA terms. The test suite measures character error rate
 (CER), rather than requiring exact text on every recording. Recorded regression
-budgets are separate from the quality target; three of the initial four
-cases miss that target. Run `perl maint/reception-corpus.pl` for full results.
+budgets are separate from the quality target; the current crops decode with
+no errors, with and without a speed hint. Run `perl maint/reception-corpus.pl`
+for full results.
 
 Synthetic tests cover recovery behind a stronger unkeyed carrier and
 independent, simultaneous SOS/CQ signals at unequal levels with added noise.

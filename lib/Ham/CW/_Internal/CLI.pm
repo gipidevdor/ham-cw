@@ -94,7 +94,7 @@ Commands:
   receive  Decode a PCM WAV file; omit FILE or use - to read standard input.
 
 Common options:
-  --input FILE, -i FILE    Read a file instead of positional text; - means stdin.
+  --input FILE, -i FILE   Read a file instead of positional text; - means stdin.
   --output FILE, -o FILE  Write a file; - means stdout (default for text/JSON).
   --overwrite             Explicitly replace an existing output file.
   --help, -h              Show help, including command-specific options.

@@ -103,13 +103,13 @@ t/19-workflows.t
 t/20-review-regressions.t
 t/21-review-contracts.t
 t/22-cli.t
-t/22-review-fixes.t
 t/23-cli-process.t
 t/24-alias-and-streaming.t
 t/25-real-reception.t
 t/26-channel-reception.t
-t/27-examples.t
 t/27-mark-snr.t
+t/28-review-fixes.t
+t/29-examples.t
 t/lib/CorpusMetrics.pm
 t/lib/FaultHandle.pm
 t/lib/Reference.pm

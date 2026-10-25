@@ -34,7 +34,7 @@ recordings, plays sound, opens a microphone or controls radio/MIDI hardware.
 
 | Example | Paths demonstrated | Backend argument |
 | --- | --- | --- |
-| [text-events.pl](text-events.pl) | ITU symbols, aliases, prosigns, Farnsworth events and incremental event decoding | None |
+| [text-events.pl](text-events.pl) | ITU symbols, shared waveforms, prosigns, Farnsworth events and incremental event decoding | None |
 | [sample-streams.pl](sample-streams.pl) | Collected samples, streamed samples, progress, reset and independent iterators | perl / auto / pdl |
 | [memory-files.pl](memory-files.pl) | WAV byte strings, borrowed handles, named paths and explicit replacement | perl / auto / pdl |
 | [pcm-streams.pl](pcm-streams.pl) | PCM 8/16/24, callback and pull I/O, writer lifecycle and stereo selection | perl / auto / pdl |
@@ -115,7 +115,7 @@ these scripts. `workflows.pl` is retained as the original compact tour.
 
 ## Automated verification
 
-`prove -lv t/27-examples.t` runs every catalog entry from a separate empty
+`prove -lv t/29-examples.t` runs every catalog entry from a separate empty
 working directory, checking both its exit status and completion output,
 with warnings fatal, using `perl`, plus `pdl` and `auto` when compatible PDL
 is installed. It verifies catalog completeness against

@@ -278,17 +278,19 @@ Bytes after the RIFF boundary were ignored. Audio within RIFF was processed;
 check the file's source if the extra data was unexpected. Raw Audio readers
 expose this in metadata; facade reception propagates it into the Result.
 
+=item C<CW_W_INTERFERENCE>
+
+Carrier intervals, short implausible marks or unsupported outer activity
+were excluded during audio reception. It does not certify that every
+remaining group is CW; damaged legitimate characters may also have been
+excluded. Symbolic/event decoding does not apply these audio-specific
+exclusions.
+
 =back
 
 =head1 SEE ALSO
 
 L<Ham::CW::Decoder>, L<Ham::CW::Detector>, L<Ham::CW::Error>.
-
-C<CW_W_INTERFERENCE> means carrier intervals, short implausible marks or
-unsupported outer activity were excluded during audio reception. It does
-not certify that every remaining group is CW; damaged legitimate characters
-may also have been excluded. Symbolic/event decoding does not apply these
-audio-specific exclusions.
 
 =head1 LICENSE
 

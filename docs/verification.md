@@ -87,16 +87,16 @@ licensed in [corpus/real/LICENSES.md](../corpus/real/LICENSES.md). Their text
 references come from source descriptions. CER counts edits including spaces
 and replacement characters; it is not capped at 100%. Current observations:
 
-| Clip | CER | Quality target (25%) |
-| --- | ---: | --- |
-| 4U1UN identification | 0% | Met |
-| OH2B with calibration carriers/noise | 200% | Not met |
-| CS3B with calibration carriers/noise | 25% | Met |
-| SK6RUD reception | 50% | Not met |
+| Clip | CER with speed hint | CER estimated | Quality target (25%) |
+| --- | ---: | ---: | --- |
+| 4U1UN identification | 0% | 0% | Met |
+| OH2B with calibration carriers/noise | 0% | 0% | Met |
+| CS3B with calibration carriers/noise | 0% | 0% | Met |
+| SK6RUD reception | 0% | 0% | Met |
 
 The ordinary suite enforces recorded regression budgets, separately from the
-quality target. Passing it does not make the two failed targets successful
-reception. `perl maint/reception-corpus.pl` emits current JSON measurements,
+quality target. Four clips of a few seconds each do not establish accuracy on
+other recordings. `perl maint/reception-corpus.pl` emits current JSON measurements,
 warning lists, targets and target status. These are automated beacons, not
 human-keyed QSOs. Their failures and small corpus size limit accuracy claims;
 co-channel transmitters and unlimited reception remain unsupported. Synthetic
