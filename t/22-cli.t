@@ -84,7 +84,23 @@ for my $command (qw(encode decode events wav midi receive)) {
     like($out, qr/Example:\n  ham-cw \Q$command\E /,       'help includes a task-specific example');
     unlike($out, qr/^Commands:/m, 'task help omits the unrelated command menu');
     ok(!(grep { length($_) > 78 } split /\n/, $out), 'task help fits a narrow terminal');
+    unlike($out, qr/\t/, 'help alignment uses portable spaces');
 }
+($status, $out) = cli(['help', 'wav']);
+like($out, qr/^Usage: .*--output FILE/m, 'WAV synopsis states the required destination');
+like($out, qr/--frequency HZ/,           'tone option names its unit');
+like($out, qr/Timing and tone:/,         'generation help groups timing controls');
+($status, $out) = cli(['help', 'receive']);
+like(
+    $out,
+    qr/Results:.*Tone search:.*Detection thresholds:.*Limits and buffering:/s,
+    'receive help separates common results from advanced controls'
+);
+($status, $out, $err) = cli(['wav', '--typo']);
+like($err, qr/Try: ham-cw help wav\n\z/, 'usage failure leads to the relevant help');
+($status, $out, $err) = cli(['missing']);
+like($err, qr/Try: ham-cw --help\n\z/, 'unknown command leads to command discovery');
+
 for my $arguments (['--version'], ['encode', '--version']) {
     ($status, $out, $err) = cli($arguments);
     is($status, 0,                            'version succeeds');

@@ -33,9 +33,12 @@ recordings, with per-file attribution, audio licenses, source hashes and
 transformations in [real/LICENSES.md](real/LICENSES.md). These files retain
 their own CC0/CC BY-SA terms. The test suite measures character error rate
 (CER), rather than requiring exact text on every recording. Recorded regression
-budgets are separate from the quality target; the current crops decode with
-no errors, with and without a speed hint. Run `perl maint/reception-corpus.pl`
-for full results.
+budgets are separate from the quality target. The 2026-10-25 local run on
+revision `85eb8f3` recovered all four clip references with CER 0%, with and
+without a speed hint, and no warnings. This is eight checks on four short
+automated-beacon clips, not a general accuracy estimate. See the
+[raw results](../docs/current-results.json) and [verification record](../docs/verification.md).
+Run `perl maint/reception-corpus.pl` to repeat the checks.
 
 Synthetic tests cover recovery behind a stronger unkeyed carrier and
 independent, simultaneous SOS/CQ signals at unequal levels with added noise.

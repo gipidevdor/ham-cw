@@ -107,3 +107,19 @@ or unexpected files. See [release procedure](docs/releasing.md) for archive,
 installation and publication checks. Submit changes through a pull request and
 review all checks on the candidate commit; local tests alone do not establish
 that another platform passes.
+
+## Recording measurements
+
+Keep local results in `docs/current-results.json` and CI platform artifacts in
+`docs/platform-results.json`, with the source revision,
+measurement date, environment, exact commands and hashes of the measured inputs.
+Run timing workloads sequentially without concurrent tests or coverage collection.
+Report the timer (CPU or wall), repetitions, message, sample rate, block size,
+tone-search mode and excluded work. Keep generation, reception and WAV conversion
+separate. `auto` selects availability, so never describe it as a speed selector.
+
+Update `docs/benchmarks.md`, `docs/verification.md` and corpus claims together.
+Retain earlier raw results as explicitly historical data; never relabel an old
+measurement as current. Date each verification result separately. A test pass
+is not a timing, coverage, platform, installation or security result. Report
+unmeasured areas explicitly instead of carrying forward an earlier PASS.

@@ -2,6 +2,11 @@
 
 [Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
 
+The latest remote results are recorded below with their exact source revision.
+Earlier local counts remain historical evidence. No fresh local audit or
+new vulnerability applicability assessment is claimed. See
+[verification status](verification.md).
+
 `.github/workflows/security.yml` runs on pull requests, pushes to main,
 manual dispatch and every Monday at 06:23 UTC. The weekly scan refreshes the
 advisory database even when no code changes. The final **Security checks**
@@ -80,7 +85,7 @@ issues still require assessment.
 
 The CPAN advisory database only knows recorded advisories and module-to-dist
 mappings. A distribution absent from that database (currently including PDL
-in the database used locally) is not independently certified safe. Installed
+in the database used locally on 2026-10-24) is not independently certified safe. Installed
 versions and constraints are audited where the database has entries. Tool or
 network failures must be investigated, not converted to passing scans.
 
@@ -95,7 +100,29 @@ Any future exception needs an exact advisory/fingerprint, evidence explaining
 why it does not apply, an owner and an expiry/review date. Do not add broad
 exclusions to make the pipeline green.
 
-## Initial local verification, 2026-10-24
+## Remote results, 2026-10-25
+
+[Security run 40187441825](https://github.com/gipidevdor/ham-cw/actions/runs/40187441825)
+completed on source `85eb8f3fce614d30cb53eaeb0da6b978dbc3dacc`.
+The aggregate gate failed. Complete-history secret scanning, Perl unsafe
+construct checks and workflow syntax/security checks passed. Installed and
+declared dependency audits both failed, with no scanner errors.
+
+CPAN::Audit 20261013.002 with CPANSA::DB 20261018.001 reported two installed
+matches (File::Temp and Perl) and 38 unique declared distribution/advisory
+matches: 29 Perl, three Encode, three Storable, two PathTools and one File::Temp.
+This confirms the counts from the earlier corrective review in a fresh remote
+environment. It does not establish exploitability in Ham::CW, and the existing
+applicability questions remain unresolved. No advisory exclusion was added.
+
+The [verification record](verification.md) distinguishes this remote source
+from the documentation working tree. The [raw summary](current-results.json)
+retains tool/database metadata, scopes, advisory IDs, job outcomes and SHA-256
+hashes of the original audit artifacts. Full reports remain CI artifacts
+subject to the configured 14-day retention. Historical local observations
+below are not a fresh audit of the developer's environment.
+
+## Historical local verification, 2026-10-24
 
 actionlint 1.7.12 and zizmor 1.31.1 accept both workflows and Dependabot config.
 Gitleaks 8.30.1 found no leaks in 21 commits or the local directory scan; output
@@ -136,7 +163,7 @@ does not patch the interpreter. Remaining matches must continue to fail the gate
 merged phase requirements, core aliases and unsupported metadata. It requires
 vulnerable versions to remain red and fixed versions to clear their advisory.
 
-## Corrective local results, 2026-10-24
+## Historical corrective local results, 2026-10-24
 
 With CPAN::Audit 20261013.002 and CPANSA::DB 20261018.001, the corrected
 installed audit reports two matches (File::Temp and Perl), compared with three

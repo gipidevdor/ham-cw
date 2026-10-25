@@ -20,14 +20,39 @@ GetOptions(
     'block-size=i'    => \$args{block_size},
     'unknown=s'       => \$args{unknown},
     'overwrite!'      => \$args{overwrite},
-    'help'            => \$help
+    'help|h'          => \$help
 ) or die "Invalid sender options; use --help\n";
 if ($help) {
-    print "Usage: perl examples/send.pl [options] output.wav TEXT\n",
-        "  --wpm N --effective-wpm N --frequency HZ --sample-rate HZ --bits 8|16|24\n",
-        "  --amplitude 0..1 --attack-ms N --release-ms N --backend perl|pdl|auto\n",
-        "  --max-bytes N --max-samples N --block-size N --unknown error|skip\n",
-"Use --overwrite to replace an existing file. Quote text containing prosigns, e.g. 'CQ <AR>'.\n";
+    print <<'HELP';
+Usage: perl -Ilib examples/send.pl [OPTIONS] FILE TEXT ...
+
+Create a mono WAV practice recording.
+
+Example:
+  perl -Ilib examples/send.pl --wpm 20 practice.wav "CQ TEST"
+
+Timing and tone:
+  --wpm WPM              Character speed (default: 20).
+  --effective-wpm WPM    Extended spacing speed (default: character speed).
+  --frequency HZ         Tone (default: 700).
+
+WAV format and envelope:
+  --sample-rate HZ       Samples/second (default: 16000).
+  --bits 8|16|24         PCM bits per sample (default: 16).
+  --amplitude N          Peak amplitude, 0..1 (default: 0.8).
+  --attack-ms MS         Raised-cosine attack (default: 5).
+  --release-ms MS        Raised-cosine release (default: 5).
+
+Processing and limits:
+  --backend NAME         perl|pdl|auto (default: perl).
+  --block-size N         Samples per output block (default: 4096).
+  --max-samples N        Sample ceiling (default: 10000000).
+  --max-bytes BYTES      File byte ceiling (default: 64000000).
+  --unknown error|skip   Unsupported symbols (default: error).
+
+Files are protected by default. Use --overwrite to replace FILE.
+Quote text containing prosigns, such as "CQ <AR>". Use -h or --help for help.
+HELP
     exit 0;
 }
 my ($path, @words) = @ARGV;

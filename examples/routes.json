@@ -198,7 +198,7 @@
   {
     "file": "workflows.pl",
     "backend": false,
-    "description": "Existing compact tour of common end-to-end workflows",
+    "description": "Common end-to-end workflows with temporary files",
     "methods": {}
   }
 ]

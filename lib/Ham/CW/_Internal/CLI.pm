@@ -31,35 +31,35 @@ my %COMMANDS = (
 );
 my %FLAGS = map { $_ => 1 } qw(help version overwrite prefer-prosigns json strict all-stations);
 my %DESCRIPTIONS = (
-    unknown           => 'error|skip: unsupported symbols (default: error).',
-    'prefer-prosigns' => 'Prefer named prosigns for ambiguous Morse groups.',
-    wpm               => 'Character words/minute (generation: 20; receive: estimated).',
-    'effective-wpm'   => 'Farnsworth spacing speed (generation: WPM; receive: optional hint).',
-    frequency         => 'Tone in Hz (generation: 700; receive: estimated).',
-    'sample-rate'     => 'Samples/second, 1000..384000 (WAV: 16000; events: selects sample units).',
-    amplitude         => 'Normalized peak amplitude, 0..1 (default: 0.8).',
-    'attack-ms'       => 'Raised-cosine attack in milliseconds (default: 5).',
-    'release-ms'      => 'Raised-cosine release in milliseconds (default: 5).',
-    backend           => 'perl|pdl|auto (default: perl; PDL is optional).',
-    bits              => 'PCM bits per sample: 8, 16 or 24 (default: 16).',
-    'block-size'      => 'Generated samples per block (default: 4096).',
-    'block-samples'   => 'WAV input samples per block (default: 4096).',
-    'max-samples'     => 'Maximum generated sample count (default: 10000000).',
-    'max-input-bytes' => 'Text byte limit, 1..1048576 (default: 8192).',
-    'max-bytes'       => 'File byte limit (WAV/receive: 64000000; MIDI: 8000000).',
-    note              => 'MIDI note, 0..127 (default: 77).',
-    velocity          => 'MIDI velocity, 1..127 (default: 100).',
-    channel           => 'MIDI channel, 1..16 (default: 1).',
-    program           => 'Zero-based MIDI program, 0..127 (default: 80).',
-    bpm               => 'MIDI tempo, 4..1000 beats/minute (default: 120).',
-    ppqn              => 'MIDI ticks/quarter note, 1..32767 (default: 480).',
-    stereo            => 'mix|left|right for stereo input (default: mix).',
-    'max-frames'      => 'Retained 5 ms frames (default: 24000, about 120 seconds).',
-    'min-frequency'   => 'Lower tone-search bound in Hz (default: 300).',
-    'max-frequency'   => 'Upper tone-search bound in Hz (default: 1500, below Nyquist).',
-    'frequency-step'  => 'Tone-search grid step in Hz (default: 50).',
-    'min-contrast'    => 'Minimum keyed-envelope contrast, 0.01..1 (default: 0.60).',
-    'min-purity'      => 'Minimum spectral purity, 0.01..1 (default: 0.20).',
+    unknown            => 'Unsupported symbols (default: error).',
+    'prefer-prosigns'  => 'Prefer named prosigns for ambiguous Morse groups.',
+    wpm                => 'Character words/minute, 1..200 (default: 20).',
+    'effective-wpm'    => 'Farnsworth spacing speed (default: character speed).',
+    frequency          => 'Tone in Hz (default: 700).',
+    'sample-rate'      => 'Samples/second, 1000..384000 (default: 16000).',
+    amplitude          => 'Normalized peak amplitude, 0..1 (default: 0.8).',
+    'attack-ms'        => 'Raised-cosine attack in milliseconds (default: 5).',
+    'release-ms'       => 'Raised-cosine release in milliseconds (default: 5).',
+    backend            => 'Numerical backend (default: perl; auto selects by availability).',
+    bits               => 'PCM bits per sample (default: 16).',
+    'block-size'       => 'Generated samples per block (default: 4096).',
+    'block-samples'    => 'WAV input samples per block (default: 4096).',
+    'max-samples'      => 'Maximum generated sample count (default: 10000000).',
+    'max-input-bytes'  => 'Text byte limit, 1..1048576 (default: 8192).',
+    'max-bytes'        => 'File byte limit (default: 64000000).',
+    note               => 'MIDI note, 0..127 (default: 77).',
+    velocity           => 'MIDI velocity, 1..127 (default: 100).',
+    channel            => 'MIDI channel, 1..16 (default: 1).',
+    program            => 'Zero-based MIDI program, 0..127 (default: 80).',
+    bpm                => 'MIDI tempo, 4..1000 beats/minute (default: 120).',
+    ppqn               => 'MIDI ticks/quarter note, 1..32767 (default: 480).',
+    stereo             => 'Stereo input channel (default: mix).',
+    'max-frames'       => 'Retained 5 ms frames (default: 24000, about 120 seconds).',
+    'min-frequency'    => 'Lower tone-search bound in Hz (default: 300).',
+    'max-frequency'    => 'Upper tone-search bound in Hz (default: 1500, below Nyquist).',
+    'frequency-step'   => 'Tone-search grid step in Hz (default: 50).',
+    'min-contrast'     => 'Minimum keyed-envelope contrast, 0.01..1 (default: 0.60).',
+    'min-purity'       => 'Minimum spectral purity, 0.01..1 (default: 0.20).',
     'filter-bandwidth' => 'Per-section band-pass width in Hz (default: max(40, 4*WPM), or 180).',
     'min-snr-db'       => 'Acquisition tone/guard power threshold, 0..40 dB (default: 12).',
     'mark-snr-db'      => 'Minimum mean mark/local-noise power ratio, 0..40 dB (default: 10).',
@@ -80,6 +80,75 @@ sub _write {
     return;
 }
 
+sub _help_options {
+    my ($command) = @_;
+    my $text      = '';
+    my %available = map { $_ => 1 } @{$COMMANDS{$command}};
+    my @groups    = (
+        ['Results',                    qw(json all-stations strict)],
+        ['Timing and tone',            qw(wpm effective-wpm frequency)],
+        ['Text',                       qw(unknown prefer-prosigns)],
+        ['WAV format and envelope',    qw(sample-rate bits amplitude attack-ms release-ms)],
+        ['MIDI instrument and timing', qw(note velocity channel program bpm ppqn)],
+        ['Processing',                 qw(backend stereo)],
+        ['Tone search',                qw(min-frequency max-frequency frequency-step)],
+        [
+            'Detection thresholds',
+            qw(filter-bandwidth min-snr-db mark-snr-db min-contrast min-purity)
+        ],
+        [
+            'Limits and buffering',
+            qw(max-input-bytes max-bytes max-samples max-frames block-size block-samples)
+        ],
+    );
+    my %units = (
+        (map { $_ => 'WPM' } qw(wpm effective-wpm)),
+        (
+            map { $_ => 'HZ' }
+                qw(frequency sample-rate min-frequency max-frequency frequency-step filter-bandwidth)
+        ),
+        (map { $_ => 'MS' } qw(attack-ms release-ms)),
+        (map { $_ => 'DB' } qw(min-snr-db mark-snr-db)),
+        (map { $_ => 'BYTES' } qw(max-bytes max-input-bytes)),
+        unknown => 'error|skip',
+        backend => 'perl|pdl|auto',
+        stereo  => 'mix|left|right',
+        bits    => '8|16|24',
+    );
+    my %context = (
+        events  => {'sample-rate' => 'Samples/second, 1000..384000; selects sampled event units.'},
+        midi    => {'max-bytes'   => 'File byte limit (default: 8000000).'},
+        receive => {
+            frequency       => 'Tone in Hz (default: estimated).',
+            wpm             => 'Character words/minute, 1..60 (default: estimated).',
+            'effective-wpm' => 'Farnsworth spacing speed (optional hint).',
+        },
+    );
+    my %descriptions = (%DESCRIPTIONS, %{$context{$command} // {}});
+    my %headings     = (
+        events => {'Timing and tone' => 'Morse timing', 'WAV format and envelope' => 'Event units'},
+        midi   => {'Timing and tone' => 'Morse timing'},
+    );
+    my $headings = $headings{$command} // {};
+
+    for my $group (@groups) {
+        my ($title, @names) = @{$group};
+        @names = grep { $available{$_} } @names;
+        next unless @names;
+        $title = $headings->{$title} // $title;
+        $text .= "\n$title:\n";
+        for my $name (@names) {
+            local $Text::Wrap::columns  = 78;
+            local $Text::Wrap::unexpand = 0;
+            my $label       = "--$name" . ($FLAGS{$name} ? '' : ' ' . ($units{$name} // 'N'));
+            my $description = $descriptions{$name};
+            my $prefix      = sprintf '  %-27s ', $label;
+            $text .= Text::Wrap::wrap($prefix, ' ' x length($prefix), $description) . "\n";
+        }
+    }
+    return $text;
+}
+
 sub _help {
     my ($command) = @_;
     my %examples = (
@@ -92,23 +161,11 @@ sub _help {
     );
     my $text;
     if (defined $command) {
-        my $input = $command eq 'receive' ? '[FILE]' : '[TEXT ...]';
-        $text = "Usage: ham-cw $command [OPTIONS] $input\n\n";
+        my $input  = $command eq 'receive'                   ? '[FILE]'         : '[TEXT ...]';
+        my $output = $command eq 'wav' || $command eq 'midi' ? ' --output FILE' : '';
+        $text = "Usage: ham-cw $command [OPTIONS]$output $input\n\n";
         $text .= "Example:\n  $examples{$command}\n\nOptions for $command:\n";
-        for my $name (@{$COMMANDS{$command}}) {
-            local $Text::Wrap::columns = 78;
-            $text .= "  --$name" . ($FLAGS{$name} ? '' : ' VALUE') . "\n";
-            my $description = $DESCRIPTIONS{$name};
-            if ($command eq 'receive') {
-                $description = 'Tone in Hz (default: estimated).' if $name eq 'frequency';
-                $description = 'Character words/minute, 1..60 (default: estimated).'
-                    if $name eq 'wpm';
-                $description = 'Farnsworth spacing speed (optional hint).'
-                    if $name eq 'effective-wpm';
-                $description = 'File byte limit (default: 64000000).' if $name eq 'max-bytes';
-            }
-            $text .= Text::Wrap::wrap('      ', '      ', $description) . "\n";
-        }
+        $text .= _help_options($command);
     }
     else {
         $text = <<'HELP';
@@ -136,11 +193,11 @@ HELP
     $text .= <<'HELP';
 
 Common options:
-  -i, --input FILE    Read a file; - reads stdin.
-  -o, --output FILE   Write a file; - writes stdout.
-  --overwrite        Replace an existing output file deliberately.
-  -h, --help         Show help.
-  --version          Show the distribution version.
+  -i, --input FILE            Read a file; - reads stdin.
+  -o, --output FILE           Write a file; - writes stdout.
+  --overwrite                 Replace an existing output file deliberately.
+  -h, --help                  Show help.
+  --version                   Show the distribution version.
 HELP
     if (defined($command) && $command eq 'receive') {
         $text .=
@@ -153,7 +210,9 @@ HELP
     }
     $text .= "Existing output files are protected; use --overwrite to replace them.\n";
     $text .= "WAV and MIDI require --output FILE; binary stdout requires --output -.\n"
-        if !defined($command) || $command eq 'wav' || $command eq 'midi';
+        if !defined $command;
+    $text .= "Use --output FILE to save the file, or --output - for binary stdout.\n"
+        if defined($command) && ($command eq 'wav' || $command eq 'midi');
     $text .= <<'HELP';
 Diagnostics use stderr. Text and JSON default to stdout.
 
@@ -387,7 +446,13 @@ sub run {
         ? ($error->code, $error->message)
         : ('CW_E_INTERNAL', 'Unexpected command failure');
     $status = $code eq 'CW_E_ARGUMENT' ? 2 : $code eq 'CW_E_INTERNAL' ? 4 : 3;
-    eval { _write($stderr, _bytes("ham-cw: $code: $message\n")); 1 } or return 3;
+    my $hint = '';
+    if ($code eq 'CW_E_ARGUMENT') {
+        my $command = $arguments->[0] // '';
+        $hint =
+            exists($COMMANDS{$command}) ? "Try: ham-cw help $command\n" : "Try: ham-cw --help\n";
+    }
+    eval { _write($stderr, _bytes("ham-cw: $code: $message\n$hint")); 1 } or return 3;
     return $status;
 }
 1;

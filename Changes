@@ -1,6 +1,11 @@
 Revision history for Ham-CW
 
 0.001  2026-10-24
+    - Group command controls by task, show units and defaults, guide recovery
+      from usage errors and make example discovery easier.
+    - Refresh measured performance and verification records, retain provenance
+      and separate historical observations from current evidence.
+    - Keep local assistant settings out of distribution archives.
     - Streamline getting started, guide navigation and command-specific help;
       add help for the example runner.
     - Speed up audio reception: acquisition combines one projection per hop

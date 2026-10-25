@@ -10,27 +10,35 @@ Start with the compact tour. It creates temporary files and cleans up after itse
 perl -Ilib examples/workflows.pl
 ```
 
-Then choose a scenario from the [catalog](#choose-a-path), or run the full set:
-
-Run these commands from a source checkout or an extracted CPAN distribution:
+Choose one scenario before running the full catalog:
 
 ```sh
-perl -Ilib examples/run-all.pl --help
 perl -Ilib examples/run-all.pl --list
-perl -Ilib examples/run-all.pl --backend perl
-perl -Ilib examples/run-all.pl --backend auto
-perl -Ilib examples/run-all.pl --backend pdl
-perl -Ilib examples/run-all.pl --only reception-channels --backend pdl
+perl -Ilib examples/run-all.pl --only text-events
 ```
 
-PDL mode requires PDL >=2.081 installed for the same Perl. `auto` exercises
-PDL when available and the Perl fallback otherwise. Explicit `pdl` selection
-fails when unavailable. Numerical examples also accept a positional backend:
+Use the same pattern for files, streaming, MIDI, reception or error recovery.
+The [catalog](#choose-a-path) explains each route. To run everything:
+
+```sh
+perl -Ilib examples/run-all.pl --backend perl
+```
+
+Numerical examples also accept `--backend auto` or `--backend pdl` through the
+runner. Explicit `pdl` requires PDL 2.081 or later in the same Perl environment;
+`auto` uses PDL when available and falls back to Perl. It does not choose the
+faster backend. See [measured performance](../docs/benchmarks.md) for context.
+
+Individual numerical examples accept a positional backend:
 
 ```sh
 perl -Ilib examples/pcm-streams.pl perl
 perl -Ilib examples/reception-channels.pl pdl
 ```
+
+Run `perl -Ilib examples/run-all.pl --help` for the runner's options. The
+`send.pl`, `receive.pl` and `midi.pl` tools also accept `-h` or `--help`; their
+help separates common controls, advanced settings and resource limits.
 
 After installing Ham::CW, omit `-Ilib` to use the installed library. Keep the
 examples directory and bundled corpus from the source distribution together.
@@ -57,7 +65,7 @@ recordings, plays sound, opens a microphone or controls radio/MIDI hardware.
 | [failure-recovery.pl](failure-recovery.pl) | All library error families, failed replacement, recoverable validation and failed writers | perl / auto / pdl |
 | [cli-paths.pl](cli-paths.pl) | All CLI commands, UTF-8 files/stdin, binary stdout, station JSON and exit codes | perl / auto / pdl |
 | [corpus-reception.pl](corpus-reception.pl) | Redistributable off-air recordings, references, warnings and attribution | perl / auto / pdl |
-| [workflows.pl](workflows.pl) | Existing compact tour of common end-to-end workflows | None |
+| [workflows.pl](workflows.pl) | Common end-to-end workflows with temporary files | None |
 
 The WAV examples cover byte strings, caller-owned handles and library-owned
 paths; collected arrays, callback blocks and pull iterators; mono PCM
@@ -112,7 +120,7 @@ interfaces. The catalog describes public workflows and representative success,
 warning and failure paths; regression tests additionally exercise numerical
 boundaries, malformed-file variations and platform-specific I/O behavior.
 
-## Existing command-line tools
+## File tools
 
 These tools accept user-selected output/input paths and messages:
 
@@ -124,7 +132,7 @@ perl -Ilib examples/midi.pl practice.mid "CQ DE TESTCALL"
 ```
 
 Destinations must be new unless `--overwrite` is explicit. `--help` documents
-these scripts. `workflows.pl` is retained as the original compact tour.
+these scripts. `workflows.pl` provides a compact tour using temporary files.
 
 ## Automated verification
 

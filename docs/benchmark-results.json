@@ -1,7 +1,8 @@
 {
+  "status": "historical",
   "date": "2026-10-24",
   "units": "seconds",
-  "note": "Local wall and CPU timings; no memory profiling or cross-platform performance claim. Snapshot rebuild calls the internal full analyzer once; snapshots performs 100 cached public result reads. WAV decode uses its default reader block size, independent of --block.",
+  "note": "ARCHIVED: predates the current receiver; do not use these rates as current performance. Local wall and CPU timings; no memory profiling or cross-platform performance claim. Snapshot rebuild calls the internal full analyzer once; snapshots performs 100 cached public result reads. WAV decode uses its default reader block size, independent of --block.",
   "workloads": [
     {
       "audio_seconds": 9.18,

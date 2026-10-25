@@ -718,8 +718,10 @@ your application before selecting it.
 Both backends use public Perl arrays and the same event/file interfaces.
 Floating-point waveforms can differ slightly; a PCM value near a rounding
 boundary may differ by one integer unit. Feed boundaries do not change the
-waveform within one backend. PDL can be slower for short blocks or a known
-single tone. Measure your workload with F<maint/benchmark.pl>.
+waveform within one backend. PDL performance depends on the operation and
+tone-search mode; acceleration is not guaranteed. Measure your workload with
+F<maint/benchmark.pl>. Dated local results and the measurement protocol are
+recorded in F<docs/benchmarks.md>.
 
 =head1 SEE ALSO
 

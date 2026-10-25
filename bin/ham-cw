@@ -111,7 +111,9 @@ files supplied with C<--input> provide portable non-ASCII input, including
 on Windows. Windows installs also provide a C<ham-cw.bat> launcher.
 
 C<--help> and C<--version> work globally and after a command.
-C<ham-cw help COMMAND> lists the available command options.
+C<ham-cw help COMMAND> shows an example and groups the available options
+by purpose, with units and defaults. Usage errors point to the relevant help
+page; help output fits a 78-column terminal without tab-dependent alignment.
 
 =head1 EXIT STATUS
 

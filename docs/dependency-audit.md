@@ -2,7 +2,8 @@
 
 [Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Contributing](../CONTRIBUTING.md)
 
-Checked on 2026-10-24. Exact release metadata and declared dependencies for
+Candidate metadata checked on 2026-10-24; this is a dated dependency decision
+record, not a fresh advisory audit. See [security audit status](security-ci.md). Exact release metadata and declared dependencies for
 the initial text/audio candidates are preserved in [cpan-audit.json](cpan-audit.json). The metadata comes from the
 [MetaCPAN API](https://fastapi.metacpan.org/). Release age alone is not evidence
 of a defect. Third-party test suites were inspected where listed in the JSON,

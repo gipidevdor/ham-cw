@@ -49,8 +49,12 @@ separate maintainer action; no repository workflow uploads to CPAN.
    The corpus-license author check rejects unregistered distributed recordings.
    Local recordings with unknown provenance must remain outside the archive.
 8. Update [verification](verification.md) with the source revision, commands,
-   environment and actual outcomes. Distinguish current results from historical
-   benchmark observations. A synthetic corpus does not establish off-air
+   environment and actual outcomes. Refresh `docs/current-results.json`,
+   `docs/platform-results.json`, `docs/benchmarks.md`, `docs/verification.md`
+   and corpus claims together.
+   Record the measured source revision, input hashes, commands and timer type;
+   run timing workloads without concurrent verification. Keep historical
+   records explicitly archived and mark checks not rerun. A synthetic corpus does not establish off-air
    accuracy; local archive indicators are not CPAN Testers or remote CPANTS.
 9. Obtain the maintainer's approval to upload the checked archive to CPAN.
    Use the authorized PAUSE process. Record the uploaded archive checksum and

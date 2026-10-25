@@ -27,16 +27,49 @@ GetOptions(
     'max-bytes=i'        => \$options{max_bytes},
     'block-samples=i'    => \$options{block_samples},
     'json!'              => \$json,
-    'help'               => \$help,
+    'help|h'             => \$help,
 ) or die "Invalid receiver options; use --help\n";
 
 if ($help) {
-    print "Usage: perl examples/receive.pl [options] input.wav\n",
-        "  --frequency HZ --wpm WPM --effective-wpm WPM\n",
-        "  --backend perl|pdl|auto --stereo mix|left|right --max-frames N --json\n",
-        "  --min-frequency HZ --max-frequency HZ --frequency-step HZ\n",
-        "  --filter-bandwidth HZ --min-snr-db DB --mark-snr-db DB --all-stations\n",
-        "  --min-contrast N --min-purity N --max-bytes N --block-samples N\n";
+    print <<'HELP';
+Usage: perl -Ilib examples/receive.pl [OPTIONS] FILE
+
+Read a PCM WAV recording and print recovered text.
+
+Example:
+  perl -Ilib examples/receive.pl --frequency 700 --wpm 20 practice.wav
+
+Results and hints:
+  --json                  Include warnings and diagnostics in JSON.
+  --all-stations          Return up to eight distinct keyed tones.
+  --frequency HZ          Known tone (default: searched).
+  --wpm WPM               Known character speed (default: estimated).
+  --effective-wpm WPM     Known Farnsworth spacing speed.
+
+Processing:
+  --backend NAME          perl|pdl|auto (default: perl).
+  --stereo NAME           mix|left|right (default: mix).
+  --block-samples N       Samples per input block (default: 4096).
+
+Tone search and detection:
+  --min-frequency HZ      Search lower bound (default: 300).
+  --max-frequency HZ      Search upper bound (default: 1500, below Nyquist).
+  --frequency-step HZ     Candidate spacing (default: 50).
+  --filter-bandwidth HZ   Per-section width (default: 180, or max(40,4*WPM)).
+  --min-snr-db DB         Acquisition tone/guard threshold (default: 12).
+  --mark-snr-db DB        Mark/local-noise threshold (default: 10).
+  --min-contrast N        Envelope contrast, 0.01..1 (default: 0.60).
+  --min-purity N          Spectral purity, 0.01..1 (default: 0.20).
+
+Limits:
+  --max-frames N          Retained 5 ms frames (default: 24000).
+  --max-bytes BYTES       File byte ceiling (default: 64000000).
+
+Read warnings even when text is present. JSON contains its own warnings;
+plain-text warnings go to stderr. Exit status: 0 with text, 1 without text.
+For strict warning handling, use ham-cw receive --strict FILE.
+Use -h or --help for help.
+HELP
     exit 0;
 }
 die "Usage: perl examples/receive.pl [options] input.wav\n" unless @ARGV == 1;

@@ -6,7 +6,8 @@ Start with a command or choose a library recipe. Installation, interface
 selection and detailed reception limits follow the recipes.
 
 [Commands](#command-line-use) · [Library](#library-recipes) ·
-[Installation](#requirements-and-installation) · [Limits](#practical-limits)
+[Installation](#requirements-and-installation) · [Recovery](#when-you-need-help) ·
+[Limits](#practical-limits)
 
 ## Command-line use
 
@@ -44,6 +45,28 @@ available with `--strict`, but a nonzero status tells automation to inspect it.
 `--help`, `--version` and `ham-cw help COMMAND` provide installed guidance.
 The default text-input limit is 8192 bytes; `--max-input-bytes` may explicitly
 raise it to at most 1048576. Generation and reception retain their own limits.
+
+## When you need help
+
+Start with `ham-cw help COMMAND`. Each help page shows an example, options
+by purpose, units and defaults. Usage errors also point to that page.
+
+| What you see | Next action |
+| --- | --- |
+| An option is rejected | Open help for that command. Use full, case-sensitive option names. |
+| Morse beginning with a dash is parsed as an option | Add `--`: `ham-cw decode -- "-.. ."`. |
+| An output file already exists | Choose a new path, or add `--overwrite` for deliberate replacement. |
+| WAV or MIDI output is missing | Supply `--output practice.wav` or `--output practice.mid`. |
+| A character or prosign is rejected | Check the [symbol policy](#symbol-policy); quote tokens such as `"<AR>"`. |
+| No text, partial text or reception warnings | Use `--json` to inspect the result. Supply known `--frequency` and `--wpm`; include `--effective-wpm` for Farnsworth spacing. |
+| Stereo reception is unexpectedly weak | Try `--stereo left` or `--stereo right`; mixing can cancel opposite-phase audio. |
+| PDL is unavailable | Use `--backend perl`, or install PDL in the same Perl environment. |
+| PDL does not improve speed | Compare your operation and hints with the [measured workloads](benchmarks.md). `auto` selects availability. |
+| A resource limit is reached | Check recording length and the [retained-history limits](#practical-limits) before raising the corresponding limit explicitly. |
+
+Keep decoded text and warnings together when judging a recording. For scripts,
+`--strict` preserves recovered text but returns status 1 when warnings are present.
+Adjust advanced thresholds only after checking tone, timing and input channel.
 
 ## Library recipes
 
@@ -489,13 +512,16 @@ Install PDL 2.081 or later into the Perl environment running your application,
 then select `backend => 'pdl'` in the constructor or supported operation.
 `backend => 'perl'` is the default. `backend => 'auto'` selects PDL when loadable,
 otherwise Perl; it does not benchmark the workload. PDL needs a compatible
-native build and can be slower for small blocks or a single known tone.
+native build. Its benefit depends on the operation: the local measurements
+show faster generation and slower reception with automatic tone search;
+a known tone changes the reception comparison.
+See [measured timings](benchmarks.md) before selecting a backend.
 
 Both backends use the same public arrays and file/event formats. Floating-point
 values can differ slightly, including one PCM unit near a rounding boundary.
 Use `perl maint/benchmark.pl --help` and `perl maint/benchmark-platforms.pl --help`
-for workload measurements. [Verification](../docs/verification.md) separates
-current local and platform checks from historical benchmark observations.
+for workload measurements. [Verification](verification.md) states which checks were rerun and archives
+earlier measurements.
 
 
 ## Practical limits
@@ -531,9 +557,10 @@ independent 20/25 WPM estimates, with unequal levels and added noise. A stronger
 continuous carrier is also tested. This does not establish arbitrary field
 accuracy: co-channel stations cannot be separated; fading, interference, short
 messages and unknown spacing can still produce wrong, partial or empty text.
-Review each Result's warnings. For current hinted and unassisted CER, run
-`perl maint/reception-corpus.pl`; the historical figures in
-[verification](../docs/verification.md) predate the corrected corpus crops.
+Review each Result's warnings. The [verification record](verification.md)
+reports the measured corpus revision, hinted and unassisted CER, and scope.
+Run `perl maint/reception-corpus.pl` to repeat the measurements. The four
+short beacon clips do not establish accuracy on human-keyed QSOs.
 
 The default candidate spacing is 50 Hz. Synthetic reception tests allow tone
 error within one configured grid step, an empirical tolerance rather than a

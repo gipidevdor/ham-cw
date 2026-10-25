@@ -4,7 +4,8 @@ Morse, from text to signal and back.
 
 Encode text, shape its timing, create WAV or MIDI files, and read recorded CW.
 Use the `ham-cw` command or the Perl library. Perl 5.20 or later is required;
-the default backend uses only core modules. PDL acceleration is optional.
+the default backend uses only core modules. PDL is optional; its performance
+depends on the operation and workload.
 
 [Task guide](docs/usage.md) · [Examples](examples/README.md) ·
 [API reference](lib/Ham/CW.pm) · [Contributing](CONTRIBUTING.md)
@@ -60,6 +61,11 @@ Text commands accept `--input FILE` or stdin. Use `--output FILE` to save
 text or JSON. WAV and MIDI require an explicit output; `--output -` selects
 binary stdout. Prefer named binary files in Windows shells.
 
+For a single task, use `ham-cw help COMMAND`: options are grouped by purpose,
+with units and defaults beside each control. Start with tone and speed hints
+before adjusting detection thresholds. The [recovery guide](docs/usage.md#when-you-need-help)
+connects common errors and reception warnings to the next useful action.
+
 ## Use it in Perl
 
 Save as `demo.pl` and run `perl -Ilib demo.pl` from this checkout,
@@ -113,6 +119,8 @@ MIDI device control belong to the application using it.
 | [Architecture](docs/architecture.md) | Data flow, ownership and lifecycle contracts |
 | [Contributing](CONTRIBUTING.md) | Development setup and verification |
 | [Release procedure](docs/releasing.md) | Packaging and installation checks |
+| [Measured performance](docs/benchmarks.md) | Local timings, backend comparison and reproduction |
+| [Verification](docs/verification.md) | Dated checks and the limits of the evidence |
 | [Reference corpus](corpus/README.md) | Recordings, provenance and reception measurements |
 | [Dependency decisions](docs/dependency-audit.md) | Core and optional dependency choices |
 | [Security](SECURITY.md) | Reporting a vulnerability |
