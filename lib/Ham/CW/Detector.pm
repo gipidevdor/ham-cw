@@ -696,9 +696,12 @@ sub _decode_channel {
         }
     }
     $segments = _merge_runs($segments);
-    my $events  = {sample_rate => $self->{sample_rate}, segments => $segments};
-    my %timing  = map { defined($self->{$_}) ? ($_ => $self->{$_}) : () } qw(wpm effective_wpm);
-    my $decoder = Ham::CW::Decoder->new(%timing);
+    my $events = {sample_rate => $self->{sample_rate}, segments => $segments};
+    my %timing = map { defined($self->{$_}) ? ($_ => $self->{$_}) : () } qw(wpm effective_wpm);
+
+    # Segmentation produces at most one run per retained frame. Inherit the
+    # detector's history budget rather than the standalone decoder's default.
+    my $decoder = Ham::CW::Decoder->new(%timing, max_segments => $self->{max_frames});
     $decoder->feed($events);
     my $r = $complete ? $decoder->finish : $decoder->result;
     my $trimmed =
@@ -1036,7 +1039,8 @@ to resolve neighboring stations. L<Ham::CW::Result/diagnostics> lists fields.
 Maximum retained seconds are approximately
 C<max_frames * frame_samples / sample_rate>, about 120 seconds by default.
 Increase C<max_frames> explicitly for longer recordings and budget more
-memory. Large arrays have their own per-feed limit. Streaming input does not
+memory. Internal event decoding inherits this frame budget as its segment
+limit. Large arrays have their own per-feed limit. Streaming input does not
 make this an unlimited-duration receiver.
 
 The design targets reasonably stable CW on distinct tones and mark lengths of about
