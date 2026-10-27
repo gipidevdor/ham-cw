@@ -25,17 +25,29 @@ sub tone {
 
 sub frames {
     my ($self, $blocks) = @_;
-    my $n = $self->{analysis_size};
-    my (@channels, @gates);
+    my $n     = $self->{analysis_size};
+    my $count = @{$self->{frequencies}};
+    my ($packed, @gates);
+    $packed = '';
     for my $block (@{$blocks}) {
-        push @channels, $self->_filtered_channels($block, 1);
-        push @gates,    [@{$self->{last_gates}}];
+        my $channels = $self->_filtered_channels($block);
+        $packed .= pack('d*', @{$_}) for @{$channels};
+        push @gates, [@{$self->{last_gates}}];
     }
-    my $data     = PDL->pdl(PDL::double(), \@channels);
-    my $window   = PDL->pdl(PDL::double(), [@{$self->{window}}[0 .. $n - 1]]);
-    my $windowed = ($data - ($data->sumover / $n)->dummy(0)) * $window;
-    my $energy   = ($windowed * $windowed)->sumover;
-    my $kernels  = $self->{pdl_kernels}{$n};
+
+    # Native packed doubles avoid retaining boxed Perl copies of every window.
+    # Dimensions match the complete packed buffer before updating PDL's pointer.
+    # get_dataref/upd_data also work with the minimum supported PDL 2.081.
+    my $data = PDL->zeroes(PDL::double(), $n, $count, scalar @{$blocks});
+    ${$data->get_dataref} = $packed;
+    $data->upd_data;
+    undef $packed;
+    my $window = PDL->pdl(PDL::double(), [@{$self->{window}}[0 .. $n - 1]]);
+    $data -= ($data->sumover / $n)->dummy(0);
+    $data *= $window;
+    my $energy  = $data->inner($data);
+    my $kernels = $self->{pdl_kernels}{$n};
+
     if (!$kernels) {
         my $index       = PDL->sequence(PDL::double(), $n)->dummy(1);
         my $frequencies = PDL->pdl(PDL::double(), $self->{frequencies})->dummy(0);
@@ -43,11 +55,10 @@ sub frames {
         $kernels = [$phase->cos, $phase->sin];
         $self->{pdl_kernels}{$n} = $kernels;
     }
-    my $real     = ($windowed * $kernels->[0])->sumover;
-    my $imag     = ($windowed * $kernels->[1])->sumover;
+    my $real     = $data->inner($kernels->[0]);
+    my $imag     = $data->inner($kernels->[1]);
     my @powers   = (($real * $real + $imag * $imag) * PDL->pdl(PDL::double(), \@gates))->list;
     my @energies = $energy->list;
-    my $count    = @{$self->{frequencies}};
     for my $i (0 .. $#{$blocks}) {
         $self->_retain_frame(
             {

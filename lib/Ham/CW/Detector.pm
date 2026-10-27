@@ -9,7 +9,8 @@ use Ham::CW::_Internal::Result;
 use Ham::CW::_Internal::Backend;
 use Ham::CW::_Internal::Biquad;
 our $VERSION = '0.001';
-my $PI = 4 * atan2(1, 1);
+my $PI                 = 4 * atan2(1, 1);
+my $PDL_BATCH_ELEMENTS = 16384;
 
 # Internal power-domain heuristics, not calibrated receiver SNR. Keep the
 # two 22% decisions independent; rationale and tuning evidence are documented
@@ -67,8 +68,13 @@ sub new {
         min_purity   => number('min_purity',   $args{min_purity}   // 0.20, 0.01, 1)
     }, $class;
     my $n = $self->{analysis_size} = $self->{frame_size} * 4;
-    $self->{window}       = [map { 0.5 - 0.5 * cos(2 * $PI * $_ / ($n - 1)) } 0 .. $n - 1];
-    $self->{coefficients} = [map { 2 * cos(2 * $PI * $_ / $rate) } @frequencies];
+
+    # Bound packed projection work instead of multiplying a fixed hop count by
+    # every channel/window. One large window still needs at least one hop.
+    my $batch = int($PDL_BATCH_ELEMENTS / ($n * @frequencies));
+    $self->{pdl_batch_frames} = $batch < 1 ? 1 : $batch > 128 ? 128 : $batch;
+    $self->{window}           = [map { 0.5 - 0.5 * cos(2 * $PI * $_ / ($n - 1)) } 0 .. $n - 1];
+    $self->{coefficients}     = [map { 2 * cos(2 * $PI * $_ / $rate) } @frequencies];
     my $offset = $step * 2;
     $offset = 100 if $offset < 100;
     my (%lookup, @acquire, @guards, @centres);
@@ -192,8 +198,8 @@ sub _filtered_channels {
         push @{$history}, @{$self->{filters}[$index]->process($block)};
         splice @{$history}, 0, @{$block};
 
-        # Batched callers keep several hops; the immediate caller reads the
-        # history before the next hop replaces it.
+        # Borrowed histories are valid until the next hop. PDL packs them
+        # immediately; callers needing a longer lifetime can request copies.
         push @channels, $copy ? [@{$history}] : $history;
     }
     return \@channels;
@@ -213,11 +219,11 @@ sub _prepare_acquisition {
         $weight += 0.5 - 0.5 * cos(2 * $PI * ($position * $hop + $_) / $total) for 0 .. $hop - 1;
         push @weights, $weight / $hop;
     }
-    my (@cosines, @sines, @rotate, @offsets);
+    my (@kernels, @rotate, @offsets);
     for my $frequency (@{$self->{acquire_frequencies}}) {
         my $omega = 2 * $PI * $frequency / $rate;
-        push @cosines, [map { cos($omega * $_) } 0 .. $hop - 1];
-        push @sines,   [map { sin($omega * $_) } 0 .. $hop - 1];
+        push @kernels,
+            [cos($omega), sin($omega), cos($omega * ($hop - 1)), sin($omega * ($hop - 1))];
 
         # Weighted rotation that places a hop's partial projection at its
         # position inside the window, and the window's own transform for
@@ -236,34 +242,40 @@ sub _prepare_acquisition {
         }
         push @offsets, [$real, $imaginary];
     }
-    $self->{acquire_cos}     = \@cosines;
-    $self->{acquire_sin}     = \@sines;
+    $self->{acquire_kernels} = \@kernels;
     $self->{acquire_rotate}  = \@rotate;
     $self->{acquire_offsets} = \@offsets;
     return;
 }
 
 sub _acquire_partial {
-    my ($self, $samples)  = @_;
-    my ($cosines, $sines) = @{$self}{qw(acquire_cos acquire_sin)};
-    my $count = @{$samples};
-    my $pairs = $count - $count % 2;
-    my $sum   = 0;
+    my ($self, $samples) = @_;
+    my $kernels = $self->{acquire_kernels};
+    my $count   = @{$samples};
+    my $pairs   = $count - $count % 2;
+    my $sum     = 0;
     $sum += $_ for @{$samples};
     my (@real, @imaginary);
-    for my $j (0 .. $#{$cosines}) {
-        my ($c, $s) = ($cosines->[$j], $sines->[$j]);
-        my ($re, $im) = (0, 0);
+    for my $kernel (@{$kernels}) {
+        my ($cosine, $sine, $end_cosine, $end_sine) = @{$kernel};
+        my $coefficient = 2 * $cosine;
+        my ($s1, $s2) = (0, 0);
         for (my $m = 0; $m < $pairs; $m += 2) {
-            $re += $samples->[$m] * $c->[$m] + $samples->[$m + 1] * $c->[$m + 1];
-            $im += $samples->[$m] * $s->[$m] + $samples->[$m + 1] * $s->[$m + 1];
+            my $next = $samples->[$m] + $coefficient * $s1 - $s2;
+            $s1 = $samples->[$m + 1] + $coefficient * $next - $s1;
+            $s2 = $next;
         }
         if ($pairs < $count) {
-            $re += $samples->[$pairs] * $c->[$pairs];
-            $im += $samples->[$pairs] * $s->[$pairs];
+            my $next = $samples->[$pairs] + $coefficient * $s1 - $s2;
+            $s2 = $s1;
+            $s1 = $next;
         }
-        push @real,      $re;
-        push @imaginary, -$im;
+
+        # Recover the complex DFT, including its phase for the hop rotations.
+        my $re = $s1 - $cosine * $s2;
+        my $im = $sine * $s2;
+        push @real,      $re * $end_cosine + $im * $end_sine;
+        push @imaginary, $im * $end_cosine - $re * $end_sine;
     }
     return {real => \@real, imaginary => \@imaginary, sum => $sum};
 }
@@ -344,7 +356,7 @@ sub feed {
             && @{$block} - $offset >= $self->{frame_size})
         {
             my $count = int((@{$block} - $offset) / $self->{frame_size});
-            $count = 128 if $count > 128;
+            $count = $self->{pdl_batch_frames} if $count > $self->{pdl_batch_frames};
             my @blocks;
             for (1 .. $count) {
                 push @blocks, [@{$block}[$offset .. $offset + $self->{frame_size} - 1]];

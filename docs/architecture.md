@@ -90,8 +90,10 @@ It balances rejection and keying transients; it is not a guarantee of separation
 Four filtered hops form a DC-removed Hann window, approximately 20 ms. Goertzel
 measures each channel's tone power; a channel that fails acquisition keeps
 its windowed energy but skips the recurrence. Acquisition separately examines
-eight raw hops (40 ms): each hop supplies one Fourier projection per candidate
-and guard frequency, and the eight projections are combined under a hop-wise
+eight raw hops (40 ms): each hop supplies one complex Goertzel projection per
+candidate and guard frequency, with the final phase restored before combining
+hops. Four coefficients per frequency replace per-sample sine/cosine tables.
+The eight projections are combined under a hop-wise
 Hann taper with the window mean removed. The candidate power is compared
 against the lower median of up to six neighboring guard powers, scaled by 1.3.
 Guards are at offsets
@@ -190,16 +192,27 @@ propagates selection to generation and PCM I/O, and reception inherits it
 unless overridden. Symbolic encoding, events, decoding and MIDI remain shared.
 The vector implementation uses double precision and public Perl arrays.
 Detection uses squared sinusoidal projections, mathematically equivalent to
-Goertzel power, with cached kernels per frame length and batches of at most
-128 frames. Partial final hops enter the same fixed history/window and are flushed once.
-Acquisition and biquad states are shared with the scalar pipeline; PDL batches
-only the equivalent filtered projections. Acquisition projections and the
-sample-by-sample biquad loops still run in Perl. Each PDL batch copies filtered
-history windows into Perl arrays, constructs a PDL tensor and exports powers
-and energies back to Perl arrays. There is no compiled PDL::PP filter-bank
-kernel or persistent PDL feature store in the shipped implementation.
+Goertzel power, with cached kernels per frame length. Filtered history windows
+are packed immediately as native doubles, without retaining boxed Perl copies
+of every window. The PDL buffer has exactly the packed dimensions; the public
+`get_dataref`/`upd_data` interface supports the minimum PDL 2.081. Mean removal
+and windowing update that buffer in place. PDL `inner` computes projections and
+energy without constructing full elementwise-product tensors. See the
+[PDL Core interface](https://metacpan.org/pod/PDL::Core#get_dataref) and
+[inner-product interface](https://metacpan.org/pod/PDL::Primitive#inner).
 
-A 16-hop batch was tested in a temporary local probe; the shipped cap remains
-128 hops. That experiment and proposed vectorized acquisition are separate
-from [current release timings](benchmarks.md).
-Existing validation precedes processing and retained history stays bounded.
+The batch holds at most 16,384 window elements, subject to a minimum of one
+hop and a maximum of 128 hops. A window contains `analysis_size * channels`
+elements. The default 25-channel bank therefore uses four hops at 8 kHz and
+two at 16 kHz; a known tone permits larger batches. If one window exceeds the
+element budget it is processed alone. This bounds batch work, rather than
+the receiver's overall RSS or retained feature history.
+
+Partial final hops enter the same fixed history/window and are flushed once.
+Acquisition and biquad states are shared with the scalar pipeline and still
+run in Perl; PDL batches only the filtered projections. Powers and energies
+return as Perl arrays. There is no compiled PDL::PP filter-bank kernel or
+persistent PDL feature store. Independent complex-DFT checks, backend/chunk
+equivalence, the synthetic reception matrix and the real corpus cover the
+optimized path. See [measured CPU and RSS](benchmarks.md). Existing validation
+precedes processing and retained history stays bounded.

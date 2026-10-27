@@ -9,3 +9,6 @@ Revision history for Ham-CW
     - Include structured errors, diagnostics, POD references and runnable examples.
     - Require Perl 5.20 or later; PDL is an optional numerical backend.
     - Publish complete POD and Markdown docs in a Perl-themed GitHub Pages site.
+    - Add isolated peak-RSS benchmarks alongside CPU and wall timings.
+    - Reduce receiver CPU and memory with complex Goertzel acquisition,
+      packed PDL windows, inner products and bounded projection batches.

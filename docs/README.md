@@ -14,7 +14,7 @@
 | Choose an API or representation | [Interfaces](usage.md#choose-an-interface) and [data representations](usage.md#choose-the-data-representation) |
 | Understand timing, state and filtering | [Architecture](architecture.md) |
 | Understand detector thresholds | [Power heuristics](architecture.md#detector-power-heuristics) |
-| Compare backend speed | [Measured performance](benchmarks.md) |
+| Compare backend speed and peak resident memory | [Measured performance](benchmarks.md) |
 | Review tests and recordings | [Verification](verification.md) and [reference corpus](../corpus/README.md) |
 | Change or release the project | [Contributing](../CONTRIBUTING.md) and [release procedure](releasing.md) |
 | Review dependencies or security | [Dependency decisions](dependency-audit.md), [security CI](security-ci.md) and [reporting](../SECURITY.md) |
@@ -25,6 +25,12 @@ Use `perldoc Ham::CW` for the library and `perldoc ham-cw` for the command.
 From a checkout, use `perldoc lib/Ham/CW.pm` or `perldoc bin/ham-cw`.
 
 ## Reading measurements
+
+The [latest local CPU and peak-RSS measurements](benchmarks.md#optimized-reception-2026-10-27)
+cover the optimized receiver on 2026-10-27. [Raw results](optimization-results.json)
+include all 36 cases, source/input hashes and the before/after comparison.
+The [pre-optimization resource record](resource-results.json) remains available
+as the baseline.
 
 Measurements are tied to a source revision and date.
 [Benchmark history](benchmark-history.md) and
