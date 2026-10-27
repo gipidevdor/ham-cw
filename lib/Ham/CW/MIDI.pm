@@ -56,9 +56,12 @@ sub encode {
             . pack('CCC', 0x90 | $channel, $self->{note}, $self->{velocity});
         $track .= _vlq($end - $start) . pack('CCC', 0x80 | $channel, $self->{note}, 0);
         $last_tick = $end;
-        fail('CW_E_RESOURCE', 'MIDI exceeds max_bytes') if length($track) + 30 > $self->{max_bytes};
+
+        # The header is 22 bytes; the shortest end-of-track event is four.
+        fail('CW_E_RESOURCE', 'MIDI exceeds max_bytes') if length($track) + 26 > $self->{max_bytes};
     }
     $track .= _vlq(int($time * $numerator / $denominator + 0.5) - $last_tick) . "\xff\x2f\0";
+    fail('CW_E_RESOURCE', 'MIDI exceeds max_bytes') if length($track) + 22 > $self->{max_bytes};
     return pack('a4Nnnna4N', 'MThd', 6, 0, 1, $self->{ppqn}, 'MTrk', length $track) . $track;
 }
 
@@ -158,6 +161,8 @@ other resolutions may lose precision. A note rounding to zero ticks raises
 C<CW_E_TIMING>; increase PPQN or lengthen events. Deltas exceeding the
 four-byte SMF limit also raise that code. This operation collects the track
 in memory and is bounded by C<max_bytes>.
+The limit counts the complete encoded file, including its header and the
+variable-length final silence delta.
 
 =head2 write
 

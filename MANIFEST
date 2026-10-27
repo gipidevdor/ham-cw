@@ -123,6 +123,7 @@ t/27-mark-snr.t
 t/28-review-fixes.t
 t/29-examples.t
 t/30-reception-optimization.t
+t/31-correctness-boundaries.t
 t/lib/CorpusMetrics.pm
 t/lib/FaultHandle.pm
 t/lib/Reference.pm

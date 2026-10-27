@@ -37,15 +37,25 @@ sub validate_events {
 }
 
 sub _convert {
-    my ($events, $ratio, $field, $header) = @_;
+    my ($events, $numerator, $denominator, $field, $header) = @_;
     my ($total, $previous) = (0, 0);
     my @out;
     my $input = validate_events($events);
     for my $s (@{$events->{segments}}) {
         $total += $s->{$input};
+
+        # Divide before multiplying: the whole part and scaled remainder stay
+        # exact within the input/output limits, even on a floating-point Perl.
+        # Compare the integer remainder for half-up rounding instead of using
+        # an approximate reciprocal or adding 0.5 to a large boundary.
+        my $whole     = int($total / $denominator);
+        my $remainder = ($total - $whole * $denominator) * $numerator;
+        my $fraction  = int($remainder / $denominator);
+        my $tail      = $remainder - $fraction * $denominator;
+        my $end       = $whole * $numerator + $fraction;
         fail('CW_E_RESOURCE', 'Converted duration exceeds exact integer range')
-            if $total * $ratio > $MAX;
-        my $end = int($total * $ratio + 0.5);
+            if $end > $MAX || ($end == $MAX && $tail);
+        ++$end if 2 * $tail >= $denominator;
         fail('CW_E_TIMING', 'Resolution would produce a zero-length segment') if $end <= $previous;
         push @out, {state => $s->{state}, $field => $end - $previous};
         $previous = $end;
@@ -57,13 +67,13 @@ sub to_samples {
     my ($events, $rate) = @_;
     integer('sample_rate', $rate, 1000, 384000);
     fail('CW_E_ARGUMENT', 'Expected TimedEvents') unless validate_events($events) eq 'duration';
-    return _convert($events, $rate / 1_000_000, 'samples', {sample_rate => $rate});
+    return _convert($events, $rate, 1_000_000, 'samples', {sample_rate => $rate});
 }
 
 sub to_timed {
     my ($events) = @_;
     fail('CW_E_ARGUMENT', 'Expected SampledEvents') unless validate_events($events) eq 'samples';
-    return _convert($events, 1_000_000 / $events->{sample_rate}, 'duration', {unit => 'us'});
+    return _convert($events, 1_000_000, $events->{sample_rate}, 'duration', {unit => 'us'});
 }
 1;
 

@@ -13,3 +13,7 @@ Revision history for Ham-CW
     - Keep benchmark fallback reporting valid when optional PDL cannot load.
     - Reduce receiver CPU and memory with complex Goertzel acquisition,
       packed PDL windows, inner products and bounded projection batches.
+    - Round event conversions with integer remainders, including exact halves
+      and large cumulative boundaries.
+    - Let internal reception decoding inherit the configured frame budget.
+    - Enforce MIDI byte limits against the complete encoded file size.
