@@ -33,10 +33,12 @@ docs/cpan-audit.json
 docs/current-results.json
 docs/dependency-audit.md
 docs/installing.md
+docs/optimization-results.json
 docs/performance-results.json
 docs/platform-history-results.json
 docs/platform-results.json
 docs/releasing.md
+docs/resource-results.json
 docs/security-ci.md
 docs/usage.md
 docs/verification-history.md
@@ -120,9 +122,11 @@ t/26-channel-reception.t
 t/27-mark-snr.t
 t/28-review-fixes.t
 t/29-examples.t
+t/30-reception-optimization.t
 t/lib/CorpusMetrics.pm
 t/lib/FaultHandle.pm
 t/lib/Reference.pm
+xt/benchmarks.t
 xt/corpus-licenses.t
 xt/critic.t
 xt/documentation.t

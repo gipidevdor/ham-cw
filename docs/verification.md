@@ -4,12 +4,50 @@
 
 ## Scope of this record
 
-Updated 2026-10-25. The latest timing run measures source
+Updated 2026-10-27 after receiver CPU/RSS optimization. The complete ordinary
+suite passes 2,652 assertions across 31 files with Perl warnings fatal, including
+116 independent complex-DFT assertions and all real-audio CER budgets. The
+author checks pass 724 assertions across 11 files, including benchmark,
+formatter/critic, licenses, metadata, documentation/site and candidate archives.
+The local corpus report also retains CER 0% in all eight speed-mode decodes
+across four clips, without warnings.
+[Optimization results](optimization-results.json) pin the exact changed sources,
+36 final measurements and the comparison with the earlier same-day baseline.
+The optimized receiver uses complex Goertzel acquisition, packed PDL windows,
+inner products and a batch budget based on window size and channel count.
+Local PDL sample reception with tone search uses 36% less wall time and 54% less
+peak RSS at 8 kHz, and 41% less time and 51% less peak RSS at 16 kHz. See the
+[protocol](benchmarks.md#optimized-reception-2026-10-27). No new remote platform,
+coverage or security run is implied by these local checks.
+
+The measured source hashes match
+[implementation commit 49277a1](https://github.com/gipidevdor/ham-cw/commit/49277a122c5496c81d8f5c3185b15e2a4259c292).
+Before publication, the combined ordinary/author suite was repeated with
+warnings fatal: **3,376 assertions in 42 files passed**, including fallback
+reporting when optional PDL cannot load. The generated site
+contains 47 HTML pages and 35 assets; all 2,365 local links and anchors passed
+validation. The raw optimization record retains these publication checks.
+
+Earlier on 2026-10-27, baseline CPU/wall and peak-RSS measurements used library
+source `f9a1dac329164cd1a5857ac1fa845e77a3e2e667`, using the new benchmark
+instrumentation in the working tree. All 36 operation/backend/workload rows
+and exact source/input hashes are in [resource results](resource-results.json).
+Three sequential workloads cover 8 kHz searched/known tone and 16 kHz searched
+tone, with three timed calls per isolated worker. Only macOS ARM64 was measured.
+The benchmark/formatter/critic checks pass: 260 assertions in three files.
+Documentation recipes, POD and site rendering/local links also pass: 202
+assertions in three files. `make distcheck` reports a complete inventory, and
+the 36 resource rows match their recorded source hashes and RSS units.
+These runs do not refresh reception accuracy, production coverage, remote CI,
+installation or security results below.
+
+The earlier shared-process timing run measures source
 `c635a8ad588558a2d12bb0557d863cd571b61349`; see
 [performance results](performance-results.json) and the [timing protocol](benchmarks.md).
-Corpus, interface and CI results below come from the
-[earlier record](current-results.json) on `85eb8f3`. Those checks were not rerun
-for the timing update.
+Historical interface and CI results below come from the
+[earlier record](current-results.json) on `85eb8f3`. The corpus table has also
+been rechecked locally as recorded above; remote CI and installed-package
+verification retain their earlier dates.
 
 ## Checks and provenance
 
@@ -17,9 +55,12 @@ Local environment: macOS ARM64, Perl 5.44.0 and PDL 2.106.
 
 | Check | Result and scope |
 | --- | --- |
+| Optimized receiver, 2026-10-27 | PASS: 2,652 ordinary-suite assertions; 36 CPU/RSS rows; [exact source hashes and measurements](optimization-results.json) |
+| Author checks, 2026-10-27 | PASS: 724 assertions in 11 files; metadata, licenses, style, documentation/site, RSS tooling including missing PDL, and candidate archives |
+| CPU/wall and peak RSS, 2026-10-27 | 36 measured rows on macOS; independent worker per operation/backend; [protocol and results](benchmarks.md#local-cpu-wall-time-and-peak-rss-2026-10-27) |
 | Ordinary and author suite | PASS: 3,034 assertions across 39 files, with all Perl warnings fatal, after the interface refinements |
 | Timing | Three sequential, three-iteration workloads on `c635a8a`: 8 kHz searched/known tone and 16 kHz searched tone; [protocol](benchmarks.md) |
-| Corpus reception | Eight decodes across four clips; CER 0% and no warnings in either mode |
+| Corpus reception, 2026-10-27 | Eight local report decodes across four clips; CER 0% and no warnings in either mode; [raw results](optimization-results.json) |
 | Documentation links | Checked during the timing refresh; count in [performance results](performance-results.json) |
 | Production coverage | CI on `85eb8f3`: statements 99.03% (2,245/2,267), branches 96.28% (751/780) |
 | Local distribution | Recorded PASS in the earlier interface review; not rerun in this timing refresh |

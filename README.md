@@ -102,6 +102,27 @@ warnings; `--strict` returns a nonzero status when warnings occur. See
 Playback, microphone capture and radio or MIDI device control are left to the
 calling application.
 
+## Measured reception
+
+Local measurements on 2026-10-27: macOS ARM64, Perl 5.44.0 and PDL 2.106.
+Each case receives 9.18 seconds of audio at 20 WPM. Times are the mean of
+three calls; peak RSS covers a fresh worker process, including its inputs
+and loaded modules.
+
+| Case | Perl: time / peak RSS | PDL: time / peak RSS |
+| --- | ---: | ---: |
+| 8 kHz, tone search | 2.796 s / 25.03 MiB | 1.780 s / 31.58 MiB |
+| 8 kHz, known tone | 0.271 s / 19.92 MiB | 0.208 s / 27.23 MiB |
+| 16 kHz, tone search | 4.963 s / 27.94 MiB | 3.204 s / 34.78 MiB |
+
+The optimized PDL receiver uses 36–41% less wall time and 51–54% less peak RSS
+than the recorded baseline in the tone-search cases. PDL is faster in these
+cases; Perl uses less resident memory. Repeat with
+`perl maint/benchmark.pl --rss --json`.
+See the [protocol and before/after results](docs/benchmarks.md) and
+[raw measurements](docs/optimization-results.json). The
+[verification record](docs/verification.md) lists reception and test coverage.
+
 ## Explore the project
 
 [Documentation](docs/README.md) · [Contributing](CONTRIBUTING.md) ·

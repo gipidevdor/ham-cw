@@ -145,6 +145,19 @@ Report the timer (CPU or wall), repetitions, message, sample rate, block size,
 tone-search mode and excluded work. Keep generation, reception and WAV conversion
 separate. `auto` selects availability, so never describe it as a speed selector.
 
+For peak resident memory, run `perl maint/benchmark.pl --rss --json` on macOS
+or Linux with `/usr/bin/time`. Each operation/backend runs in a fresh Perl
+process; Perl-only workers do not load PDL. RSS includes interpreter startup,
+loaded modules, necessary input preparation and all iterations. It is a process
+peak in bytes (also reported in MiB), not a per-call average or allocation delta.
+Operation CPU/wall timers exclude startup and input preparation. Keep these
+isolated runs separate from the historical shared-process timing protocol.
+Use `--backend perl|pdl` and `--operation NAME` to select a case. Retain local
+resource baselines in `docs/resource-results.json` and before/after optimization
+comparisons in `docs/optimization-results.json`; link the records from the
+verification and performance guides. Do not claim RSS support on an
+unmeasured platform; Windows retains the ordinary timing-only benchmarks.
+
 Update `docs/benchmarks.md`, `docs/verification.md` and corpus claims together.
 Retain earlier raw results as explicitly historical data; never relabel an old
 measurement as current. Date each verification result separately. A test pass
