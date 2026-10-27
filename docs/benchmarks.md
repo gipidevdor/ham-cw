@@ -50,9 +50,15 @@ complete WAV decoding falls from 5.351 to 3.002 seconds and from 67.19 to
 30.50 MiB. The full suite passes **2,652 assertions across 31 files**, including
 independent complex-DFT checks, arbitrary feed sizes, backend equivalence,
 simultaneous stations, noise/fading cases and the licensed real recordings.
-All **716 author assertions in 11 files** also pass, including documentation,
+All **724 author assertions in 11 files** also pass, including documentation,
 site links, metadata, licenses and candidate archives. The separate corpus
 report retains CER 0% and no warnings in all eight speed-mode decodes.
+
+A later reporting-only correction handles an unavailable PDL installation
+without warnings, including under fatal warnings. The numerical library and
+timed operations are unchanged. The raw record keeps the measured tool's hash
+and separately pins the corrected reporter's hash; its missing-PDL regression
+is included in the latest **3,376-assertion** publication check.
 
 The batch sweep compared 1, 4, 16, 64 and 128 hops at 8/16 kHz, plus a
 three-call check of two hops at 16 kHz. Larger batches saved little time in

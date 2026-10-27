@@ -4,11 +4,23 @@
     "implementation_commit": "49277a122c5496c81d8f5c3185b15e2a4259c292",
     "implementation_url": "https://github.com/gipidevdor/ham-cw/commit/49277a122c5496c81d8f5c3185b15e2a4259c292",
     "source_match": "All measured library, benchmark and regression-test SHA-256 values match this committed implementation.",
+    "benchmark_reporting_correction": {
+      "source_sha256": "4d907382de00fcefe0e284b7f0ad1c309bc73af83280701fca51d7d0d8a6a572",
+      "scope": "Reporting-only correction after the recorded measurements: an undefined INC marker from a failed optional PDL load is reported as unavailable, without reading an undefined PDL version. Numeric library code and timed operations are unchanged.",
+      "validation": {
+        "command": "HARNESS_PERL_SWITCHES=-Mwarnings=FATAL,all prove -j4 -lr t xt",
+        "result": "PASS",
+        "files": 42,
+        "assertions": 3376,
+        "ordinary_assertions": 2652,
+        "author_assertions": 724
+      }
+    },
     "checks": {
       "command": "HARNESS_PERL_SWITCHES=-Mwarnings=FATAL,all prove -j4 -lr t xt",
       "result": "PASS",
       "files": 42,
-      "assertions": 3368,
+      "assertions": 3376,
       "site_pages": 47,
       "site_assets": 35,
       "local_links_and_anchors": 2365

@@ -7,7 +7,7 @@
 Updated 2026-10-27 after receiver CPU/RSS optimization. The complete ordinary
 suite passes 2,652 assertions across 31 files with Perl warnings fatal, including
 116 independent complex-DFT assertions and all real-audio CER budgets. The
-author checks pass 716 assertions across 11 files, including benchmark,
+author checks pass 724 assertions across 11 files, including benchmark,
 formatter/critic, licenses, metadata, documentation/site and candidate archives.
 The local corpus report also retains CER 0% in all eight speed-mode decodes
 across four clips, without warnings.
@@ -23,7 +23,8 @@ coverage or security run is implied by these local checks.
 The measured source hashes match
 [implementation commit 49277a1](https://github.com/gipidevdor/ham-cw/commit/49277a122c5496c81d8f5c3185b15e2a4259c292).
 Before publication, the combined ordinary/author suite was repeated with
-warnings fatal: **3,368 assertions in 42 files passed**. The generated site
+warnings fatal: **3,376 assertions in 42 files passed**, including fallback
+reporting when optional PDL cannot load. The generated site
 contains 47 HTML pages and 35 assets; all 2,365 local links and anchors passed
 validation. The raw optimization record retains these publication checks.
 
@@ -55,7 +56,7 @@ Local environment: macOS ARM64, Perl 5.44.0 and PDL 2.106.
 | Check | Result and scope |
 | --- | --- |
 | Optimized receiver, 2026-10-27 | PASS: 2,652 ordinary-suite assertions; 36 CPU/RSS rows; [exact source hashes and measurements](optimization-results.json) |
-| Author checks, 2026-10-27 | PASS: 716 assertions in 11 files; metadata, licenses, style, documentation/site, RSS tooling and candidate archives |
+| Author checks, 2026-10-27 | PASS: 724 assertions in 11 files; metadata, licenses, style, documentation/site, RSS tooling including missing PDL, and candidate archives |
 | CPU/wall and peak RSS, 2026-10-27 | 36 measured rows on macOS; independent worker per operation/backend; [protocol and results](benchmarks.md#local-cpu-wall-time-and-peak-rss-2026-10-27) |
 | Ordinary and author suite | PASS: 3,034 assertions across 39 files, with all Perl warnings fatal, after the interface refinements |
 | Timing | Three sequential, three-iteration workloads on `c635a8a`: 8 kHz searched/known tone and 16 kHz searched tone; [protocol](benchmarks.md) |

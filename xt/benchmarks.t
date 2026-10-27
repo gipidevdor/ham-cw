@@ -4,13 +4,17 @@ use Test::More;
 use IPC::Open3 qw(open3);
 use Symbol     qw(gensym);
 use JSON::PP;
+use File::Temp qw(tempdir);
+use File::Spec;
 
 sub run_benchmark {
     my (@arguments) = @_;
+    my $switches    = ref($arguments[0]) eq 'ARRAY' ? shift @arguments : [];
     my $errors      = gensym();
-    my $pid         = open3(undef, my $output, $errors, $^X, 'maint/benchmark.pl', @arguments);
-    my $stdout      = do { local $/; <$output> };
-    my $stderr      = do { local $/; <$errors> };
+    my $pid =
+        open3(undef, my $output, $errors, $^X, @{$switches}, 'maint/benchmark.pl', @arguments);
+    my $stdout = do { local $/; <$output> };
+    my $stderr = do { local $/; <$errors> };
     close $output            or die $!;
     close $errors            or die $!;
     waitpid($pid, 0) == $pid or die $!;
@@ -32,6 +36,31 @@ cmp_ok($timing->{results}[0]{wall_seconds_per_call}, '>', 0, 'wall time per call
 for my $invalid (['--backend', 'bogus'], ['--operation', 'bogus']) {
     ($status, $output, $errors) = run_benchmark(@{$invalid});
     isnt($status, 0, 'invalid workload selection fails before benchmarking');
+}
+
+# A failed optional require leaves an undefined marker in %INC, even when the
+# real PDL installation is available to this test process.
+my $without_pdl = tempdir(CLEANUP => 1);
+my $preload     = File::Spec->catfile($without_pdl, 'BenchmarkWithoutPDL.pm');
+open my $stub, '>', $preload or die $!;
+print {$stub} "package BenchmarkWithoutPDL; \$INC{'Ham/CW/_Internal/PDL.pm'} = undef; 1;\n"
+    or die $!;
+close $stub or die $!;
+($status, $output, $errors) =
+    run_benchmark(["-I$without_pdl", '-MBenchmarkWithoutPDL', '-Mwarnings=FATAL,all'],
+    '--json', '--operation', 'generate', '--iterations', 1);
+is($status, 0, 'default benchmark falls back cleanly when optional PDL cannot load')
+    or diag($errors);
+is($errors, '', 'missing optional PDL produces no warnings under fatal warnings');
+my $fallback = eval { decode_json($output) };
+ok($fallback, 'fallback emits a valid JSON report');
+
+if ($fallback) {
+    is($fallback->{pdl_available},       0,      'failed optional probe reports PDL unavailable');
+    is($fallback->{pdl_loaded},          0,      'undefined INC marker does not report PDL loaded');
+    is($fallback->{pdl_version},         undef,  'missing PDL has no reported version');
+    is(scalar @{$fallback->{results}},   1,      'fallback measures one available backend');
+    is($fallback->{results}[0]{backend}, 'perl', 'fallback measures the core Perl backend');
 }
 
 SKIP: {

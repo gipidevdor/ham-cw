@@ -151,13 +151,16 @@ sub measure_timing {
                 };
         }
     }
-    my $report = {
+
+    # A failed optional require leaves an existing but undefined %INC entry.
+    my $pdl_loaded = defined($INC{'Ham/CW/_Internal/PDL.pm'}) ? 1 : 0;
+    my $report     = {
         perl               => "$^V",
         platform           => $^O,
         architecture       => $Config{archname},
         pdl_available      => $pdl_available,
-        pdl_loaded         => exists($INC{'Ham/CW/_Internal/PDL.pm'}) ? 1               : 0,
-        pdl_version        => exists($INC{'Ham/CW/_Internal/PDL.pm'}) ? "$PDL::VERSION" : undef,
+        pdl_loaded         => $pdl_loaded,
+        pdl_version        => $pdl_loaded ? "$PDL::VERSION" : undef,
         backend_selection  => $backend_selection,
         message            => $text,
         frequency          => $frequency,
