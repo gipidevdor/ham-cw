@@ -1,5 +1,19 @@
 {
   "date": "2026-10-27",
+  "publication": {
+    "implementation_commit": "49277a122c5496c81d8f5c3185b15e2a4259c292",
+    "implementation_url": "https://github.com/gipidevdor/ham-cw/commit/49277a122c5496c81d8f5c3185b15e2a4259c292",
+    "source_match": "All measured library, benchmark and regression-test SHA-256 values match this committed implementation.",
+    "checks": {
+      "command": "HARNESS_PERL_SWITCHES=-Mwarnings=FATAL,all prove -j4 -lr t xt",
+      "result": "PASS",
+      "files": 42,
+      "assertions": 3368,
+      "site_pages": 47,
+      "site_assets": 35,
+      "local_links_and_anchors": 2365
+    }
+  },
   "source_revision": "f9a1dac329164cd1a5857ac1fa845e77a3e2e667",
   "environment": {
     "system": "Darwin",

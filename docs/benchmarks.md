@@ -19,6 +19,8 @@ Both records use fresh processes, three timed calls per operation/backend,
 sequentially without tests or coverage in parallel. Production files changed
 only in `Detector.pm` and `_Internal/PDL.pm`; the base revision is
 `f9a1dac329164cd1a5857ac1fa845e77a3e2e667`.
+The measured source hashes match the
+[committed implementation](https://github.com/gipidevdor/ham-cw/commit/49277a122c5496c81d8f5c3185b15e2a4259c292).
 
 ### Sample reception before and after
 

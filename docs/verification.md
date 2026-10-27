@@ -20,6 +20,13 @@ peak RSS at 8 kHz, and 41% less time and 51% less peak RSS at 16 kHz. See the
 [protocol](benchmarks.md#optimized-reception-2026-10-27). No new remote platform,
 coverage or security run is implied by these local checks.
 
+The measured source hashes match
+[implementation commit 49277a1](https://github.com/gipidevdor/ham-cw/commit/49277a122c5496c81d8f5c3185b15e2a4259c292).
+Before publication, the combined ordinary/author suite was repeated with
+warnings fatal: **3,368 assertions in 42 files passed**. The generated site
+contains 47 HTML pages and 35 assets; all 2,365 local links and anchors passed
+validation. The raw optimization record retains these publication checks.
+
 Earlier on 2026-10-27, baseline CPU/wall and peak-RSS measurements used library
 source `f9a1dac329164cd1a5857ac1fa845e77a3e2e667`, using the new benchmark
 instrumentation in the working tree. All 36 operation/backend/workload rows
