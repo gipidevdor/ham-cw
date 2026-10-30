@@ -135,6 +135,33 @@ installation and publication checks. Submit changes through a pull request and
 review all checks on the candidate commit; local tests alone do not establish
 that another platform passes.
 
+## Additional portability checks
+
+The **Portability** workflow runs every Monday at 06:41 UTC and can also be
+started from GitHub Actions with **Run workflow**. Pull requests that change
+its workflow or runner script exercise it before integration. These jobs are
+additional checks, separate from the required Tests workflow.
+
+It covers Linux Perl 5.22, 5.24, 5.26, 5.28, 5.30, 5.32, 5.36, 5.38 and 5.42,
+plus FreeBSD 14.3/15.0, Solaris 11.4 and Cygwin with their available native
+Perls. Together with the required Linux jobs, this covers stable Perl series
+from the supported minimum 5.20 through 5.44. Each job records `perl -V`,
+installs declared prerequisites, builds, runs all ordinary tests with fatal
+warnings, and exercises the installed command. Logs record the actual guest
+interpreter rather than assuming a version from its operating-system name.
+
+The workflow and POSIX shell runner are original Ham::CW material under
+Artistic License 2.0. They do not incorporate or call `nicomen/perl-matrix`,
+which had no explicit license at the inspected revision
+`228a38a93d39571bf07a5c64c0b8a736b9e012d7`. External Actions use pinned commit
+references; the cpanm bootstrap has a fixed source revision and checksum.
+
+These checks do not install optional PDL or collect timing/RSS measurements.
+The existing Tests workflow retains its dedicated PDL, macOS/Windows, coverage
+and distribution checks. Adding a platform here is a test configuration, not
+evidence of a passing run; inspect its completed job logs before reporting
+compatibility.
+
 ## Recording measurements
 
 Keep local results in `docs/current-results.json` and CI platform artifacts in

@@ -17,3 +17,5 @@ Revision history for Ham-CW
       and large cumulative boundaries.
     - Let internal reception decoding inherit the configured frame budget.
     - Enforce MIDI byte limits against the complete encoded file size.
+    - Add original weekly/manual portability checks for intermediate Perl
+      versions, FreeBSD, Solaris and Cygwin, including installed CLI tests.
