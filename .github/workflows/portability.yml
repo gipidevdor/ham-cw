@@ -1,0 +1,96 @@
+# Original Ham::CW workflow; Artistic License 2.0 (see LICENSE).
+name: Portability
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 6 * * 1'
+  pull_request:
+    paths:
+      - .github/workflows/portability.yml
+      - .github/scripts/portability.sh
+permissions:
+  contents: read
+concurrency:
+  group: portability-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+env:
+  AUTOMATED_TESTING: '1'
+jobs:
+  intermediate-perl:
+    name: Portability / Linux Perl ${{ matrix.perl }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        # The required workflow already covers 5.20, 5.34, 5.40 and 5.44.
+        perl: ['5.22', '5.24', '5.26', '5.28', '5.30', '5.32', '5.36', '5.38', '5.42']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: shogo82148/actions-setup-perl@84c44b5a14f12b311f1bf3d2a70c8807f30b7ab2 # v1
+        with:
+          perl-version: ${{ matrix.perl }}
+      - name: Build, test and exercise the installed CLI
+        run: sh .github/scripts/portability.sh linux make
+  freebsd:
+    name: Portability / FreeBSD ${{ matrix.release }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        release: ['14.3', '15.0']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Test with the FreeBSD package Perl
+        uses: vmactions/freebsd-vm@c46abacb49f09938ca4e1702d15d836285d694cc # v1
+        with:
+          release: ${{ matrix.release }}
+          arch: x86_64
+          prepare: pkg install -y perl5 curl gmake
+          run: sh .github/scripts/portability.sh freebsd gmake
+  solaris:
+    name: Portability / Solaris 11.4
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Test with the Solaris image Perl
+        uses: vmactions/solaris-vm@1c166978f5a2c1f87f1c9d4d8dd85ae3d1eff6f7 # v1
+        with:
+          release: '11.4-gcc'
+          arch: x86_64
+          run: |
+            set -eu
+            PATH=/usr/gnu/bin:$PATH
+            export PATH
+            sh .github/scripts/portability.sh solaris make
+  cygwin:
+    name: Portability / Cygwin
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install Cygwin and its native build tools
+        uses: cygwin/cygwin-install-action@5a1b0cd107181fa6bb6bf3f90d500f4fb3132f18 # v7
+        with:
+          install-dir: 'C:\ham-cw-cygwin'
+          add-to-path: 'false'
+          packages: >-
+            perl perl-ExtUtils-MakeMaker make gcc-core gcc-g++
+            libcrypt-devel libnsl-devel curl
+      - name: Build and test inside Cygwin
+        shell: C:\ham-cw-cygwin\bin\bash.exe --noprofile --norc -eo pipefail -o igncr {0}
+        run: |
+          export PATH="/usr/bin:/bin:$(cygpath -u "$SYSTEMROOT")/system32"
+          cd "$(cygpath -u "$GITHUB_WORKSPACE")"
+          sh .github/scripts/portability.sh cygwin make
