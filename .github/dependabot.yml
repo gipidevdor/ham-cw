@@ -6,4 +6,16 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-    open-pull-requests-limit: 3
+    # Keep routine upgrades together instead of opening one branch per Action.
+    open-pull-requests-limit: 1
+    groups:
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - '*'
+      # Security updates have a separate PR limit and must not wait for the
+      # routine version-update PR to merge.
+      github-actions-security:
+        applies-to: security-updates
+        patterns:
+          - '*'

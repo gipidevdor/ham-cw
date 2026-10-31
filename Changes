@@ -19,3 +19,5 @@ Revision history for Ham-CW
     - Enforce MIDI byte limits against the complete encoded file size.
     - Add original weekly/manual portability checks for intermediate Perl
       versions, FreeBSD, Solaris and Cygwin, including installed CLI tests.
+    - Group routine Dependabot Action updates into one weekly pull request,
+      group security updates separately, and refresh Pages deployment.

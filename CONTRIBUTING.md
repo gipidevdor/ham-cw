@@ -162,6 +162,20 @@ and distribution checks. Adding a platform here is a test configuration, not
 evidence of a passing run; inspect its completed job logs before reporting
 compatibility.
 
+## Dependency updates
+
+Dependabot checks GitHub Actions weekly, retaining a seven-day cooldown for
+new releases. All routine version updates, including major releases, share
+one grouped pull request, with at most one open at a time. Security updates
+use a separate group so that a pending routine update does not block them.
+See the [Dependabot configuration reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference).
+
+Each update pull request needs a temporary branch. Merge it through the
+required checks; the repository deletes its remote branch after merging.
+Run `git fetch --prune origin` to remove stale local tracking references.
+Keep Actions pinned to full commit hashes and review compatibility before
+merging major updates.
+
 ## Recording measurements
 
 Keep local results in `docs/current-results.json` and CI platform artifacts in
