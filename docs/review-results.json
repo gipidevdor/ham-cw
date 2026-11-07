@@ -1,0 +1,2928 @@
+{
+  "date": "2026-11-07",
+  "baseline_revision": "49d8eb8073aa45af09d28c3fa3d1a788dcd3a11c",
+  "baseline_source_hashes": {
+    "lib/Ham/CW.pm": "36917b9dd5547581e0ce3b654b1c3eb1605401c262ae4be2b5cf4e02d3ea6e01",
+    "lib/Ham/CW/Decoder.pm": "b3d2e4f0e5db5a2d6bee74a73da66945a6836c0157cb767ac968a8d265538c02",
+    "lib/Ham/CW/Detector.pm": "cbaf81544735b9e72834a51aa2c1d7dcb24b574c46afe1e96045799ed7b637aa",
+    "lib/Ham/CW/Error.pm": "c0b9b052b6baa9920915957ad7f4473efe4c9aa7f9f037f4a21af8403424d8b6",
+    "lib/Ham/CW/MIDI.pm": "73dc1d6a1e9292dc39d60536095bd21b93b3225ecf4a693fbf3d56041c3b9001",
+    "lib/Ham/CW/Events.pm": "3f0181885d4362e71d05c918207dad3708b292c0b09e254a7566a32e0a363cdd",
+    "lib/Ham/CW/Encoder.pm": "3af7b678f843b7140273d790e49b0082c6e955751dc47ab1d6e6df9dc030414b",
+    "lib/Ham/CW/Generator.pm": "a94b0791ada1fb065473f6c8d9ee2676db9119d26d0663f4adf7a44b26b0116a",
+    "lib/Ham/CW/Result.pm": "090c5a7c7a319564880f430571eceef09e9ab66dfd7d3636aaceaaa895b346d4",
+    "lib/Ham/CW/Audio.pm": "23100cfbbe8144748d96a2d1f0fb0585646ce9963de3ba25c7d31e06b0bcf33f",
+    "lib/Ham/CW/_Internal/WavWriter.pm": "1abca7e6c2985eea57b619bfa397ebaf6124daac360f5874fba976db8f0b1964",
+    "lib/Ham/CW/_Internal/Biquad.pm": "64688868677be3fed646f210e1fd0b48998602d936e73fd0348b326e4949ca69",
+    "lib/Ham/CW/_Internal/PDL.pm": "c26eac9e70c42200be4efa476b0e3439f15246b1e2fbebfa6f082bba5a5662cf",
+    "lib/Ham/CW/_Internal/Backend.pm": "82302017f8259dfab0e0cfdb1ca49bbd46b038939b3a77a13b13661986e07f9e",
+    "lib/Ham/CW/_Internal/IO.pm": "ef0fb3a8dffde4d0ca578dbd488b20da6697e0ab0c70a9c47201070e7969b74c",
+    "lib/Ham/CW/_Internal/CLI.pm": "a5eb7b07943c4dc942aaa3d505f6867390726e14085d0111c3ddf011e855a2a4",
+    "lib/Ham/CW/_Internal/Symbols.pm": "423d1755acceb143eda2eb83ba79e936fac874b7df20dd796f517e34a2becb90",
+    "lib/Ham/CW/_Internal/Result.pm": "8cbad8839aa81cf4519246702aeb93f58b015d6d0d89b941d3f1148f133e3f96",
+    "lib/Ham/CW/_Internal/Validate.pm": "f5168dac6642c20890d2fd07ab37432e5e5ae92e736e357c77b79c5cbafc3a4b",
+    "lib/Ham/CW/_Internal/Data.pm": "b2ce1d861ce7dedb61e903778aac5f577b9815032932c3250fc2d55de25da8cc"
+  },
+  "final_source_hashes": {
+    "lib/Ham/CW.pm": "36917b9dd5547581e0ce3b654b1c3eb1605401c262ae4be2b5cf4e02d3ea6e01",
+    "lib/Ham/CW/Decoder.pm": "b3d2e4f0e5db5a2d6bee74a73da66945a6836c0157cb767ac968a8d265538c02",
+    "lib/Ham/CW/Detector.pm": "cbaf81544735b9e72834a51aa2c1d7dcb24b574c46afe1e96045799ed7b637aa",
+    "lib/Ham/CW/Error.pm": "c0b9b052b6baa9920915957ad7f4473efe4c9aa7f9f037f4a21af8403424d8b6",
+    "lib/Ham/CW/MIDI.pm": "d34c037346467bb7845a2d36310fffeeae5ec3a168e6beb3291ae8b06277a904",
+    "lib/Ham/CW/Events.pm": "c259045c3b7f61ad36983e15c0e7f6ea375ea17154abafc90b2a100ac89674ab",
+    "lib/Ham/CW/Encoder.pm": "4903e1937f406f10931248eeb77769485b73e6997f4ff93c54229fb609c3e10d",
+    "lib/Ham/CW/Generator.pm": "87d13b2e1866bc2d3735d7c38bcf3e68d6c2ca1c0436274c78a10d29202bb512",
+    "lib/Ham/CW/Result.pm": "83ef4bfb0b7302e3d4ea7a6d64a777e01475604723a6660ef290204ca70ca667",
+    "lib/Ham/CW/Audio.pm": "a2f54092f6ef2ba3a7d4b4b7185fe0795b893d64a0c419279c45101cf0b6dceb",
+    "lib/Ham/CW/_Internal/WavWriter.pm": "1abca7e6c2985eea57b619bfa397ebaf6124daac360f5874fba976db8f0b1964",
+    "lib/Ham/CW/_Internal/Biquad.pm": "64688868677be3fed646f210e1fd0b48998602d936e73fd0348b326e4949ca69",
+    "lib/Ham/CW/_Internal/PDL.pm": "c26eac9e70c42200be4efa476b0e3439f15246b1e2fbebfa6f082bba5a5662cf",
+    "lib/Ham/CW/_Internal/Backend.pm": "82302017f8259dfab0e0cfdb1ca49bbd46b038939b3a77a13b13661986e07f9e",
+    "lib/Ham/CW/_Internal/IO.pm": "ef0fb3a8dffde4d0ca578dbd488b20da6697e0ab0c70a9c47201070e7969b74c",
+    "lib/Ham/CW/_Internal/CLI.pm": "a5eb7b07943c4dc942aaa3d505f6867390726e14085d0111c3ddf011e855a2a4",
+    "lib/Ham/CW/_Internal/Symbols.pm": "423d1755acceb143eda2eb83ba79e936fac874b7df20dd796f517e34a2becb90",
+    "lib/Ham/CW/_Internal/Result.pm": "8cbad8839aa81cf4519246702aeb93f58b015d6d0d89b941d3f1148f133e3f96",
+    "lib/Ham/CW/_Internal/Validate.pm": "f5168dac6642c20890d2fd07ab37432e5e5ae92e736e357c77b79c5cbafc3a4b",
+    "lib/Ham/CW/_Internal/Data.pm": "7a8b7f8c3bd17418505898a600ef4deb0ac138eb9be0e6f94cef0a3cab94625a"
+  },
+  "protocol": "Three adjacent before/after pairs per workload, alternating order; ten operation calls per backend per worker; medians of worker means; no concurrent tests or coverage; startup/module loading and event preparation excluded; generation includes collection, WAV includes PCM conversion and memory handle close; no RSS measurement",
+  "pairs": [
+    {
+      "rate": 8000,
+      "operation": "generate",
+      "repetition": 1,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.42,
+                "cpu_seconds_per_call": 0.042,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.425884962081909,
+                "wall_seconds_per_call": 0.0425884962081909
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.1,
+                "cpu_seconds_per_call": 0.01,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.098315954208374,
+                "wall_seconds_per_call": 0.0098315954208374
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.19,
+                "cpu_seconds_per_call": 0.019,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.185890913009644,
+                "wall_seconds_per_call": 0.0185890913009644
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.09,
+                "cpu_seconds_per_call": 0.009,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.0986840724945068,
+                "wall_seconds_per_call": 0.00986840724945068
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 8000,
+      "operation": "generate",
+      "repetition": 2,
+      "runs": {
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.19,
+                "cpu_seconds_per_call": 0.019,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.186615943908691,
+                "wall_seconds_per_call": 0.0186615943908691
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.1,
+                "cpu_seconds_per_call": 0.01,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.100795030593872,
+                "wall_seconds_per_call": 0.0100795030593872
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        },
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.43,
+                "cpu_seconds_per_call": 0.043,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.431144952774048,
+                "wall_seconds_per_call": 0.0431144952774048
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.1,
+                "cpu_seconds_per_call": 0.01,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.0978899002075195,
+                "wall_seconds_per_call": 0.00978899002075195
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 8000,
+      "operation": "generate",
+      "repetition": 3,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.42,
+                "cpu_seconds_per_call": 0.042,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.424310922622681,
+                "wall_seconds_per_call": 0.0424310922622681
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.1,
+                "cpu_seconds_per_call": 0.01,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.0977640151977539,
+                "wall_seconds_per_call": 0.00977640151977539
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.18,
+                "cpu_seconds_per_call": 0.018,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.183326005935669,
+                "wall_seconds_per_call": 0.0183326005935669
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.1,
+                "cpu_seconds_per_call": 0.01,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.0943567752838135,
+                "wall_seconds_per_call": 0.00943567752838135
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 8000,
+      "operation": "wav_generate",
+      "repetition": 1,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.78,
+                "cpu_seconds_per_call": 0.078,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.786217927932739,
+                "wall_seconds_per_call": 0.0786217927932739
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.28,
+                "cpu_seconds_per_call": 0.028,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.285279035568237,
+                "wall_seconds_per_call": 0.0285279035568237
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.53,
+                "cpu_seconds_per_call": 0.053,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.538481950759888,
+                "wall_seconds_per_call": 0.0538481950759888
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.28,
+                "cpu_seconds_per_call": 0.028,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.280992031097412,
+                "wall_seconds_per_call": 0.0280992031097412
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 8000,
+      "operation": "wav_generate",
+      "repetition": 2,
+      "runs": {
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.59,
+                "cpu_seconds_per_call": 0.059,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.64391303062439,
+                "wall_seconds_per_call": 0.064391303062439
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.32,
+                "cpu_seconds_per_call": 0.032,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.325819969177246,
+                "wall_seconds_per_call": 0.0325819969177246
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        },
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.85,
+                "cpu_seconds_per_call": 0.085,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.883198976516724,
+                "wall_seconds_per_call": 0.0883198976516724
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.3,
+                "cpu_seconds_per_call": 0.03,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.3092041015625,
+                "wall_seconds_per_call": 0.03092041015625
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 8000,
+      "operation": "wav_generate",
+      "repetition": 3,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.82,
+                "cpu_seconds_per_call": 0.082,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.83817195892334,
+                "wall_seconds_per_call": 0.083817195892334
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.3,
+                "cpu_seconds_per_call": 0.03,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.300894021987915,
+                "wall_seconds_per_call": 0.0300894021987915
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "8000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.53,
+                "cpu_seconds_per_call": 0.053,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.538596153259277,
+                "wall_seconds_per_call": 0.0538596153259277
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.27,
+                "cpu_seconds_per_call": 0.027,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.270675182342529,
+                "wall_seconds_per_call": 0.0270675182342529
+              }
+            ],
+            "sample_count": 73440,
+            "sample_rate": 8000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 16000,
+      "operation": "generate",
+      "repetition": 1,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.89,
+                "cpu_seconds_per_call": 0.089,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.922873973846436,
+                "wall_seconds_per_call": 0.0922873973846436
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.18,
+                "cpu_seconds_per_call": 0.018,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.199512958526611,
+                "wall_seconds_per_call": 0.0199512958526611
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.37,
+                "cpu_seconds_per_call": 0.037,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.379295110702515,
+                "wall_seconds_per_call": 0.0379295110702515
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.16,
+                "cpu_seconds_per_call": 0.016,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.167239904403687,
+                "wall_seconds_per_call": 0.0167239904403687
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 16000,
+      "operation": "generate",
+      "repetition": 2,
+      "runs": {
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.35,
+                "cpu_seconds_per_call": 0.035,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.36707592010498,
+                "wall_seconds_per_call": 0.036707592010498
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.16,
+                "cpu_seconds_per_call": 0.016,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.155918121337891,
+                "wall_seconds_per_call": 0.0155918121337891
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        },
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.85,
+                "cpu_seconds_per_call": 0.085,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.865344047546387,
+                "wall_seconds_per_call": 0.0865344047546387
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.15,
+                "cpu_seconds_per_call": 0.015,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.151398897171021,
+                "wall_seconds_per_call": 0.0151398897171021
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 16000,
+      "operation": "generate",
+      "repetition": 3,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.85,
+                "cpu_seconds_per_call": 0.085,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.85319185256958,
+                "wall_seconds_per_call": 0.085319185256958
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.15,
+                "cpu_seconds_per_call": 0.015,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.156265020370483,
+                "wall_seconds_per_call": 0.0156265020370483
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.36,
+                "cpu_seconds_per_call": 0.036,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.364314079284668,
+                "wall_seconds_per_call": 0.0364314079284668
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.15,
+                "cpu_seconds_per_call": 0.015,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.14961314201355,
+                "wall_seconds_per_call": 0.014961314201355
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 16000,
+      "operation": "wav_generate",
+      "repetition": 1,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 1.51,
+                "cpu_seconds_per_call": 0.151,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.51912689208984,
+                "wall_seconds_per_call": 0.151912689208984
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.5,
+                "cpu_seconds_per_call": 0.05,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.507050037384033,
+                "wall_seconds_per_call": 0.0507050037384033
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 1.05,
+                "cpu_seconds_per_call": 0.105,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.06164503097534,
+                "wall_seconds_per_call": 0.106164503097534
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.5,
+                "cpu_seconds_per_call": 0.05,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.499433040618896,
+                "wall_seconds_per_call": 0.0499433040618896
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 16000,
+      "operation": "wav_generate",
+      "repetition": 2,
+      "runs": {
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 1.05,
+                "cpu_seconds_per_call": 0.105,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.16164302825928,
+                "wall_seconds_per_call": 0.116164302825928
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.51,
+                "cpu_seconds_per_call": 0.051,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.50243091583252,
+                "wall_seconds_per_call": 0.050243091583252
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        },
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 1.51,
+                "cpu_seconds_per_call": 0.151,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.5173819065094,
+                "wall_seconds_per_call": 0.15173819065094
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.49,
+                "cpu_seconds_per_call": 0.049,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.503262042999268,
+                "wall_seconds_per_call": 0.0503262042999268
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 16000,
+      "operation": "wav_generate",
+      "repetition": 3,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 1.5,
+                "cpu_seconds_per_call": 0.15,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.51281404495239,
+                "wall_seconds_per_call": 0.151281404495239
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.53,
+                "cpu_seconds_per_call": 0.053,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.534034013748169,
+                "wall_seconds_per_call": 0.0534034013748169
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "16000",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 1.02,
+                "cpu_seconds_per_call": 0.102,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.01869511604309,
+                "wall_seconds_per_call": 0.101869511604309
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.49,
+                "cpu_seconds_per_call": 0.049,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 0.496660947799683,
+                "wall_seconds_per_call": 0.0496660947799683
+              }
+            ],
+            "sample_count": 146880,
+            "sample_rate": 16000,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 44100,
+      "operation": "generate",
+      "repetition": 1,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 2.27,
+                "cpu_seconds_per_call": 0.227,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 2.29158401489258,
+                "wall_seconds_per_call": 0.229158401489258
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.37,
+                "cpu_seconds_per_call": 0.037,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.354926109313965,
+                "wall_seconds_per_call": 0.0354926109313965
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 0.97,
+                "cpu_seconds_per_call": 0.097,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.975836038589478,
+                "wall_seconds_per_call": 0.0975836038589478
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.37,
+                "cpu_seconds_per_call": 0.037,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.378129005432129,
+                "wall_seconds_per_call": 0.0378129005432129
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 44100,
+      "operation": "generate",
+      "repetition": 2,
+      "runs": {
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 1.03,
+                "cpu_seconds_per_call": 0.103,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 1.05249309539795,
+                "wall_seconds_per_call": 0.105249309539795
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.4,
+                "cpu_seconds_per_call": 0.04,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.418483018875122,
+                "wall_seconds_per_call": 0.0418483018875122
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        },
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 2.72,
+                "cpu_seconds_per_call": 0.272,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 3.21802711486816,
+                "wall_seconds_per_call": 0.321802711486816
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.49,
+                "cpu_seconds_per_call": 0.049,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.504903078079224,
+                "wall_seconds_per_call": 0.0504903078079224
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 44100,
+      "operation": "generate",
+      "repetition": 3,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 2.71,
+                "cpu_seconds_per_call": 0.271,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 2.76799011230469,
+                "wall_seconds_per_call": 0.276799011230469
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.49,
+                "cpu_seconds_per_call": 0.049,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.498690128326416,
+                "wall_seconds_per_call": 0.0498690128326416
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 1.03,
+                "cpu_seconds_per_call": 0.103,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 1.03105401992798,
+                "wall_seconds_per_call": 0.103105401992798
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 0.37,
+                "cpu_seconds_per_call": 0.037,
+                "iterations": 10,
+                "operation": "generate",
+                "wall_seconds": 0.391010046005249,
+                "wall_seconds_per_call": 0.0391010046005249
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 44100,
+      "operation": "wav_generate",
+      "repetition": 1,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 4.46,
+                "cpu_seconds_per_call": 0.446,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 4.66800284385681,
+                "wall_seconds_per_call": 0.466800284385681
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 1.48,
+                "cpu_seconds_per_call": 0.148,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.52172613143921,
+                "wall_seconds_per_call": 0.152172613143921
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 3.25,
+                "cpu_seconds_per_call": 0.325,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 3.58295202255249,
+                "wall_seconds_per_call": 0.358295202255249
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 1.43,
+                "cpu_seconds_per_call": 0.143,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.45192503929138,
+                "wall_seconds_per_call": 0.145192503929138
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 44100,
+      "operation": "wav_generate",
+      "repetition": 2,
+      "runs": {
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 3.23,
+                "cpu_seconds_per_call": 0.323,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 3.43716096878052,
+                "wall_seconds_per_call": 0.343716096878052
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 1.46,
+                "cpu_seconds_per_call": 0.146,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.47168898582458,
+                "wall_seconds_per_call": 0.147168898582458
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        },
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 4.58,
+                "cpu_seconds_per_call": 0.458,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 4.76774501800537,
+                "wall_seconds_per_call": 0.476774501800537
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 1.48,
+                "cpu_seconds_per_call": 0.148,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.48660087585449,
+                "wall_seconds_per_call": 0.148660087585449
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    },
+    {
+      "rate": 44100,
+      "operation": "wav_generate",
+      "repetition": 3,
+      "runs": {
+        "before": {
+          "command": [
+            "perl",
+            "-I.author/review-20261107/baseline-lib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 4.33,
+                "cpu_seconds_per_call": 0.433,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 4.38517999649048,
+                "wall_seconds_per_call": 0.438517999649048
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 1.38,
+                "cpu_seconds_per_call": 0.138,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.38490200042725,
+                "wall_seconds_per_call": 0.138490200042725
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        },
+        "after": {
+          "command": [
+            "perl",
+            "-Ilib",
+            "-MHam::CW",
+            "maint/benchmark.pl",
+            "--backend",
+            "all",
+            "--operation",
+            "wav_generate",
+            "--rate",
+            "44100",
+            "--iterations",
+            "10",
+            "--json"
+          ],
+          "report": {
+            "architecture": "darwin-thread-multi-2level",
+            "audio_seconds": 9.18,
+            "backend_selection": "all",
+            "block_samples": 4096,
+            "frequency": 650,
+            "known_frequency": 0,
+            "message": "CQ CQ DE TESTCALL",
+            "pdl_available": 1,
+            "pdl_loaded": 1,
+            "pdl_version": "2.106",
+            "perl": "v5.44.0",
+            "platform": "darwin",
+            "results": [
+              {
+                "backend": "perl",
+                "cpu_seconds": 2.89,
+                "cpu_seconds_per_call": 0.289,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 2.91383790969849,
+                "wall_seconds_per_call": 0.291383790969849
+              },
+              {
+                "backend": "pdl",
+                "cpu_seconds": 1.35,
+                "cpu_seconds_per_call": 0.135,
+                "iterations": 10,
+                "operation": "wav_generate",
+                "wall_seconds": 1.3552348613739,
+                "wall_seconds_per_call": 0.13552348613739
+              }
+            ],
+            "sample_count": 404838,
+            "sample_rate": 44100,
+            "snapshots_per_call": 100
+          }
+        }
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "sample_rate": 8000,
+      "operation": "generate",
+      "backend": "perl",
+      "before_wall_seconds_per_call": 0.0425884962081909,
+      "after_wall_seconds_per_call": 0.0185890913009644,
+      "wall_time_reduction_percent": 56.35184860697377
+    },
+    {
+      "sample_rate": 8000,
+      "operation": "generate",
+      "backend": "pdl",
+      "before_wall_seconds_per_call": 0.00978899002075195,
+      "after_wall_seconds_per_call": 0.00986840724945068,
+      "wall_time_reduction_percent": -0.8112913439524583
+    },
+    {
+      "sample_rate": 8000,
+      "operation": "wav_generate",
+      "backend": "perl",
+      "before_wall_seconds_per_call": 0.083817195892334,
+      "after_wall_seconds_per_call": 0.0538596153259277,
+      "wall_time_reduction_percent": 35.74156859755582
+    },
+    {
+      "sample_rate": 8000,
+      "operation": "wav_generate",
+      "backend": "pdl",
+      "before_wall_seconds_per_call": 0.0300894021987915,
+      "after_wall_seconds_per_call": 0.0280992031097412,
+      "wall_time_reduction_percent": 6.614285906717798
+    },
+    {
+      "sample_rate": 16000,
+      "operation": "generate",
+      "backend": "perl",
+      "before_wall_seconds_per_call": 0.0865344047546387,
+      "after_wall_seconds_per_call": 0.036707592010498,
+      "wall_time_reduction_percent": 57.58034955624943
+    },
+    {
+      "sample_rate": 16000,
+      "operation": "generate",
+      "backend": "pdl",
+      "before_wall_seconds_per_call": 0.0156265020370483,
+      "after_wall_seconds_per_call": 0.0155918121337891,
+      "wall_time_reduction_percent": 0.22199404048938165
+    },
+    {
+      "sample_rate": 16000,
+      "operation": "wav_generate",
+      "backend": "perl",
+      "before_wall_seconds_per_call": 0.15173819065094,
+      "after_wall_seconds_per_call": 0.106164503097534,
+      "wall_time_reduction_percent": 30.03442136610429
+    },
+    {
+      "sample_rate": 16000,
+      "operation": "wav_generate",
+      "backend": "pdl",
+      "before_wall_seconds_per_call": 0.0507050037384033,
+      "after_wall_seconds_per_call": 0.0499433040618896,
+      "wall_time_reduction_percent": 1.502217967369568
+    },
+    {
+      "sample_rate": 44100,
+      "operation": "generate",
+      "backend": "perl",
+      "before_wall_seconds_per_call": 0.276799011230469,
+      "after_wall_seconds_per_call": 0.103105401992798,
+      "wall_time_reduction_percent": 62.75080552692071
+    },
+    {
+      "sample_rate": 44100,
+      "operation": "generate",
+      "backend": "pdl",
+      "before_wall_seconds_per_call": 0.0498690128326416,
+      "after_wall_seconds_per_call": 0.0391010046005249,
+      "wall_time_reduction_percent": 21.592583491182594
+    },
+    {
+      "sample_rate": 44100,
+      "operation": "wav_generate",
+      "backend": "perl",
+      "before_wall_seconds_per_call": 0.466800284385681,
+      "after_wall_seconds_per_call": 0.343716096878052,
+      "wall_time_reduction_percent": 26.367633359437725
+    },
+    {
+      "sample_rate": 44100,
+      "operation": "wav_generate",
+      "backend": "pdl",
+      "before_wall_seconds_per_call": 0.148660087585449,
+      "after_wall_seconds_per_call": 0.145192503929138,
+      "wall_time_reduction_percent": 2.3325585990374598
+    }
+  ],
+  "environment": {
+    "os": "Darwin",
+    "machine": "arm64",
+    "perl": "v5.44.0",
+    "pdl": "2.106"
+  },
+  "input_hashes": {
+    "maint/benchmark.pl": "4d907382de00fcefe0e284b7f0ad1c309bc73af83280701fca51d7d0d8a6a572",
+    "corpus/vectors.json": "a0b411db49c3279a0d6877778d9f5670861dd739fb30e4b08b8090de9bf5f989",
+    "corpus/reception.json": "b8ecd4641526284e8882e06d35bb50df138099b934f65169c2fafac5c076b061",
+    "corpus/real.json": "4f5fc5cd9ba0c1f4a97a8e736b487f65cdbaf537c4bc91538d483837966da65d",
+    "corpus/real/cs3b.wav": "87edd7a61f0c873de9521e98116db32b66c946fdba4b1101544a6949462acdfe",
+    "corpus/real/oh2b.wav": "2c439fec507ec62bfffca4109bf7e91cbf560b7f9e90969c003eb0c07b2a13ab",
+    "corpus/real/sk6rud.wav": "9a19e77951137713518238aef49cbd3104cab19ee82672d722de6b7d8ef6b6f1",
+    "corpus/real/4u1un.wav": "2c9d2320ea89d57601a7c9dcdc78168b64e2090211690eee156a42846a59dfb0"
+  },
+  "waveform_equivalence": {
+    "cases": 72,
+    "match": true,
+    "protocol": "SHA-256 of native double sample streams and complete 8/16/24-bit WAV bytes at six sample rates and three block sizes; compared against a pre-edit source copy",
+    "results": [
+      [
+        1000,
+        1,
+        "441e0ce13ffd7c8e51569ec42302b2683f32619e371ebfc65cb300b2af2d9f48"
+      ],
+      [
+        1000,
+        1,
+        8,
+        "1627de0672811295cb138c7a8cef9c12625507cab7b8edcbce62042b4dcec5c7"
+      ],
+      [
+        1000,
+        1,
+        16,
+        "fc26e8e11dc73db3e8094203c257bc4f8d1f7cdeb738975e349e9f544eba9018"
+      ],
+      [
+        1000,
+        1,
+        24,
+        "76b9c48576ebe4c4768b0d3ca68317df5b6b99adfcae1c40d78a0e189db073c1"
+      ],
+      [
+        1000,
+        137,
+        "441e0ce13ffd7c8e51569ec42302b2683f32619e371ebfc65cb300b2af2d9f48"
+      ],
+      [
+        1000,
+        137,
+        8,
+        "1627de0672811295cb138c7a8cef9c12625507cab7b8edcbce62042b4dcec5c7"
+      ],
+      [
+        1000,
+        137,
+        16,
+        "fc26e8e11dc73db3e8094203c257bc4f8d1f7cdeb738975e349e9f544eba9018"
+      ],
+      [
+        1000,
+        137,
+        24,
+        "76b9c48576ebe4c4768b0d3ca68317df5b6b99adfcae1c40d78a0e189db073c1"
+      ],
+      [
+        1000,
+        4096,
+        "441e0ce13ffd7c8e51569ec42302b2683f32619e371ebfc65cb300b2af2d9f48"
+      ],
+      [
+        1000,
+        4096,
+        8,
+        "1627de0672811295cb138c7a8cef9c12625507cab7b8edcbce62042b4dcec5c7"
+      ],
+      [
+        1000,
+        4096,
+        16,
+        "fc26e8e11dc73db3e8094203c257bc4f8d1f7cdeb738975e349e9f544eba9018"
+      ],
+      [
+        1000,
+        4096,
+        24,
+        "76b9c48576ebe4c4768b0d3ca68317df5b6b99adfcae1c40d78a0e189db073c1"
+      ],
+      [
+        8000,
+        1,
+        "ae08b7c997491fe5f5e49db5ceff4f735d79c2291079f5776797f3c55a562c4e"
+      ],
+      [
+        8000,
+        1,
+        8,
+        "2f7bfa30a4f23458c099cd6086fc09179d6e21f7446f53f654fd776ef245856e"
+      ],
+      [
+        8000,
+        1,
+        16,
+        "7cb68747a7d0e90142a9c7240ca59451100cfe5be3e8493902f771422eee0ff2"
+      ],
+      [
+        8000,
+        1,
+        24,
+        "5e39a504bc25febbeaf570f0ac49bb1aaf3be109c59d75ec5cbff191c9d24ee3"
+      ],
+      [
+        8000,
+        137,
+        "ae08b7c997491fe5f5e49db5ceff4f735d79c2291079f5776797f3c55a562c4e"
+      ],
+      [
+        8000,
+        137,
+        8,
+        "2f7bfa30a4f23458c099cd6086fc09179d6e21f7446f53f654fd776ef245856e"
+      ],
+      [
+        8000,
+        137,
+        16,
+        "7cb68747a7d0e90142a9c7240ca59451100cfe5be3e8493902f771422eee0ff2"
+      ],
+      [
+        8000,
+        137,
+        24,
+        "5e39a504bc25febbeaf570f0ac49bb1aaf3be109c59d75ec5cbff191c9d24ee3"
+      ],
+      [
+        8000,
+        4096,
+        "ae08b7c997491fe5f5e49db5ceff4f735d79c2291079f5776797f3c55a562c4e"
+      ],
+      [
+        8000,
+        4096,
+        8,
+        "2f7bfa30a4f23458c099cd6086fc09179d6e21f7446f53f654fd776ef245856e"
+      ],
+      [
+        8000,
+        4096,
+        16,
+        "7cb68747a7d0e90142a9c7240ca59451100cfe5be3e8493902f771422eee0ff2"
+      ],
+      [
+        8000,
+        4096,
+        24,
+        "5e39a504bc25febbeaf570f0ac49bb1aaf3be109c59d75ec5cbff191c9d24ee3"
+      ],
+      [
+        11025,
+        1,
+        "18bc3ac2bd7e72892ae0bca81a25c8136d205a5789e087831fa03e649fbc9b12"
+      ],
+      [
+        11025,
+        1,
+        8,
+        "5676fc3c0a982451c22cefa18dc4c4de919159e54ccd7be6608959b64f94bca8"
+      ],
+      [
+        11025,
+        1,
+        16,
+        "c204eb2e7ea5120286c0ac07f2e809831553dc99d4d41cd558eb7b963052579a"
+      ],
+      [
+        11025,
+        1,
+        24,
+        "e2e67d241b5c2532352e7b193a63004d7796d2cfacd70f4e11604a7a7bae852d"
+      ],
+      [
+        11025,
+        137,
+        "18bc3ac2bd7e72892ae0bca81a25c8136d205a5789e087831fa03e649fbc9b12"
+      ],
+      [
+        11025,
+        137,
+        8,
+        "5676fc3c0a982451c22cefa18dc4c4de919159e54ccd7be6608959b64f94bca8"
+      ],
+      [
+        11025,
+        137,
+        16,
+        "c204eb2e7ea5120286c0ac07f2e809831553dc99d4d41cd558eb7b963052579a"
+      ],
+      [
+        11025,
+        137,
+        24,
+        "e2e67d241b5c2532352e7b193a63004d7796d2cfacd70f4e11604a7a7bae852d"
+      ],
+      [
+        11025,
+        4096,
+        "18bc3ac2bd7e72892ae0bca81a25c8136d205a5789e087831fa03e649fbc9b12"
+      ],
+      [
+        11025,
+        4096,
+        8,
+        "5676fc3c0a982451c22cefa18dc4c4de919159e54ccd7be6608959b64f94bca8"
+      ],
+      [
+        11025,
+        4096,
+        16,
+        "c204eb2e7ea5120286c0ac07f2e809831553dc99d4d41cd558eb7b963052579a"
+      ],
+      [
+        11025,
+        4096,
+        24,
+        "e2e67d241b5c2532352e7b193a63004d7796d2cfacd70f4e11604a7a7bae852d"
+      ],
+      [
+        16000,
+        1,
+        "c63d4ab2155769b187c2e5d15ea0bcb1103c406748d7d8a7a7d459b8e975a028"
+      ],
+      [
+        16000,
+        1,
+        8,
+        "76d2d00e6937beec2eba45a9d6d9ff9fe25763db37f4d0b7b88eeb9170745108"
+      ],
+      [
+        16000,
+        1,
+        16,
+        "132a95a14859210e957b3f116879576dc809d9357f86163d38c923233058f3df"
+      ],
+      [
+        16000,
+        1,
+        24,
+        "13989735ce0a472f5cf02a4f6c2c5d52616e6728f588093aebfe8f7407407f87"
+      ],
+      [
+        16000,
+        137,
+        "c63d4ab2155769b187c2e5d15ea0bcb1103c406748d7d8a7a7d459b8e975a028"
+      ],
+      [
+        16000,
+        137,
+        8,
+        "76d2d00e6937beec2eba45a9d6d9ff9fe25763db37f4d0b7b88eeb9170745108"
+      ],
+      [
+        16000,
+        137,
+        16,
+        "132a95a14859210e957b3f116879576dc809d9357f86163d38c923233058f3df"
+      ],
+      [
+        16000,
+        137,
+        24,
+        "13989735ce0a472f5cf02a4f6c2c5d52616e6728f588093aebfe8f7407407f87"
+      ],
+      [
+        16000,
+        4096,
+        "c63d4ab2155769b187c2e5d15ea0bcb1103c406748d7d8a7a7d459b8e975a028"
+      ],
+      [
+        16000,
+        4096,
+        8,
+        "76d2d00e6937beec2eba45a9d6d9ff9fe25763db37f4d0b7b88eeb9170745108"
+      ],
+      [
+        16000,
+        4096,
+        16,
+        "132a95a14859210e957b3f116879576dc809d9357f86163d38c923233058f3df"
+      ],
+      [
+        16000,
+        4096,
+        24,
+        "13989735ce0a472f5cf02a4f6c2c5d52616e6728f588093aebfe8f7407407f87"
+      ],
+      [
+        44100,
+        1,
+        "272f96ec9a2433365a10de80e8702f63f17602775773bd5fbfbab0217c324849"
+      ],
+      [
+        44100,
+        1,
+        8,
+        "5ea73e4f36bf3f29fcb2527186b1288c0778b980b869cd939a6148b0ed01674f"
+      ],
+      [
+        44100,
+        1,
+        16,
+        "2dbbba6fc099728da558f043a57572c8464e05016fb4eab3c268a983e1e0457a"
+      ],
+      [
+        44100,
+        1,
+        24,
+        "a47c84b9836f650110cb7890c96ffab37aa1b17bf55fb6dbcdf4acaeab2898d1"
+      ],
+      [
+        44100,
+        137,
+        "272f96ec9a2433365a10de80e8702f63f17602775773bd5fbfbab0217c324849"
+      ],
+      [
+        44100,
+        137,
+        8,
+        "5ea73e4f36bf3f29fcb2527186b1288c0778b980b869cd939a6148b0ed01674f"
+      ],
+      [
+        44100,
+        137,
+        16,
+        "2dbbba6fc099728da558f043a57572c8464e05016fb4eab3c268a983e1e0457a"
+      ],
+      [
+        44100,
+        137,
+        24,
+        "a47c84b9836f650110cb7890c96ffab37aa1b17bf55fb6dbcdf4acaeab2898d1"
+      ],
+      [
+        44100,
+        4096,
+        "272f96ec9a2433365a10de80e8702f63f17602775773bd5fbfbab0217c324849"
+      ],
+      [
+        44100,
+        4096,
+        8,
+        "5ea73e4f36bf3f29fcb2527186b1288c0778b980b869cd939a6148b0ed01674f"
+      ],
+      [
+        44100,
+        4096,
+        16,
+        "2dbbba6fc099728da558f043a57572c8464e05016fb4eab3c268a983e1e0457a"
+      ],
+      [
+        44100,
+        4096,
+        24,
+        "a47c84b9836f650110cb7890c96ffab37aa1b17bf55fb6dbcdf4acaeab2898d1"
+      ],
+      [
+        384000,
+        1,
+        "f41b22ed26e18fcf8a48390484074b71d8ac113fed9240a20533ac73d5ed811b"
+      ],
+      [
+        384000,
+        1,
+        8,
+        "b40b3bb29b9a090f7c908e62dbc38ac4b5afd7b59ba9d4fd6b6750d424a895e5"
+      ],
+      [
+        384000,
+        1,
+        16,
+        "01d192a94553284f7f202c62a4288d9543e386b5b6a1b2bc47a783642ae70846"
+      ],
+      [
+        384000,
+        1,
+        24,
+        "aa3ff1c58b75649a19f0c2e94d0a83ebae691e1b5edcf5ad3a3602736b08d6e9"
+      ],
+      [
+        384000,
+        137,
+        "f41b22ed26e18fcf8a48390484074b71d8ac113fed9240a20533ac73d5ed811b"
+      ],
+      [
+        384000,
+        137,
+        8,
+        "b40b3bb29b9a090f7c908e62dbc38ac4b5afd7b59ba9d4fd6b6750d424a895e5"
+      ],
+      [
+        384000,
+        137,
+        16,
+        "01d192a94553284f7f202c62a4288d9543e386b5b6a1b2bc47a783642ae70846"
+      ],
+      [
+        384000,
+        137,
+        24,
+        "aa3ff1c58b75649a19f0c2e94d0a83ebae691e1b5edcf5ad3a3602736b08d6e9"
+      ],
+      [
+        384000,
+        4096,
+        "f41b22ed26e18fcf8a48390484074b71d8ac113fed9240a20533ac73d5ed811b"
+      ],
+      [
+        384000,
+        4096,
+        8,
+        "b40b3bb29b9a090f7c908e62dbc38ac4b5afd7b59ba9d4fd6b6750d424a895e5"
+      ],
+      [
+        384000,
+        4096,
+        16,
+        "01d192a94553284f7f202c62a4288d9543e386b5b6a1b2bc47a783642ae70846"
+      ],
+      [
+        384000,
+        4096,
+        24,
+        "aa3ff1c58b75649a19f0c2e94d0a83ebae691e1b5edcf5ad3a3602736b08d6e9"
+      ]
+    ]
+  },
+  "checks": {
+    "ordinary_and_author": {
+      "status": "PASS",
+      "files": 44,
+      "assertions": 3619,
+      "command": "HARNESS_PERL_SWITCHES=-Mwarnings=FATAL,all prove -lr t xt",
+      "summary": [
+        "All tests successful.",
+        "Files=44, Tests=3619, 168 wallclock secs ( 0.25 usr  0.08 sys + 159.48 cusr  3.70 csys = 163.51 CPU)",
+        "Result: PASS"
+      ],
+      "log_sha256": "bd0320775da3ae5f2896d7d41625909126ce32da324817277d2899478ca353ed"
+    },
+    "system_perl": {
+      "status": "PASS",
+      "perl": "5.34.1",
+      "files": 7,
+      "assertions": 748,
+      "command": "PERL5LIB= HARNESS_PERL_SWITCHES=-Mwarnings=FATAL,all /usr/bin/perl /usr/bin/prove -lr t/02-events.t t/03-generator.t t/08-midi.t t/09-invalid-input.t t/16-snapshot-cache.t t/31-correctness-boundaries.t t/32-review-boundaries.t",
+      "summary": [
+        "All tests successful.",
+        "Files=7, Tests=748,  2 wallclock secs ( 0.06 usr  0.03 sys +  1.87 cusr  0.15 csys =  2.11 CPU)",
+        "Result: PASS"
+      ]
+    },
+    "corpus": {
+      "status": "PASS",
+      "command": "perl maint/reception-corpus.pl",
+      "results": [
+        {
+          "cer": 0,
+          "cer_estimated": 0,
+          "cer_hinted": 0,
+          "estimated_wpm": 22.3255813953488,
+          "frequency": 450,
+          "frequency_estimated": 450,
+          "max_regression_cer": 0,
+          "max_regression_cer_estimated": 0,
+          "max_regression_cer_hinted": 0,
+          "meets_quality_target": true,
+          "meets_quality_target_estimated": true,
+          "name": "4u1un",
+          "quality_target_cer": 0.25,
+          "reference": "4U1UN",
+          "text": "4U1UN",
+          "text_estimated": "4U1UN",
+          "warnings": [],
+          "warnings_estimated": []
+        },
+        {
+          "cer": 0,
+          "cer_estimated": 0,
+          "cer_hinted": 0,
+          "estimated_wpm": 21.5845824411135,
+          "frequency": 550,
+          "frequency_estimated": 550,
+          "max_regression_cer": 0,
+          "max_regression_cer_estimated": 0,
+          "max_regression_cer_hinted": 0,
+          "meets_quality_target": true,
+          "meets_quality_target_estimated": true,
+          "name": "oh2b",
+          "quality_target_cer": 0.25,
+          "reference": "OH2B",
+          "text": "OH2B",
+          "text_estimated": "OH2B",
+          "warnings": [],
+          "warnings_estimated": []
+        },
+        {
+          "cer": 0,
+          "cer_estimated": 0,
+          "cer_hinted": 0,
+          "estimated_wpm": 21.5862632869992,
+          "frequency": 550,
+          "frequency_estimated": 550,
+          "max_regression_cer": 0,
+          "max_regression_cer_estimated": 0,
+          "max_regression_cer_hinted": 0,
+          "meets_quality_target": true,
+          "meets_quality_target_estimated": true,
+          "name": "cs3b",
+          "quality_target_cer": 0.25,
+          "reference": "CS3B",
+          "text": "CS3B",
+          "text_estimated": "CS3B",
+          "warnings": [],
+          "warnings_estimated": []
+        },
+        {
+          "cer": 0,
+          "cer_estimated": 0,
+          "cer_hinted": 0,
+          "estimated_wpm": 17.6069868995633,
+          "frequency": 750,
+          "frequency_estimated": 750,
+          "max_regression_cer": 0,
+          "max_regression_cer_estimated": 0,
+          "max_regression_cer_hinted": 0,
+          "meets_quality_target": true,
+          "meets_quality_target_estimated": true,
+          "name": "sk6rud",
+          "quality_target_cer": 0.25,
+          "reference": "SK6RUD",
+          "text": "SK6RUD",
+          "text_estimated": "SK6RUD",
+          "warnings": [],
+          "warnings_estimated": []
+        }
+      ]
+    },
+    "distribution_inventory": {
+      "status": "PASS",
+      "command": "make distcheck"
+    },
+    "production_coverage": {
+      "status": "PASS",
+      "files": 33,
+      "assertions": 2886,
+      "module_count": 20,
+      "command": "HARNESS_PERL_SWITCHES='-Mwarnings=FATAL,all -MDevel::Cover=-db,.author/review-20261107/cover-db,-blib,0,-coverage,statement,branch,condition,-select,lib/Ham,-ignore,^t/' prove -j2 -lr t",
+      "gate_command": "perl maint/coverage.pl .author/review-20261107/cover-db",
+      "summary": {
+        "branch": {
+          "covered": 764,
+          "error": 30,
+          "percentage": 96.2216624685139,
+          "total": 794,
+          "uncoverable": 0
+        },
+        "statement": {
+          "covered": 2306,
+          "error": 23,
+          "percentage": 99.0124516960069,
+          "total": 2329
+        },
+        "total": {
+          "covered": 3070,
+          "error": 53,
+          "percentage": 98.3029138648735,
+          "total": 3123,
+          "uncoverable": 0
+        }
+      },
+      "test_summary": [
+        "All tests successful.",
+        "Files=33, Tests=2886, 269 wallclock secs ( 0.26 usr  0.08 sys + 512.18 cusr  6.36 csys = 518.88 CPU)",
+        "Result: PASS"
+      ]
+    },
+    "candidate_archive": {
+      "status": "PASS",
+      "command": "make dist; perl maint/check-dist.pl Ham-CW-0.001.tar.gz",
+      "archive_sha256": "8bf7efc219f64728e950cd7d4ed97575e11f5c78459ae7c2b8492328668731e0",
+      "report": {
+        "checks": {
+          "has_abstract_in_pod": 1,
+          "has_buildtool": 1,
+          "has_changelog": 1,
+          "has_human_readable_license": 1,
+          "has_known_license_in_source_file": 1,
+          "has_license_in_source_file": 1,
+          "has_manifest": 1,
+          "has_meta_json": 1,
+          "has_meta_yml": 1,
+          "has_readme": 1,
+          "has_separate_license_file": 1,
+          "has_tests": 1,
+          "has_tests_in_t_dir": 1,
+          "kwalitee": 33,
+          "manifest_matches_dist": 1,
+          "meta_json_conforms_to_known_spec": 1,
+          "meta_json_is_parsable": 1,
+          "meta_yml_conforms_to_known_spec": 1,
+          "meta_yml_declares_perl_version": 1,
+          "meta_yml_has_license": 1,
+          "meta_yml_has_provides": 1,
+          "meta_yml_has_repository_resource": 1,
+          "meta_yml_is_parsable": 1,
+          "no_abstract_stub_in_pod": 1,
+          "no_broken_auto_install": 1,
+          "no_broken_module_install": 1,
+          "no_files_to_be_skipped": 1,
+          "no_maniskip_error": 1,
+          "no_missing_files_in_provides": 1,
+          "no_stdin_for_prompting": 1,
+          "no_symlinks": 1,
+          "proper_libs": 1,
+          "use_strict": 1,
+          "use_warnings": 1
+        },
+        "diagnostics": {},
+        "release_checks": {
+          "archive_version_matches_metadata": 1,
+          "contains:Changes": 1,
+          "contains:LICENSE": 1,
+          "contains:MANIFEST": 1,
+          "contains:META.json": 1,
+          "contains:META.yml": 1,
+          "contains:Makefile.PL": 1,
+          "contains:NOTICE": 1,
+          "contains:README": 1,
+          "contains:README.md": 1,
+          "contains:SECURITY.md": 1,
+          "contains:bin/ham-cw": 1,
+          "index_allowed:Ham::CW": 1,
+          "index_allowed:Ham::CW::Audio": 1,
+          "index_allowed:Ham::CW::Decoder": 1,
+          "index_allowed:Ham::CW::Detector": 1,
+          "index_allowed:Ham::CW::Encoder": 1,
+          "index_allowed:Ham::CW::Error": 1,
+          "index_allowed:Ham::CW::Events": 1,
+          "index_allowed:Ham::CW::Generator": 1,
+          "index_allowed:Ham::CW::MIDI": 1,
+          "index_allowed:Ham::CW::Result": 1,
+          "indexed_version:Ham::CW": 1,
+          "indexed_version:Ham::CW::Audio": 1,
+          "indexed_version:Ham::CW::Decoder": 1,
+          "indexed_version:Ham::CW::Detector": 1,
+          "indexed_version:Ham::CW::Encoder": 1,
+          "indexed_version:Ham::CW::Error": 1,
+          "indexed_version:Ham::CW::Events": 1,
+          "indexed_version:Ham::CW::Generator": 1,
+          "indexed_version:Ham::CW::MIDI": 1,
+          "indexed_version:Ham::CW::Result": 1,
+          "static_prerequisites": 1
+        }
+      }
+    },
+    "isolated_installation": {
+      "status": "PASS",
+      "command": "HARNESS_PERL_SWITCHES=-Mwarnings=FATAL,all perl maint/check-install.pl Ham-CW-0.001.tar.gz",
+      "candidate_archive_sha256": "8bf7efc219f64728e950cd7d4ed97575e11f5c78459ae7c2b8492328668731e0",
+      "ordinary_assertions": 2886,
+      "scope": "Build and install in a fresh temporary directory; complete ordinary suite with PDL available, installed CLI and launcher, independent example catalog using the installed Perl backend",
+      "summary": [
+        "All selected examples completed.",
+        "Installed distribution, CLI and examples PASS"
+      ],
+      "log_sha256": "f690c3874cc31eeb84eadcd8b1e24de57c45959eb8ba61fec6af77d431da3aeb"
+    },
+    "documentation_site": {
+      "status": "PASS",
+      "command": "perl maint/build-site.pl --output .author/review-20261107/final-site",
+      "html_pages": 47,
+      "validated_local_links_and_anchors": 2376,
+      "summary": "47 HTML pages; 2376 local links and anchors checked"
+    },
+    "final_author_checks": {
+      "status": "PASS",
+      "files": 7,
+      "assertions": 593,
+      "command": "HARNESS_PERL_SWITCHES=-Mwarnings=FATAL,all prove -lr xt/documentation.t xt/pod.t xt/site.t xt/metadata.t xt/release-tools.t xt/tidy.t xt/critic.t",
+      "summary": [
+        "All tests successful.",
+        "Files=7, Tests=593, 26 wallclock secs ( 0.05 usr  0.02 sys + 23.41 cusr  1.33 csys = 24.81 CPU)",
+        "Result: PASS"
+      ],
+      "log_sha256": "cf4e65971d4bed495f89842a3dadf445d729b60797524c44353f74dfd1ef3cbc"
+    }
+  },
+  "scope_limits": [
+    "Local macOS ARM64 with Perl 5.44.0 and PDL 2.106 only",
+    "No new remote CI, security advisory audit or peak-RSS measurements",
+    "Timings are medians of three worker means, not percentile latency or general speed guarantees",
+    "PDL synthesis code is unchanged; its observed timing differences do not establish an optimization"
+  ],
+  "verification_source_hashes": {
+    "Makefile.PL": "f748cc23d272c0265b9a5e53a02bd6436e2e23a5206b2f0159b14d7af821da63",
+    "t/32-review-boundaries.t": "236fa1465f788482df9db581ed86f63d47b8b6c2e3c19efa2e77958830dd71ec",
+    "xt/release-tools.t": "de1c7f8b630e7878c421742d27403175679714c61154ae3ab86c0b797a194d85"
+  }
+}

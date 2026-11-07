@@ -109,6 +109,7 @@ Normally called by the library; constructs a snapshot from these fields:
 
 Reference payloads must contain only unblessed arrays/hashes and scalar
 leaves, with no cycles and depth at most 64. Input references are copied.
+Shared acyclic subtrees are accepted; every path must satisfy the depth limit.
 Invalid, unknown or duplicate fields raise C<CW_E_ARGUMENT> before copying.
 The top-level object hash is locked; direct nested-field mutation is outside
 the public interface.

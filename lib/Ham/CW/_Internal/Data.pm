@@ -11,13 +11,21 @@ our @EXPORT_OK = qw(plain_data);
 sub plain_data {
     my ($value) = @_;
     my @pending = ([$value, 0, 0]);
-    my %active;
+    my (%active, %checked);
     while (my $item = pop @pending) {
         my ($node, $depth, $leaving) = @{$item};
         next unless ref $node;
         my $address = refaddr($node);
-        if ($leaving) { delete $active{$address}; next }
+        if ($leaving) {
+            delete $active{$address};
+            $checked{$address} = $depth;
+            next;
+        }
         return 0 if blessed($node) || $depth > 64 || $active{$address};
+
+        # Shared subtrees validated at this depth or deeper need no second
+        # traversal. A deeper arrival still checks the complete depth limit.
+        next if exists($checked{$address}) && $checked{$address} >= $depth;
         my $kind = ref $node;
         return 0 unless $kind eq 'ARRAY' || $kind eq 'HASH';
         $active{$address} = 1;

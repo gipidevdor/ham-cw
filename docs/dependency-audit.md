@@ -38,13 +38,17 @@ account before publication; the public index does not reserve a namespace.
 ## Runtime footprint
 
 Only core modules are required: Carp, Exporter, Hash::Util, Scalar::Util,
-Storable, Fcntl, File::Basename, File::Temp, Encode, Getopt::Long, IO::Handle
-JSON::PP and Text::Wrap, plus strict/warnings and Perl itself.
+Storable, Fcntl, File::Basename, File::Temp, Encode, Getopt::Long, IO::Handle,
+JSON::PP, Text::Wrap and Math::BigInt, plus strict/warnings and Perl itself.
+Math::BigInt is loaded only for large MIDI boundary products that require
+exact arithmetic before division.
 File::Temp provides safe replacement output and bounded seekable WAV stdin.
 Test::More is a test requirement. Corpus hash verification also requires
 Digest::SHA 5.96 or later for tests, excluding its historical CVE-2016-1238
 range; older Perls may need that test module upgraded separately.
-ExtUtils::MakeMaker 7.22 or later is required at configure time. It installs
+ExtUtils::MakeMaker 7.22 or later and core ExtUtils::Manifest are required at
+configure time. Installation selects module paths from MANIFEST, excluding
+local backups and unlisted scratch files. MakeMaker installs
 the library, executable, manual and Windows launcher, and excludes the older
 current-directory module-search vulnerability.
 Perl::Critic, Perl::Tidy, Devel::Cover and metadata/POD checkers are author-only.

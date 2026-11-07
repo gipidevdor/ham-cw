@@ -37,6 +37,10 @@ Conversions round cumulative boundaries to nearest integer, halves upward.
 They reject a conversion that would create a zero-length segment. Rounding
 per segment would accumulate drift; rounding cumulative boundaries does not.
 MIDI uses the same boundary rule at the encoded tempo and tick resolution.
+MIDI calculates each cumulative boundary once. It uses integer remainders
+for ordinary products and loads core `Math::BigInt` for products beyond the
+native exact range, keeping leading silence, short notes and final silence
+consistent even at large sample counts.
 
 The LIGHT word contains 31 mark/element-gap units and 19 spacing units when
 its terminal word gap is included. For character rate `w` and effective rate
@@ -74,6 +78,16 @@ to avoid repeatedly processing the same history.
 Internal snapshots share immutable segment records and copy the segment list.
 Public Result construction validates and deep-copies caller data; accessors
 return independent copies of reference fields.
+
+Plain-data validation remembers shared subtrees after checking them, avoiding
+exponential traversal of repeated references. A subtree reached by a deeper
+path is checked again so that sharing cannot bypass the 64-level depth limit;
+active ancestors still identify cycles.
+
+The Perl generator computes its fixed configuration once per stream and its
+clipped attack/release lengths once per segment slice. Its inner loop only
+advances the oscillator and envelope. The arithmetic order, absolute phase
+through silence and mark-end conventions are unchanged across block sizes.
 
 ## Reception assumptions
 

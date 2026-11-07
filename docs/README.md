@@ -26,6 +26,10 @@ From a checkout, use `perldoc lib/Ham/CW.pm` or `perldoc bin/ham-cw`.
 
 ## Reading measurements
 
+The [generation review, 2026-11-07](benchmarks.md#generation-review-2026-11-07)
+compares Perl and PDL synthesis at three sample rates. Its
+[raw review results](review-results.json) retain paired timings and source hashes.
+
 The [latest local CPU and peak-RSS measurements](benchmarks.md#optimized-reception-2026-10-27)
 cover the optimized receiver on 2026-10-27. [Raw results](optimization-results.json)
 include all 36 cases, source/input hashes and the before/after comparison.

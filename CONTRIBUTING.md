@@ -26,6 +26,10 @@ make test
 Use your Perl's make program (`gmake` on some Windows installations). `prove -lr t`
 is an alternative that reads `lib` directly and needs no installation.
 
+Installation copies only the `lib/*.pm` paths listed in `MANIFEST`, including
+private helpers. Keep that inventory current when adding modules; local
+backups, editor files and unlisted modules must not enter an installation.
+
 Author checks additionally need PDL, Perl::Critic, the pinned Perl::Tidy release,
 Devel::Cover and the POD/metadata tools declared under development prerequisites.
 These commands use `cpanm` from App::cpanminus. Install it through your Perl

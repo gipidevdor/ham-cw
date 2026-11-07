@@ -2,6 +2,44 @@
 
 [Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Verification](verification.md)
 
+## Generation review, 2026-11-07
+
+The Perl synthesis loop now reuses fixed stream settings and calculates ramp
+lengths once per segment slice. It preserves oscillator arithmetic, phase
+through silence and envelope boundaries. All 72 before/after fingerprints of
+sample streams and complete PCM WAV files match, covering six sample rates
+(1,000..384,000 Hz), three block sizes (1, 137, 4,096) and all bit depths.
+Independent analytic waveform tests also cover fractional and clipped ramps.
+
+Local measurements use macOS ARM64, Perl 5.44.0 and PDL 2.106, against baseline
+`49d8eb8`. Each workload has three adjacent before/after worker pairs with
+alternating order, ten timed calls per backend per worker. The table reports
+the median of the three worker means. Workloads ran sequentially without tests
+or coverage in parallel. They use `CQ CQ DE TESTCALL`, 20 WPM, 650 Hz and 9.18
+seconds of audio; sample collection and in-memory WAV/PCM conversion are
+included, while startup, module loading and input-event preparation are excluded.
+
+| Rate / operation, Perl | Wall time/call, before → after | Time reduction |
+| --- | ---: | ---: |
+| 8,000 Hz / samples | 0.0426 → 0.0186 s | 56.4% |
+| 8,000 Hz / WAV | 0.0838 → 0.0539 s | 35.7% |
+| 16,000 Hz / samples | 0.0865 → 0.0367 s | 57.6% |
+| 16,000 Hz / WAV | 0.1517 → 0.1062 s | 30.0% |
+| 44,100 Hz / samples | 0.2768 → 0.1031 s | 62.8% |
+| 44,100 Hz / WAV | 0.4668 → 0.3437 s | 26.4% |
+
+[Raw review results](review-results.json) retain every paired run, CPU/wall
+means, source/input hashes and sample/WAV fingerprints. PDL measurements are
+included as a control; its synthesis implementation is unchanged, so observed
+variation does not establish a PDL optimization. This run does not measure RSS,
+reception throughput, other platforms or percentile latency.
+
+To repeat a workload, run `perl maint/benchmark.pl --backend all --operation
+generate --rate 8000 --iterations 10 --json` from each source tree in alternating
+order. Use `wav_generate` for complete WAV output and repeat at 16000/44100 Hz.
+The raw record's commands preload each tree's library before the benchmark
+script so both versions can be compared from one checkout.
+
 ## Optimized reception, 2026-10-27
 
 The receiver now uses complex Goertzel acquisition, packed PDL windows,

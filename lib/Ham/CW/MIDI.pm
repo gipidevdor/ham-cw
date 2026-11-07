@@ -26,9 +26,29 @@ sub new {
 sub _vlq {
     my ($value) = @_;
     fail('CW_E_TIMING', 'MIDI delta exceeds four-byte VLQ range') if $value > 0x0fff_ffff;
+    $value = int("$value");
     my @bytes = ($value & 0x7f);
     while ($value >>= 7) { unshift @bytes, ($value & 0x7f) | 0x80 }
     return pack('C*', @bytes);
+}
+
+sub _ticks {
+    my ($time, $numerator, $denominator) = @_;
+    if ($time <= 2**52 / $numerator) {
+        my $product   = $time * $numerator;
+        my $whole     = int($product / $denominator);
+        my $remainder = $product - $whole * $denominator;
+        return $whole + (2 * $remainder >= $denominator ? 1 : 0);
+    }
+
+    # Large sampled boundaries can exceed native integer precision before
+    # division even when their tick deltas fit SMF. Keep those boundaries
+    # exact, including on Perls using doubles for large event counts.
+    require Math::BigInt;
+    my ($whole, $remainder) =
+        Math::BigInt->new(sprintf('%.0f', $time))->bmul($numerator)->bdiv($denominator);
+    $whole->binc if $remainder->bmul(2)->bcmp($denominator) >= 0;
+    return $whole;
 }
 
 sub encode {
@@ -44,13 +64,14 @@ sub encode {
           "\0\xff\x51\x03"
         . substr(pack('N', $tempo), 1, 3)
         . pack('CCC', 0, 0xc0 | $channel, $self->{program});
-    my ($time, $last_tick) = (0, 0);
+    my ($time, $last_tick, $boundary) = (0, 0, 0);
 
     for my $segment (@{$events->{segments}}) {
-        my $start = int($time * $numerator / $denominator + 0.5);
+        my $start = $boundary;
         $time += $segment->{$field};
+        $boundary = _ticks($time, $numerator, $denominator);
         next if $segment->{state} eq 'off';
-        my $end = int($time * $numerator / $denominator + 0.5);
+        my $end = $boundary;
         fail('CW_E_TIMING', 'MIDI resolution would produce a zero-length note') if $end <= $start;
         $track .= _vlq($start - $last_tick)
             . pack('CCC', 0x90 | $channel, $self->{note}, $self->{velocity});
@@ -60,7 +81,7 @@ sub encode {
         # The header is 22 bytes; the shortest end-of-track event is four.
         fail('CW_E_RESOURCE', 'MIDI exceeds max_bytes') if length($track) + 26 > $self->{max_bytes};
     }
-    $track .= _vlq(int($time * $numerator / $denominator + 0.5) - $last_tick) . "\xff\x2f\0";
+    $track .= _vlq($boundary - $last_tick) . "\xff\x2f\0";
     fail('CW_E_RESOURCE', 'MIDI exceeds max_bytes') if length($track) + 22 > $self->{max_bytes};
     return pack('a4Nnnna4N', 'MThd', 6, 0, 1, $self->{ppqn}, 'MTrk', length $track) . $track;
 }
@@ -163,6 +184,9 @@ four-byte SMF limit also raise that code. This operation collects the track
 in memory and is bounded by C<max_bytes>.
 The limit counts the complete encoded file, including its header and the
 variable-length final silence delta.
+Large boundary products use the core C<Math::BigInt> module, loaded only
+when needed, to preserve exact rounding before division. This also prevents
+valid short notes after long silence from being rounded to zero ticks.
 
 =head2 write
 

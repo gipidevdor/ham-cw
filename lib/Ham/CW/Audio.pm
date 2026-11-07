@@ -15,7 +15,7 @@ sub new {
     options(\%args, qw(max_bytes stereo block_samples backend));
     my $policy = $args{stereo} // 'mix';
     fail('CW_E_ARGUMENT', 'stereo must be left, right or mix')
-        unless $policy =~ /\A(?:left|right|mix)\z/x;
+        if ref($policy) || $policy !~ /\A(?:left|right|mix)\z/x;
     return bless {
         stereo        => $policy,
         backend       => Ham::CW::_Internal::Backend::resolve($args{backend}),
@@ -304,7 +304,7 @@ Returns an Audio helper. Options:
 
 =item * C<block_samples>: 4096; integer 1..1000000. Number of mono sample frames per reader block, before/after stereo selection.
 
-=item * C<stereo>: C<mix> (default), C<left> or C<right>.
+=item * C<stereo>: scalar string C<mix> (default), C<left> or C<right>; references are invalid.
 
 =item * C<backend>: C<perl> (default), C<pdl> or C<auto>. See L<Ham::CW/OPTIONAL PDL BACKEND>.
 

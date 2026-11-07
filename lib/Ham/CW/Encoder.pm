@@ -20,7 +20,8 @@ sub validate {
     my $wpm       = number('wpm',           $args->{wpm}           // 20,   1, 200);
     my $effective = number('effective_wpm', $args->{effective_wpm} // $wpm, 1, $wpm);
     my $unknown   = $args->{unknown} // 'error';
-    fail('CW_E_ARGUMENT', 'unknown must be error or skip') unless $unknown =~ /\A(?:error|skip)\z/x;
+    fail('CW_E_ARGUMENT', 'unknown must be error or skip')
+        if ref($unknown) || $unknown !~ /\A(?:error|skip)\z/x;
     return {wpm => $wpm, effective_wpm => $effective, unknown => $unknown};
 }
 
@@ -144,7 +145,7 @@ Returns a new encoder. Named options:
 
 =item * C<effective_wpm>: defaults to WPM; finite number 1..WPM.
 
-=item * C<unknown>: C<error> by default, or C<skip>.
+=item * C<unknown>: scalar string C<error> by default, or C<skip>; references are invalid.
 
 =back
 

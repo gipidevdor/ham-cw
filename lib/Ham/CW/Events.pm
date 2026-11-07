@@ -26,6 +26,7 @@ sub validate_events {
         fail('CW_E_ARGUMENT', 'Invalid segment')
             unless ref($s) eq 'HASH'
             && defined($s->{state})
+            && ref($s->{state}) eq ''
             && $s->{state} =~ /\A(?:on|off)\z/x;
         fail('CW_E_TIMING', 'Segment states must alternate') if $s->{state} eq $previous_state;
         integer($field, $s->{$field}, 1, $MAX);
@@ -114,7 +115,8 @@ A SampledEvents hash measures duration in sample counts at one sample rate:
     ] }
 
 C<on> is a keyed mark; C<off> is silence. States must alternate within each
-sequence. Leading/trailing OFF and an empty C<segments> array are valid.
+sequence and must be scalar strings, not references. Leading/trailing OFF
+and an empty C<segments> array are valid.
 Use C<unit> or C<sample_rate>, never both. Rates are integer Hz in
 1000..384000. Each segment duration/count is a positive integer, and the
 sum is at most C<2**52> in the sequence's units. Input hashes are not modified.

@@ -4,9 +4,11 @@ use Test::More;
 use File::Temp qw(tempdir);
 use File::Path qw(make_path);
 use File::Spec;
-use File::Find qw(find);
-use IPC::Open3 qw(open3);
-use Symbol     qw(gensym);
+use File::Find         qw(find);
+use File::Copy         qw(copy);
+use ExtUtils::Manifest qw(maniread);
+use IPC::Open3         qw(open3);
+use Symbol             qw(gensym);
 use Archive::Tar;
 use JSON::PP;
 use Ham::CW ();
@@ -32,6 +34,44 @@ sub run {
 }
 
 my $temporary = tempdir(CLEANUP => 1);
+my $checkout  = File::Spec->catdir($temporary, 'checkout');
+make_path($checkout);
+copy($_, File::Spec->catfile($checkout, $_)) or die $! for qw(Makefile.PL MANIFEST);
+my $inventory = maniread();
+for my $file (sort keys %{$inventory}) {
+    next unless $file =~ m{\Alib/.+\.pm\z}x || $file eq 'bin/ham-cw';
+    my @parts  = split m{/}x, $file;
+    my $name   = pop @parts;
+    my $target = File::Spec->catdir($checkout, @parts);
+    make_path($target);
+    copy($file, File::Spec->catfile($target, $name)) or die $!;
+}
+for my $name (qw(.DS_Store CW.pm.bak Unshipped.pm)) {
+    write_file(File::Spec->catfile($checkout, 'lib', $name), 'local scratch data');
+}
+my ($configured, $configure_output) =
+    run('-e', 'chdir shift or die $!; do "./Makefile.PL"; die $@ if $@;', $checkout);
+is($configured, 0, 'configure a checkout containing local scratch files')
+    or diag($configure_output);
+open my $build, '<', File::Spec->catfile($checkout, 'Makefile') or die $!;
+my $makefile = do { local $/; <$build> };
+close $build or die $!;
+unlike(
+    $makefile,
+    qr/(?:DS_Store|CW\.pm\.bak|Unshipped\.pm)/x,
+    'local backups and unshipped files are excluded from installation'
+);
+like($makefile, qr{lib/Ham/CW/_Internal/PDL\.pm}x, 'private backend remains installable');
+unlink File::Spec->catfile($checkout, 'MANIFEST') or die $!;
+($configured, $configure_output) =
+    run('-e', 'chdir shift or die $!; do "./Makefile.PL"; die $@ if $@;', $checkout);
+isnt($configured, 0, 'missing install inventory fails configuration');
+like(
+    $configure_output,
+    qr/No installable modules found in MANIFEST/,
+    'missing inventory cannot silently produce an empty installation'
+);
+
 my $directory = File::Spec->catdir($temporary, 'Ham-CW-test');
 make_path($directory);
 my $manifest = File::Spec->catfile($directory, 'MANIFEST');
