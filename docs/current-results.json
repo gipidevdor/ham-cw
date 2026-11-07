@@ -1,237 +1,164 @@
 {
-  "date": "2026-10-25",
-  "source_revision": "85eb8f3fce614d30cb53eaeb0da6b978dbc3dacc",
-  "scope": "Local measurements; no cross-platform, field-accuracy or security certification.",
-  "environment": {
-    "system": "Darwin",
-    "release": "27.0.0",
-    "machine": "arm64",
-    "perl": "v5.44.0",
-    "pdl": "2.106"
+  "date": "2026-11-07",
+  "version": "0.001",
+  "source_revision": "2168dbc6256066d9975bf511f296fea7a269e010",
+  "tested_revision": "89a575951778181512c082e74e42939a24878d0b",
+  "source_tree": "bc2920b47f7baf5a014efdb9a7d1cbb52235f5eb",
+  "tested_tree": "bc2920b47f7baf5a014efdb9a7d1cbb52235f5eb",
+  "production_source_hashes": {
+    "lib/Ham/CW.pm": "36917b9dd5547581e0ce3b654b1c3eb1605401c262ae4be2b5cf4e02d3ea6e01",
+    "lib/Ham/CW/Decoder.pm": "b3d2e4f0e5db5a2d6bee74a73da66945a6836c0157cb767ac968a8d265538c02",
+    "lib/Ham/CW/Detector.pm": "cbaf81544735b9e72834a51aa2c1d7dcb24b574c46afe1e96045799ed7b637aa",
+    "lib/Ham/CW/Error.pm": "c0b9b052b6baa9920915957ad7f4473efe4c9aa7f9f037f4a21af8403424d8b6",
+    "lib/Ham/CW/MIDI.pm": "d34c037346467bb7845a2d36310fffeeae5ec3a168e6beb3291ae8b06277a904",
+    "lib/Ham/CW/Events.pm": "c259045c3b7f61ad36983e15c0e7f6ea375ea17154abafc90b2a100ac89674ab",
+    "lib/Ham/CW/Encoder.pm": "4903e1937f406f10931248eeb77769485b73e6997f4ff93c54229fb609c3e10d",
+    "lib/Ham/CW/Generator.pm": "87d13b2e1866bc2d3735d7c38bcf3e68d6c2ca1c0436274c78a10d29202bb512",
+    "lib/Ham/CW/Result.pm": "83ef4bfb0b7302e3d4ea7a6d64a777e01475604723a6660ef290204ca70ca667",
+    "lib/Ham/CW/Audio.pm": "a2f54092f6ef2ba3a7d4b4b7185fe0795b893d64a0c419279c45101cf0b6dceb",
+    "lib/Ham/CW/_Internal/WavWriter.pm": "1abca7e6c2985eea57b619bfa397ebaf6124daac360f5874fba976db8f0b1964",
+    "lib/Ham/CW/_Internal/Biquad.pm": "64688868677be3fed646f210e1fd0b48998602d936e73fd0348b326e4949ca69",
+    "lib/Ham/CW/_Internal/PDL.pm": "c26eac9e70c42200be4efa476b0e3439f15246b1e2fbebfa6f082bba5a5662cf",
+    "lib/Ham/CW/_Internal/Backend.pm": "82302017f8259dfab0e0cfdb1ca49bbd46b038939b3a77a13b13661986e07f9e",
+    "lib/Ham/CW/_Internal/IO.pm": "ef0fb3a8dffde4d0ca578dbd488b20da6697e0ab0c70a9c47201070e7969b74c",
+    "lib/Ham/CW/_Internal/CLI.pm": "a5eb7b07943c4dc942aaa3d505f6867390726e14085d0111c3ddf011e855a2a4",
+    "lib/Ham/CW/_Internal/Symbols.pm": "423d1755acceb143eda2eb83ba79e936fac874b7df20dd796f517e34a2becb90",
+    "lib/Ham/CW/_Internal/Result.pm": "8cbad8839aa81cf4519246702aeb93f58b015d6d0d89b941d3f1148f133e3f96",
+    "lib/Ham/CW/_Internal/Validate.pm": "f5168dac6642c20890d2fd07ab37432e5e5ae92e736e357c77b79c5cbafc3a4b",
+    "lib/Ham/CW/_Internal/Data.pm": "7a8b7f8c3bd17418505898a600ef4deb0ac138eb9be0e6f94cef0a3cab94625a"
   },
-  "workloads": [
-    {
-      "audio_seconds": 9.18,
-      "block_samples": 4096,
-      "known_frequency": 0,
-      "pdl_available": 1,
-      "perl": "v5.44.0",
-      "results": [
-        {
-          "backend": "perl",
-          "cpu_seconds": 8.63,
-          "cpu_seconds_per_call": 2.87666666666667,
-          "iterations": 3,
-          "operation": "detect",
-          "wall_seconds": 8.63211512565613
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": 0.119999999999999,
-          "cpu_seconds_per_call": 0.0399999999999995,
-          "iterations": 3,
-          "operation": "generate",
-          "wall_seconds": 0.12620210647583
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": 0.0799999999999994,
-          "cpu_seconds_per_call": 0.0266666666666665,
-          "iterations": 3,
-          "operation": "snapshot_rebuild",
-          "wall_seconds": 0.073983907699585
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": -6.38378239159465e-16,
-          "cpu_seconds_per_call": -2.12792746386488e-16,
-          "iterations": 3,
-          "operation": "snapshots",
-          "wall_seconds": 4.88758087158203e-05
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": 8.73,
-          "cpu_seconds_per_call": 2.91,
-          "iterations": 3,
-          "operation": "wav_decode",
-          "wall_seconds": 8.72558403015137
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": 0.23,
-          "cpu_seconds_per_call": 0.0766666666666665,
-          "iterations": 3,
-          "operation": "wav_generate",
-          "wall_seconds": 0.227436065673828
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 9.48999999999999,
-          "cpu_seconds_per_call": 3.16333333333333,
-          "iterations": 3,
-          "operation": "detect",
-          "wall_seconds": 9.49723887443542
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 0.0299999999999983,
-          "cpu_seconds_per_call": 0.00999999999999943,
-          "iterations": 3,
-          "operation": "generate",
-          "wall_seconds": 0.0366280078887939
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 0.0800000000000026,
-          "cpu_seconds_per_call": 0.0266666666666675,
-          "iterations": 3,
-          "operation": "snapshot_rebuild",
-          "wall_seconds": 0.0783288478851318
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": -2.84494650060196e-15,
-          "cpu_seconds_per_call": -9.48315500200654e-16,
-          "iterations": 3,
-          "operation": "snapshots",
-          "wall_seconds": 5.00679016113281e-05
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 10.78,
-          "cpu_seconds_per_call": 3.59333333333333,
-          "iterations": 3,
-          "operation": "wav_decode",
-          "wall_seconds": 10.7717499732971
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 0.0800000000000006,
-          "cpu_seconds_per_call": 0.0266666666666669,
-          "iterations": 3,
-          "operation": "wav_generate",
-          "wall_seconds": 0.087108850479126
-        }
-      ],
-      "sample_count": 73440,
-      "sample_rate": 8000,
-      "snapshots_per_call": 100,
-      "command": "perl maint/benchmark.pl --json --iterations 3"
+  "status": "verified_with_unresolved_dependency_advisories",
+  "tests": {
+    "run_id": 42372079468,
+    "run_url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468",
+    "required_jobs_passed": 12,
+    "jobs": [
+      {
+        "id": 128402090295,
+        "name": "PDL / macos-15-intel",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090295"
+      },
+      {
+        "id": 128402090462,
+        "name": "windows-latest / Perl 5.40",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090462"
+      },
+      {
+        "id": 128402090467,
+        "name": "ubuntu-latest / Perl 5.44",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090467"
+      },
+      {
+        "id": 128402090512,
+        "name": "Author checks and distribution",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090512"
+      },
+      {
+        "id": 128402090531,
+        "name": "PDL / ubuntu-latest",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090531"
+      },
+      {
+        "id": 128402090534,
+        "name": "PDL / windows-latest",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090534"
+      },
+      {
+        "id": 128402090550,
+        "name": "PDL / macos-latest",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090550"
+      },
+      {
+        "id": 128402090554,
+        "name": "ubuntu-latest / Perl 5.40",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090554"
+      },
+      {
+        "id": 128402090563,
+        "name": "ubuntu-latest / Perl 5.20",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090563"
+      },
+      {
+        "id": 128402090578,
+        "name": "PDL minimum / Perl 5.20",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090578"
+      },
+      {
+        "id": 128402090613,
+        "name": "ubuntu-latest / Perl 5.34",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090613"
+      },
+      {
+        "id": 128402090636,
+        "name": "macos-latest / Perl 5.40",
+        "conclusion": "success",
+        "url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090636"
+      }
+    ],
+    "ordinary": {
+      "files": 33,
+      "assertions": 2886
     },
-    {
-      "audio_seconds": 9.18,
-      "block_samples": 4096,
-      "known_frequency": 1,
-      "pdl_available": 1,
-      "perl": "v5.44.0",
-      "results": [
-        {
-          "backend": "perl",
-          "cpu_seconds": 0.88,
-          "cpu_seconds_per_call": 0.293333333333333,
-          "iterations": 3,
-          "operation": "detect",
-          "wall_seconds": 0.886319875717163
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": 0.12,
-          "cpu_seconds_per_call": 0.04,
-          "iterations": 3,
-          "operation": "generate",
-          "wall_seconds": 0.123454093933105
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": 0.03,
-          "cpu_seconds_per_call": 0.01,
-          "iterations": 3,
-          "operation": "snapshot_rebuild",
-          "wall_seconds": 0.0265219211578369
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": 8.67361737988404e-18,
-          "cpu_seconds_per_call": 2.89120579329468e-18,
-          "iterations": 3,
-          "operation": "snapshots",
-          "wall_seconds": 4.79221343994141e-05
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": 0.91,
-          "cpu_seconds_per_call": 0.303333333333333,
-          "iterations": 3,
-          "operation": "wav_decode",
-          "wall_seconds": 0.910346031188965
-        },
-        {
-          "backend": "perl",
-          "cpu_seconds": 0.23,
-          "cpu_seconds_per_call": 0.0766666666666666,
-          "iterations": 3,
-          "operation": "wav_generate",
-          "wall_seconds": 0.227243900299072
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 0.76,
-          "cpu_seconds_per_call": 0.253333333333333,
-          "iterations": 3,
-          "operation": "detect",
-          "wall_seconds": 0.756352186203003
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 0.0299999999999996,
-          "cpu_seconds_per_call": 0.00999999999999986,
-          "iterations": 3,
-          "operation": "generate",
-          "wall_seconds": 0.0306229591369629
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 0.03,
-          "cpu_seconds_per_call": 0.01,
-          "iterations": 3,
-          "operation": "snapshot_rebuild",
-          "wall_seconds": 0.0269410610198975
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": -2.13370987545147e-16,
-          "cpu_seconds_per_call": -7.11236625150491e-17,
-          "iterations": 3,
-          "operation": "snapshots",
-          "wall_seconds": 4.88758087158203e-05
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 0.79,
-          "cpu_seconds_per_call": 0.263333333333333,
-          "iterations": 3,
-          "operation": "wav_decode",
-          "wall_seconds": 0.790087223052979
-        },
-        {
-          "backend": "pdl",
-          "cpu_seconds": 0.0799999999999999,
-          "cpu_seconds_per_call": 0.0266666666666666,
-          "iterations": 3,
-          "operation": "wav_generate",
-          "wall_seconds": 0.0838339328765869
-        }
-      ],
-      "sample_count": 73440,
-      "sample_rate": 8000,
-      "snapshots_per_call": 100,
-      "command": "perl maint/benchmark.pl --json --iterations 3 --known-frequency"
+    "author": {
+      "files": 11,
+      "assertions": 732,
+      "environment": "Linux, Perl 5.40.5, PDL 2.106"
+    },
+    "author_job_url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468/job/128402090512",
+    "job_summaries": [
+      "2026-11-07T12:25:37.1729289Z Files=33, Tests=2886, 69 wallclock secs ( 0.09 usr  0.04 sys + 66.70 cusr  1.62 csys = 68.45 CPU)",
+      "2026-11-07T12:25:52.8400024Z Files=11, Tests=732, 15 wallclock secs ( 0.04 usr  0.01 sys + 14.55 cusr  0.86 csys = 15.46 CPU)",
+      "2026-11-07T12:27:56.1717124Z Files=33, Tests=2886, 124 wallclock secs ( 0.20 usr  0.06 sys + 238.23 cusr  2.76 csys = 241.25 CPU)",
+      "2026-11-07T12:29:05.0198632Z Files=33, Tests=2886, 69 wallclock secs ( 0.10 usr  0.04 sys + 66.56 cusr  1.63 csys = 68.33 CPU)",
+      "2026-11-07T12:30:14.6549189Z Files=33, Tests=2886, 68 wallclock secs ( 0.09 usr  0.04 sys + 66.72 cusr  1.59 csys = 68.44 CPU)",
+      "2026-11-07T12:30:23.0562914Z Installed distribution, CLI and examples PASS"
+    ]
+  },
+  "coverage": {
+    "branch": {
+      "covered": 764,
+      "error": 30,
+      "percentage": 96.2216624685139,
+      "total": 794,
+      "uncoverable": 0
+    },
+    "statement": {
+      "covered": 2306,
+      "error": 23,
+      "percentage": 99.0124516960069,
+      "total": 2329
+    },
+    "total": {
+      "covered": 3070,
+      "error": 53,
+      "percentage": 98.3029138648735,
+      "total": 3123,
+      "uncoverable": 0
     }
-  ],
-  "reception": {
-    "command": "perl maint/reception-corpus.pl",
-    "results": [
+  },
+  "local_review": {
+    "record": "docs/review-results.json",
+    "combined_files": 44,
+    "combined_assertions": 3619,
+    "environment": {
+      "os": "Darwin",
+      "machine": "arm64",
+      "perl": "v5.44.0",
+      "pdl": "2.106"
+    },
+    "generation_equivalence_cases": 72,
+    "corpus": [
       {
         "cer": 0,
         "cer_estimated": 0,
@@ -314,342 +241,435 @@
       }
     ]
   },
-  "measured_files_sha256": {
-    "corpus/real/4u1un.wav": "2c9d2320ea89d57601a7c9dcdc78168b64e2090211690eee156a42846a59dfb0",
-    "corpus/real/cs3b.wav": "87edd7a61f0c873de9521e98116db32b66c946fdba4b1101544a6949462acdfe",
-    "corpus/real/oh2b.wav": "2c439fec507ec62bfffca4109bf7e91cbf560b7f9e90969c003eb0c07b2a13ab",
-    "corpus/real/sk6rud.wav": "9a19e77951137713518238aef49cbd3104cab19ee82672d722de6b7d8ef6b6f1",
-    "corpus/real.json": "4f5fc5cd9ba0c1f4a97a8e736b487f65cdbaf537c4bc91538d483837966da65d",
-    "lib/Ham/CW/Audio.pm": "5974b321cbdea2ebaca066398ec1056d8e508be05ac5d19292b763a8820816a4",
-    "lib/Ham/CW/Decoder.pm": "ec46c3d4978fec64e715e51eab5922a0f8d625459cb4d5612676f146cdacaa8f",
-    "lib/Ham/CW/Detector.pm": "77eb84060036e7fd6192da0b622766bab86ad96771163c2e2cf5f55416474491",
-    "lib/Ham/CW/Encoder.pm": "1c434bb5628f62776decb9e3fa1db933180563ca68b15e6868e764ae9332cfe0",
-    "lib/Ham/CW/Error.pm": "635cd1e45942df8050277d3a65e39d0feaa71bc4a2448301f01097b356805073",
-    "lib/Ham/CW/Events.pm": "81015aefd2a85b1705e4b336677202268b2dd0ba74d030e881209546c571c5b5",
-    "lib/Ham/CW/Generator.pm": "42b31334182f57a8ebc65011a9cb603dac48016729db22357fc26fcbb936ed54",
-    "lib/Ham/CW/MIDI.pm": "07f3a201ed88d66d4da654472bfd67eeb8b8912a3a11b41ea0598b5646e04023",
-    "lib/Ham/CW/Result.pm": "6a0257d5fb6abc2bae900b679e5c6d02ad43db0801f29ad2669a3a4e3de28586",
-    "lib/Ham/CW/_Internal/Backend.pm": "82302017f8259dfab0e0cfdb1ca49bbd46b038939b3a77a13b13661986e07f9e",
-    "lib/Ham/CW/_Internal/Biquad.pm": "64688868677be3fed646f210e1fd0b48998602d936e73fd0348b326e4949ca69",
-    "lib/Ham/CW/_Internal/CLI.pm": "25cae44fb5cc90214b9509d0e92620a0f66f9a5674ef82481febd8205565b9e7",
-    "lib/Ham/CW/_Internal/Data.pm": "b2ce1d861ce7dedb61e903778aac5f577b9815032932c3250fc2d55de25da8cc",
-    "lib/Ham/CW/_Internal/IO.pm": "ef0fb3a8dffde4d0ca578dbd488b20da6697e0ab0c70a9c47201070e7969b74c",
-    "lib/Ham/CW/_Internal/PDL.pm": "db82927009b4df523c482b83a643b09091cc93d74165fe052c4b2207ba52fabd",
-    "lib/Ham/CW/_Internal/Result.pm": "8cbad8839aa81cf4519246702aeb93f58b015d6d0d89b941d3f1148f133e3f96",
-    "lib/Ham/CW/_Internal/Symbols.pm": "423d1755acceb143eda2eb83ba79e936fac874b7df20dd796f517e34a2becb90",
-    "lib/Ham/CW/_Internal/Validate.pm": "f5168dac6642c20890d2fd07ab37432e5e5ae92e736e357c77b79c5cbafc3a4b",
-    "lib/Ham/CW/_Internal/WavWriter.pm": "1abca7e6c2985eea57b619bfa397ebaf6124daac360f5874fba976db8f0b1964",
-    "lib/Ham/CW.pm": "88a38cf7a2b9f5a4e8600582d25c833de8100c082458456eb249d42ccb53d5ce",
-    "maint/benchmark.pl": "5d7cc311bc1d1a8dde2fb0214b45b7101523bb1122664ac3c38c38cad340f37c",
-    "maint/reception-corpus.pl": "91fe8a1e18d90eb8f578d98bcb9978cd09fcc5a62961f8482acd22e256c54625",
-    "t/lib/CorpusMetrics.pm": "46b0b68bb947f8ee17112e55e3e018b73b711a6d5a8cb626fdb40f7018a15b3e"
+  "documentation": {
+    "run_id": 42373236730,
+    "run_url": "https://github.com/gipidevdor/ham-cw/actions/runs/42373236730",
+    "status": "PASS",
+    "published_revision": "2168dbc6256066d9975bf511f296fea7a269e010",
+    "html_pages": 47,
+    "validated_local_links_and_anchors": 2376,
+    "note": "Publication before this documentation-only refresh; subsequent Pages builds use their own commit revision."
   },
-  "verification": {
-    "date": "2026-10-25",
-    "source_scope": "Working tree based on the measured revision. Numerical generation and reception are unchanged; command help, usage diagnostics and example interfaces have since been refined.",
-    "local_suite": {
-      "command": "PERL5OPT=-Mwarnings=FATAL,all prove -lr t xt",
-      "files": 39,
-      "tests": 3034,
-      "result": "PASS",
-      "output_sha256": "d648a00d78d0beb4ad41537ed40423858a5bcf180af9e58535c40005fea33bc2"
-    },
-    "navigation": {
-      "local_links_checked": 178,
-      "result": "PASS"
-    },
-    "ci": {
-      "source_revision": "85eb8f3fce614d30cb53eaeb0da6b978dbc3dacc",
-      "tests": {
-        "run_id": 40187441836,
-        "result": "success",
-        "jobs": [
-          {
-            "name": "Author checks and distribution",
-            "conclusion": "success"
+  "security": {
+    "run_id": 42372079553,
+    "run_url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079553",
+    "status": "FAIL",
+    "passed_jobs": [
+      "Workflow security and syntax",
+      "Secrets / complete Git history",
+      "Perl unsafe constructs"
+    ],
+    "artifact_id": 13574785663,
+    "artifact_sha256": "08ef69b3b469f524f49fef93b23684a350613d68c51242453332629c3ab6925a",
+    "reports": {
+      "declared": {
+        "meta": {
+          "args": [
+            "MYMETA.json"
+          ],
+          "command": "declared",
+          "cpan_audit": {
+            "db": "20261101.010",
+            "version": "20261105.001"
           },
-          {
-            "name": "windows-latest / Perl 5.40",
-            "conclusion": "success"
+          "scopes": [
+            {
+              "phase": "build",
+              "ranges": {
+                "ExtUtils-MakeMaker": "7.22",
+                "perl": "5.020"
+              },
+              "relation": "requires",
+              "unmapped_modules": []
+            },
+            {
+              "phase": "configure",
+              "ranges": {
+                "ExtUtils-MakeMaker": "7.22",
+                "perl": "5.020"
+              },
+              "relation": "requires",
+              "unmapped_modules": [
+                "ExtUtils::Manifest"
+              ]
+            },
+            {
+              "phase": "develop",
+              "ranges": {
+                "Archive-Tar": "3.10",
+                "Perl-Tidy": "20260826",
+                "URI": "5.00",
+                "perl": "5.020",
+                "podlators": "v6.1.1"
+              },
+              "relation": "requires",
+              "unmapped_modules": [
+                "CPAN::Audit",
+                "CPAN::Meta",
+                "Devel::Cover",
+                "ExtUtils::Manifest",
+                "HTML::Tree",
+                "Markdown::Perl",
+                "Module::CPANTS::Analyse",
+                "PPI",
+                "Perl::Critic",
+                "Pod::Simple",
+                "Test::CPAN::Changes",
+                "Test::CPAN::Meta",
+                "Test::Kwalitee",
+                "Test::Pod"
+              ]
+            },
+            {
+              "phase": "runtime",
+              "ranges": {
+                "perl": "5.020"
+              },
+              "relation": "recommends",
+              "unmapped_modules": [
+                "PDL"
+              ]
+            },
+            {
+              "phase": "runtime",
+              "ranges": {
+                "Encode": "0",
+                "File-Temp": "0",
+                "Storable": "0",
+                "perl": "5.020"
+              },
+              "relation": "requires",
+              "unmapped_modules": [
+                "Carp",
+                "Exporter",
+                "Getopt::Long",
+                "IO::Handle",
+                "JSON::PP",
+                "Math::BigInt",
+                "Scalar::Util",
+                "Text::Wrap"
+              ]
+            },
+            {
+              "phase": "test",
+              "ranges": {
+                "Digest-SHA": "5.96",
+                "File-Temp": "0",
+                "PathTools": "0",
+                "perl": "5.020"
+              },
+              "relation": "requires",
+              "unmapped_modules": [
+                "Config",
+                "JSON::PP",
+                "Math::BigInt",
+                "Test::More"
+              ]
+            }
+          ],
+          "total_advisories": 39
+        },
+        "errors": [],
+        "dists": {
+          "Encode": {
+            "advisories": [
+              {
+                "id": "CPANSA-Encode-2021-01"
+              },
+              {
+                "id": "CPANSA-Encode-2011-2939"
+              },
+              {
+                "id": "CPANSA-Encode-2016-01"
+              }
+            ],
+            "scopes": [
+              {
+                "phase": "runtime",
+                "relation": "requires",
+                "version": "0"
+              }
+            ]
           },
-          {
-            "name": "PDL / ubuntu-latest",
-            "conclusion": "success"
+          "File-Temp": {
+            "advisories": [
+              {
+                "id": "CPANSA-File-Temp-2011-4116"
+              }
+            ],
+            "scopes": [
+              {
+                "phase": "runtime",
+                "relation": "requires",
+                "version": "0"
+              },
+              {
+                "phase": "test",
+                "relation": "requires",
+                "version": "0"
+              }
+            ]
           },
-          {
-            "name": "ubuntu-latest / Perl 5.40",
-            "conclusion": "success"
+          "PathTools": {
+            "advisories": [
+              {
+                "id": "CPANSA-PathTools-2016-01"
+              },
+              {
+                "id": "CPANSA-PathTools-2016-02"
+              }
+            ],
+            "scopes": [
+              {
+                "phase": "test",
+                "relation": "requires",
+                "version": "0"
+              }
+            ]
           },
-          {
-            "name": "macos-latest / Perl 5.40",
-            "conclusion": "success"
+          "Storable": {
+            "advisories": [
+              {
+                "id": "CPANSA-Storable-2017-01"
+              },
+              {
+                "id": "CPANSA-Storable-2017-20230"
+              },
+              {
+                "id": "CPANSA-Storable-2026-57433"
+              }
+            ],
+            "scopes": [
+              {
+                "phase": "runtime",
+                "relation": "requires",
+                "version": "0"
+              }
+            ]
           },
-          {
-            "name": "PDL / macos-latest",
-            "conclusion": "success"
+          "URI": {
+            "advisories": [
+              {
+                "id": "CPANSA-URI-2026-19953"
+              }
+            ],
+            "scopes": [
+              {
+                "phase": "develop",
+                "relation": "requires",
+                "version": "5.00"
+              }
+            ]
           },
-          {
-            "name": "ubuntu-latest / Perl 5.20",
-            "conclusion": "success"
-          },
-          {
-            "name": "PDL / windows-latest",
-            "conclusion": "success"
-          },
-          {
-            "name": "ubuntu-latest / Perl 5.34",
-            "conclusion": "success"
-          },
-          {
-            "name": "ubuntu-latest / Perl 5.44",
-            "conclusion": "success"
-          },
-          {
-            "name": "PDL minimum / Perl 5.20",
-            "conclusion": "success"
-          },
-          {
-            "name": "PDL / macos-15-intel",
-            "conclusion": "success"
-          }
-        ],
-        "coverage": {
-          "branch": {
-            "covered": 751,
-            "error": 29,
-            "percentage": 96.2820512820513,
-            "total": 780,
-            "uncoverable": 0
-          },
-          "statement": {
-            "covered": 2245,
-            "error": 22,
-            "percentage": 99.0295544772828,
-            "total": 2267
-          },
-          "total": {
-            "covered": 2996,
-            "error": 51,
-            "percentage": 98.3262225139481,
-            "total": 3047,
-            "uncoverable": 0
+          "perl": {
+            "advisories": [
+              {
+                "id": "CPANSA-perl-2026-19487"
+              },
+              {
+                "id": "CPANSA-perl-2020-12723"
+              },
+              {
+                "id": "CPANSA-ExtUtils-ParseXS-2016-1238"
+              },
+              {
+                "id": "CPANSA-perl-2020-10878"
+              },
+              {
+                "id": "CPANSA-perl-2020-10543"
+              },
+              {
+                "id": "CPANSA-perl-2017-12814"
+              },
+              {
+                "id": "CPANSA-perl-2026-8376"
+              },
+              {
+                "id": "CPANSA-perl-2025-40909"
+              },
+              {
+                "id": "CPANSA-perl-2024-56406"
+              },
+              {
+                "id": "CPANSA-perl-2022-48522"
+              },
+              {
+                "id": "CPANSA-perl-2018-18313"
+              },
+              {
+                "id": "CPANSA-perl-2015-8608"
+              },
+              {
+                "id": "CPANSA-perl-2026-57432"
+              },
+              {
+                "id": "CPANSA-perl-2018-18311"
+              },
+              {
+                "id": "CPANSA-perl-2018-18314"
+              },
+              {
+                "id": "CPANSA-perl-2016-6185"
+              },
+              {
+                "id": "CPANSA-perl-2018-6797"
+              },
+              {
+                "id": "CPANSA-perl-2026-15534"
+              },
+              {
+                "id": "CPANSA-perl-2018-18312"
+              },
+              {
+                "id": "CPANSA-perl-2018-6913"
+              },
+              {
+                "id": "CPANSA-perl-2023-47100"
+              },
+              {
+                "id": "CPANSA-perl-2017-12837"
+              },
+              {
+                "id": "CPANSA-perl-2026-13221"
+              },
+              {
+                "id": "CPANSA-perl-2015-8853"
+              },
+              {
+                "id": "CPANSA-perl-2023-47038"
+              },
+              {
+                "id": "CPANSA-perl-2023-47039"
+              },
+              {
+                "id": "CPANSA-perl-2018-6798"
+              },
+              {
+                "id": "CPANSA-perl-2017-12883"
+              },
+              {
+                "id": "CPANSA-perl-2016-2381"
+              }
+            ],
+            "scopes": [
+              {
+                "phase": "build",
+                "relation": "requires",
+                "version": "5.020"
+              },
+              {
+                "phase": "configure",
+                "relation": "requires",
+                "version": "5.020"
+              },
+              {
+                "phase": "develop",
+                "relation": "requires",
+                "version": "5.020"
+              },
+              {
+                "phase": "runtime",
+                "relation": "recommends",
+                "version": "5.020"
+              },
+              {
+                "phase": "runtime",
+                "relation": "requires",
+                "version": "5.020"
+              },
+              {
+                "phase": "test",
+                "relation": "requires",
+                "version": "5.020"
+              }
+            ]
           }
         },
-        "archive_installation": "PASS in author/distribution job"
+        "json_sha256": "272aada53b86c57bbc729af3c1f09a386a2444292cabc3ecd1b3cebf88015838"
       },
-      "security": {
-        "run_id": 40187441825,
-        "result": "failure",
-        "jobs": [
-          {
-            "name": "Secrets / complete Git history",
-            "conclusion": "success"
+      "installed": {
+        "meta": {
+          "args": [],
+          "command": "installed",
+          "cpan_audit": {
+            "db": "20261101.010",
+            "version": "20261105.001"
           },
-          {
-            "name": "Perl unsafe constructs",
-            "conclusion": "success"
+          "total_advisories": 2
+        },
+        "errors": [],
+        "dists": {
+          "File-Temp": {
+            "advisories": [
+              {
+                "id": "CPANSA-File-Temp-2011-4116"
+              }
+            ],
+            "queried_modules": [],
+            "version": "==0.2312"
           },
-          {
-            "name": "Workflow security and syntax",
-            "conclusion": "success"
-          },
-          {
-            "name": "CVEs / Perl and installed CPAN dependencies",
-            "conclusion": "failure"
-          },
-          {
-            "name": "Security checks",
-            "conclusion": "failure"
+          "perl": {
+            "advisories": [
+              {
+                "id": "CPANSA-perl-2026-15534"
+              }
+            ],
+            "queried_modules": [],
+            "version": "==5.044000"
           }
-        ],
-        "audit_summary": {
-          "installed": {
-            "meta": {
-              "args": [],
-              "command": "installed",
-              "cpan_audit": {
-                "db": "20261018.001",
-                "version": "20261013.002"
-              },
-              "total_advisories": 2
-            },
-            "errors": [],
-            "artifact_sha256": "5473a59ad23f40d86ab82e29c47979a27d48d8ed9623235bda8f0384384d01df",
-            "advisory_ids_by_distribution": {
-              "File-Temp": [
-                "CPANSA-File-Temp-2011-4116"
-              ],
-              "perl": [
-                "CPANSA-perl-2026-15534"
-              ]
-            }
-          },
-          "declared": {
-            "meta": {
-              "args": [
-                "MYMETA.json"
-              ],
-              "command": "declared",
-              "cpan_audit": {
-                "db": "20261018.001",
-                "version": "20261013.002"
-              },
-              "scopes": [
-                {
-                  "phase": "build",
-                  "ranges": {
-                    "ExtUtils-MakeMaker": "7.22",
-                    "perl": "5.020"
-                  },
-                  "relation": "requires",
-                  "unmapped_modules": []
-                },
-                {
-                  "phase": "configure",
-                  "ranges": {
-                    "ExtUtils-MakeMaker": "7.22",
-                    "perl": "5.020"
-                  },
-                  "relation": "requires",
-                  "unmapped_modules": []
-                },
-                {
-                  "phase": "develop",
-                  "ranges": {
-                    "Archive-Tar": "3.10",
-                    "Perl-Tidy": "20260826",
-                    "perl": "5.020",
-                    "podlators": "v6.1.1"
-                  },
-                  "relation": "requires",
-                  "unmapped_modules": [
-                    "CPAN::Audit",
-                    "Devel::Cover",
-                    "Module::CPANTS::Analyse",
-                    "PPI",
-                    "Perl::Critic",
-                    "Test::CPAN::Changes",
-                    "Test::CPAN::Meta",
-                    "Test::Kwalitee",
-                    "Test::Pod"
-                  ]
-                },
-                {
-                  "phase": "runtime",
-                  "ranges": {
-                    "perl": "5.020"
-                  },
-                  "relation": "recommends",
-                  "unmapped_modules": [
-                    "PDL"
-                  ]
-                },
-                {
-                  "phase": "runtime",
-                  "ranges": {
-                    "Encode": "0",
-                    "File-Temp": "0",
-                    "Storable": "0",
-                    "perl": "5.020"
-                  },
-                  "relation": "requires",
-                  "unmapped_modules": [
-                    "Carp",
-                    "Exporter",
-                    "Getopt::Long",
-                    "IO::Handle",
-                    "JSON::PP",
-                    "Scalar::Util",
-                    "Text::Wrap"
-                  ]
-                },
-                {
-                  "phase": "test",
-                  "ranges": {
-                    "Digest-SHA": "5.96",
-                    "File-Temp": "0",
-                    "PathTools": "0",
-                    "perl": "5.020"
-                  },
-                  "relation": "requires",
-                  "unmapped_modules": [
-                    "JSON::PP",
-                    "Test::More"
-                  ]
-                }
-              ],
-              "total_advisories": 38
-            },
-            "errors": [],
-            "artifact_sha256": "eb8290d9d4f96da295858d80dd7a01571b95d106b3327fa87f08925386801c10",
-            "advisory_ids_by_distribution": {
-              "Encode": [
-                "CPANSA-Encode-2011-2939",
-                "CPANSA-Encode-2016-01",
-                "CPANSA-Encode-2021-01"
-              ],
-              "File-Temp": [
-                "CPANSA-File-Temp-2011-4116"
-              ],
-              "PathTools": [
-                "CPANSA-PathTools-2016-01",
-                "CPANSA-PathTools-2016-02"
-              ],
-              "Storable": [
-                "CPANSA-Storable-2026-57433",
-                "CPANSA-Storable-2017-01",
-                "CPANSA-Storable-2017-20230"
-              ],
-              "perl": [
-                "CPANSA-perl-2025-40909",
-                "CPANSA-perl-2026-57432",
-                "CPANSA-perl-2023-47038",
-                "CPANSA-perl-2026-13221",
-                "CPANSA-perl-2026-19487",
-                "CPANSA-perl-2026-8376",
-                "CPANSA-ExtUtils-ParseXS-2016-1238",
-                "CPANSA-perl-2023-47039",
-                "CPANSA-perl-2017-12883",
-                "CPANSA-perl-2023-47100",
-                "CPANSA-perl-2017-12814",
-                "CPANSA-perl-2020-12723",
-                "CPANSA-perl-2016-2381",
-                "CPANSA-perl-2016-6185",
-                "CPANSA-perl-2018-18314",
-                "CPANSA-perl-2026-15534",
-                "CPANSA-perl-2018-18313",
-                "CPANSA-perl-2018-6798",
-                "CPANSA-perl-2022-48522",
-                "CPANSA-perl-2018-18311",
-                "CPANSA-perl-2018-18312",
-                "CPANSA-perl-2015-8608",
-                "CPANSA-perl-2017-12837",
-                "CPANSA-perl-2024-56406",
-                "CPANSA-perl-2018-6797",
-                "CPANSA-perl-2020-10878",
-                "CPANSA-perl-2015-8853",
-                "CPANSA-perl-2020-10543",
-                "CPANSA-perl-2018-6913"
-              ]
-            }
-          }
-        }
+        },
+        "json_sha256": "9cca4c8d0b0b26469cc1bbb2d501cd1b31d0fbf30996b2bb59adf15114bb984e"
       }
     },
-    "local_distribution": {
-      "commands": [
-        "make distcheck",
-        "make dist",
-        "perl maint/check-dist.pl Ham-CW-0.001.tar.gz"
-      ],
-      "result": "PASS",
-      "scope": "Interface working tree; isolated installation result remains from the cited CI revision."
+    "comparison": {
+      "declared": {
+        "added": [],
+        "removed": [],
+        "identical_advisory_ids": true
+      },
+      "installed": {
+        "added": [],
+        "removed": [
+          [
+            "Sereal-Decoder",
+            "CPANSA-Sereal-Decoder-2018-12913-miniz"
+          ],
+          [
+            "Sereal-Encoder",
+            "CPANSA-Sereal-Encoder-2018-12913-miniz"
+          ]
+        ],
+        "identical_advisory_ids": false
+      }
     },
-    "author_repeat": {
-      "command": "PERL5OPT=-Mwarnings=FATAL,all prove -lr xt",
-      "files": 9,
-      "tests": 498,
-      "result": "PASS"
-    }
-  }
+    "baseline_run_id": 41480294651,
+    "baseline_run_url": "https://github.com/gipidevdor/ham-cw/actions/runs/41480294651",
+    "baseline_artifact_id": 13160530389,
+    "baseline_artifact_sha256": "26b52b972b80e0a5699090d55cfd6dbd715201e4eb654fce69baa04d336cbf28",
+    "baseline_summary": {
+      "declared": {
+        "total_advisories": 39,
+        "scanner": {
+          "db": "20261101.010",
+          "version": "20261013.002"
+        },
+        "json_sha256": "ec766a19a26989e2f5a6d6a241177ec76184f750be8e0e06fcd5a45367d3ccec"
+      },
+      "installed": {
+        "total_advisories": 4,
+        "scanner": {
+          "db": "20261101.010",
+          "version": "20261013.002"
+        },
+        "json_sha256": "3ab27d6393dd33ebd7a4cf790c050cadd9a2b99bb730fdd85e2ee103a706ecb6"
+      }
+    },
+    "note": "Scanner matches need an applicability review. Declared distribution/advisory IDs are unchanged from the previous main revision; no new installed matches. Removed Sereal matches reflect the runner inventory and are not claimed as a Ham::CW remediation.",
+    "report_projection": "Retains scanner metadata, errors, distribution versions, phase/range scopes and advisory IDs; original report bytes are identified by JSON/artifact hashes and available in the linked workflow artifact."
+  },
+  "benchmarks": {
+    "local_record": "docs/review-results.json",
+    "platform_record": "docs/platform-results.json"
+  },
+  "scope": "Evidence for the integrated implementation. Historical verification and platform records from 2026-10-25 are archived separately. Documentation-only commits do not change production module hashes."
 }

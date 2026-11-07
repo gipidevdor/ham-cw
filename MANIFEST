@@ -37,6 +37,7 @@ docs/optimization-results.json
 docs/performance-results.json
 docs/platform-history-results.json
 docs/platform-results.json
+docs/platform-20261025-results.json
 docs/releasing.md
 docs/resource-results.json
 docs/review-results.json
@@ -44,6 +45,7 @@ docs/security-ci.md
 docs/usage.md
 docs/verification-history.md
 docs/verification.md
+docs/verification-20261025-results.json
 examples/README.md
 examples/cli-paths.pl
 examples/corpus-reception.pl

@@ -4,7 +4,9 @@
 
 ## Requirements
 
-Requires Perl 5.20 or later and ExtUtils::MakeMaker 7.22 or later.
+Requires Perl 5.20 or later, ExtUtils::MakeMaker 7.22 or later and core
+ExtUtils::Manifest. Configuration reads MANIFEST; installation copies only
+its listed module paths, excluding local backups and scratch files.
 CPAN clients install the required MakeMaker automatically. For a manual build,
 upgrade an older copy with `cpanm ExtUtils::MakeMaker` first.
 

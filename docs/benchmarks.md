@@ -2,6 +2,53 @@
 
 [Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Verification](verification.md)
 
+## CI platform measurements, 2026-11-07
+
+These measurements cover development version **0.001**, integrated as
+[`2168dbc`](https://github.com/gipidevdor/ham-cw/commit/2168dbc6256066d9975bf511f296fea7a269e010).
+The [Tests run](https://github.com/gipidevdor/ham-cw/actions/runs/42372079468)
+measured the identical tree on `89a5759`; all twelve required jobs passed.
+[Current raw platform results](platform-results.json) preserve all five
+artifacts, absolute rates, call counts, elapsed times, actual Perl/PDL versions
+and source/artifact hashes. The earlier 2026-10-25 platform record is
+[archived separately](platform-20261025-results.json).
+
+Each worker warms an operation once, then performs complete calls for at least
+one wall-clock second. Some receiver cases contain only one timed call. The
+message is `CQ CQ DE TESTCALL`, 20 WPM, 700 Hz, 8,000 Hz sampling and 9.18
+seconds of audio. Reception searches the default frequency bank; streamed
+reception uses 4,096-sample feeds. PCM cases convert one second of mono audio
+in memory at each supported depth and do not measure complete message synthesis.
+These runs do not measure peak RSS.
+
+The table is **PDL calls/second divided by Perl calls/second** on the same
+runner. Above 1 favors PDL. It describes single hosted-run observations,
+not stable rankings between processors or guarantees for other workloads.
+
+| Operation | Linux | macOS ARM64 | macOS Intel | Windows | Linux minimum |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Generate samples | 1.41x | 1.38x | 2.11x | 1.14x | 1.27x |
+| Receive, complete feed | 1.45x | 1.32x | 1.64x | 1.51x | 1.59x |
+| Receive, 4,096-sample feeds | 1.49x | 1.51x | 1.64x | 1.53x | 1.67x |
+| Read PCM WAV, 8-bit | 0.87x | 0.90x | 1.09x | 0.77x | 0.95x |
+| Read PCM WAV, 16-bit | 1.30x | 0.94x | 1.15x | 0.93x | 1.07x |
+| Read PCM WAV, 24-bit | 0.98x | 1.27x | 1.26x | 0.97x | 1.00x |
+| Write PCM WAV, 8-bit | 1.31x | 1.49x | 1.48x | 1.34x | 1.43x |
+| Write PCM WAV, 16-bit | 1.29x | 1.46x | 1.68x | 1.40x | 1.49x |
+| Write PCM WAV, 24-bit | 1.19x | 0.94x | 1.42x | 1.29x | 1.32x |
+
+The four ordinary PDL configurations use Perl 5.40 and PDL 2.106; the minimum
+configuration uses Perl 5.20.3 and PDL 2.081. Actual current-series Perls are
+5.40.5 on Linux/macOS and 5.40.4 on Windows. Runner labels distinguish the two
+macOS architectures. In these recordings PDL is faster for synthesis and
+reception across all five configurations; PCM conversion varies by operation
+and platform. `perl` remains the default and `auto` selects PDL by availability.
+
+Repeat with `perl maint/benchmark-platforms.pl --seconds 1 --json benchmark.json`
+in each configured environment. The paired local synthesis measurements below
+use a different protocol and compare this implementation with its unmodified
+baseline; do not combine the two timing series.
+
 ## Generation review, 2026-11-07
 
 The Perl synthesis loop now reuses fixed stream settings and calculates ramp
@@ -42,7 +89,8 @@ script so both versions can be compared from one checkout.
 
 ## Optimized reception, 2026-10-27
 
-The receiver now uses complex Goertzel acquisition, packed PDL windows,
+These historical measurements cover the 2026-10-27 receiver revision. That
+revision used complex Goertzel acquisition, packed PDL windows,
 in-place window operations and inner products. A 16,384-element batch budget
 adapts to channel count and sample rate, with a one-hop floor and 128-hop cap.
 The [architecture guide](architecture.md#optional-pdl-backend) describes the
@@ -96,7 +144,7 @@ A later reporting-only correction handles an unavailable PDL installation
 without warnings, including under fatal warnings. The numerical library and
 timed operations are unchanged. The raw record keeps the measured tool's hash
 and separately pins the corrected reporter's hash; its missing-PDL regression
-is included in the latest **3,376-assertion** publication check.
+was included in that **3,376-assertion** publication check.
 
 The batch sweep compared 1, 4, 16, 64 and 128 hops at 8/16 kHz, plus a
 three-call check of two hops at 16 kHz. Larger batches saved little time in
@@ -257,8 +305,8 @@ WAV generation includes PCM conversion.
 | 8 kHz | 0.042 s | 0.012 s | 0.076 s | 0.029 s |
 | 16 kHz | 0.084 s | 0.021 s | 0.152 s | 0.056 s |
 
-PDL accelerates generation in these cases. Its current tone-search reception
-is slower than Perl in both sample-rate cases; known-tone reception is faster.
+In that earlier revision, PDL accelerated generation. Tone-search reception
+was slower than Perl in both sample-rate cases; known-tone reception was faster.
 `perl` remains the default. `auto` selects PDL by availability and does not
 benchmark or choose a backend by workload.
 
@@ -271,8 +319,7 @@ copied filtered history windows into Perl arrays, built a PDL tensor and
 exported powers/energies back to arrays.
 
 That revision used a fixed **128-hop cap**. A separate 16-hop experiment was
-excluded from those results. The optimized implementation described at the
-top of this page now uses packed windows, inner products and a batch budget
+excluded from those results. The later 2026-10-27 receiver revision used packed windows, inner products and a batch budget
 based on window size and channel count. Compiled PDL::PP filters and persistent
 PDL feature storage remain outside the implementation.
 
@@ -315,7 +362,7 @@ Use `perl maint/reception-corpus.pl` to measure accuracy separately from speed.
 [Test run 40187441836](https://github.com/gipidevdor/ham-cw/actions/runs/40187441836)
 measured source `85eb8f3fce614d30cb53eaeb0da6b978dbc3dacc` on five configurations.
 These are earlier measurements, not a fresh platform run of `c635a8a`. The
-[raw platform results](platform-results.json) retain absolute rates, call counts,
+[raw platform results](platform-20261025-results.json) retain absolute rates, call counts,
 elapsed times, Perl/PDL versions, artifact names and hashes. All use Perl 5.40
 and PDL 2.106 except the minimum configuration, Perl 5.20 and PDL 2.081.
 The runner labels identify the configured macOS ARM64 and Intel jobs; the raw
@@ -351,8 +398,9 @@ your own workload before choosing a backend.
 
 [Benchmark history](benchmark-history.md) retains earlier local observations.
 [Earlier local raw results](benchmark-results.json),
-[the 85eb8f3 timing and verification record](current-results.json) and
+[the 85eb8f3 timing and verification record](verification-20261025-results.json) and
 [earlier platform raw results](platform-history-results.json) belong to their
 original sources. The earlier shared-process record is [performance-results.json](performance-results.json).
 The earlier CI table above remains explicitly tied to `85eb8f3`.
-The latest local CPU/wall and peak-RSS record is [optimization-results.json](optimization-results.json).
+The historical 2026-10-27 CPU/wall and peak-RSS record is [optimization-results.json](optimization-results.json).
+Current generation and platform measurements are linked at the top of this guide.

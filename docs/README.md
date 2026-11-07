@@ -24,21 +24,35 @@
 Use `perldoc Ham::CW` for the library and `perldoc ham-cw` for the command.
 From a checkout, use `perldoc lib/Ham/CW.pm` or `perldoc bin/ham-cw`.
 
+## Current development edition
+
+Version **0.001**, implementation
+[`2168dbc`](https://github.com/gipidevdor/ham-cw/commit/2168dbc6256066d9975bf511f296fea7a269e010),
+verified **2026-11-07**. The [verification guide](verification.md) records all
+12 required CI jobs passing, 2,886 ordinary assertions and 99.01%/96.22%
+statement/branch coverage. The [current raw record](current-results.json)
+retains the exact runs and all production-source hashes.
+
 ## Reading measurements
 
-The [generation review, 2026-11-07](benchmarks.md#generation-review-2026-11-07)
-compares Perl and PDL synthesis at three sample rates. Its
-[raw review results](review-results.json) retain paired timings and source hashes.
+[Current five-platform CI measurements](benchmarks.md#ci-platform-measurements-2026-11-07)
+cover synthesis, complete/streamed reception and PCM conversion; their
+[raw platform record](platform-results.json) retains the current results.
+The [local generation review](benchmarks.md#generation-review-2026-11-07)
+compares the implementation against its pre-optimization baseline; its
+[raw paired record](review-results.json) includes 72 sample/WAV fingerprints.
 
-The [latest local CPU and peak-RSS measurements](benchmarks.md#optimized-reception-2026-10-27)
-cover the optimized receiver on 2026-10-27. [Raw results](optimization-results.json)
-include all 36 cases, source/input hashes and the before/after comparison.
-The [pre-optimization resource record](resource-results.json) remains available
-as the baseline.
+Peak-RSS measurements belong to the
+[2026-10-27 receiver record](benchmarks.md#optimized-reception-2026-10-27),
+with [dated raw results](optimization-results.json). They have not been
+relabelled as measurements of this edition.
+[Benchmark history](benchmark-history.md), [verification history](verification-history.md),
+[archived 2026-10-25 verification](verification-20261025-results.json) and
+[archived platform results](platform-20261025-results.json) preserve earlier evidence.
 
-Measurements are tied to a source revision and date.
-[Benchmark history](benchmark-history.md) and
-[verification history](verification-history.md) retain older observations.
+The [current security status](security-ci.md#remote-results-2026-11-07) remains
+red for pre-existing dependency/interpreter matches; source and workflow
+checks pass. The current records distinguish these outcomes.
 
 Project code uses [Artistic License 2.0](../LICENSE). Recording-specific terms,
 attribution and transformations are listed in [NOTICE](../NOTICE) and
