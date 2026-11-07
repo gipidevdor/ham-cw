@@ -21,3 +21,10 @@ Revision history for Ham-CW
       versions, FreeBSD, Solaris and Cygwin, including installed CLI tests.
     - Group routine Dependabot Action updates into one weekly pull request,
       group security updates separately, and refresh Pages deployment.
+    - Reduce Perl synthesis work per sample without changing generated samples
+      or WAV bytes; retain arbitrary block sizes and absolute phase.
+    - Preserve exact MIDI boundary rounding for large sampled durations,
+      including short notes after long silence, using core Math::BigInt.
+    - Reject references in scalar string options and event states.
+    - Cache validated shared payload subtrees while retaining cycle/depth checks.
+    - Install only manifest-listed modules, excluding local backups and scratch files.

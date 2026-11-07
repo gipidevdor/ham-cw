@@ -68,40 +68,42 @@ sub stream {
     my $generation = ++$self->{generation};
     return $self->_pdl_stream(\@segments, $block_size, $generation)
         if $self->{backend} eq 'pdl';
+    my ($rate, $frequency, $amplitude) = @{$self}{qw(sample_rate frequency amplitude)};
+    my $attack_samples  = $self->{attack_ms} * $rate / 1000;
+    my $release_samples = $self->{release_ms} * $rate / 1000;
     return sub {
         fail('CW_E_STATE', 'Generator stream was reset or replaced')
             if $generation != ($self->{generation} // 0) || $self->{state} eq 'READY';
         if ($si > $#segments) { $self->{state} = 'FINISHED'; return }
         my @out;
         while (@out < $block_size && $si <= $#segments) {
-            my $seg = $segments[$si];
+            my $seg   = $segments[$si];
+            my $count = $seg->{samples} - $offset;
+            $count = $block_size - @out if $count > $block_size - @out;
             if ($seg->{state} eq 'off') {
-                my $count = $seg->{samples} - $offset;
-                $count = $block_size - @out if $count > $block_size - @out;
                 push @out, (0) x $count;
                 $absolute += $count;
                 $offset   += $count;
-                if ($offset == $seg->{samples}) { ++$si; $offset = 0 }
-                next;
             }
-            my $value = 0;
-            if ($seg->{state} eq 'on') {
-                my $attack  = $self->{attack_ms} * $self->{sample_rate} / 1000;
-                my $release = $self->{release_ms} * $self->{sample_rate} / 1000;
-                $attack  = $seg->{samples} / 2 if $attack > $seg->{samples} / 2;
-                $release = $seg->{samples} / 2 if $release > $seg->{samples} / 2;
-                my $gain = 1;
-                $gain *= 0.5 * (1 - cos($PI * $offset / $attack)) if $attack && $offset < $attack;
-                my $remaining_mark = $seg->{samples} - 1 - $offset;
-                $gain *= 0.5 * (1 - cos($PI * $remaining_mark / $release))
-                    if $release && $remaining_mark < $release;
-                my $cycles = $absolute * $self->{frequency} / $self->{sample_rate};
-                my $phase  = 2 * $PI * ($cycles - int($cycles));
-                $value = $self->{amplitude} * $gain * sin($phase);
+            else {
+                my $length  = $seg->{samples};
+                my $attack  = $attack_samples > $length / 2  ? $length / 2 : $attack_samples;
+                my $release = $release_samples > $length / 2 ? $length / 2 : $release_samples;
+                for (1 .. $count) {
+                    my $gain = 1;
+                    $gain *= 0.5 * (1 - cos($PI * $offset / $attack))
+                        if $attack && $offset < $attack;
+                    my $remaining_mark = $length - 1 - $offset;
+                    $gain *= 0.5 * (1 - cos($PI * $remaining_mark / $release))
+                        if $release && $remaining_mark < $release;
+                    my $cycles = $absolute * $frequency / $rate;
+                    my $phase  = 2 * $PI * ($cycles - int($cycles));
+                    push @out, $amplitude * $gain * sin($phase);
+                    ++$absolute;
+                    ++$offset;
+                }
             }
-            push @out, $value;
-            ++$absolute;
-            if (++$offset == $seg->{samples}) { ++$si; $offset = 0 }
+            if ($offset == $seg->{samples}) { ++$si; $offset = 0 }
         }
         $self->{produced} = $absolute;
         $self->{state}    = 'FINISHED' if $si > $#segments;

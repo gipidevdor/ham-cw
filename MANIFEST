@@ -39,6 +39,7 @@ docs/platform-history-results.json
 docs/platform-results.json
 docs/releasing.md
 docs/resource-results.json
+docs/review-results.json
 docs/security-ci.md
 docs/usage.md
 docs/verification-history.md
@@ -124,6 +125,7 @@ t/28-review-fixes.t
 t/29-examples.t
 t/30-reception-optimization.t
 t/31-correctness-boundaries.t
+t/32-review-boundaries.t
 t/lib/CorpusMetrics.pm
 t/lib/FaultHandle.pm
 t/lib/Reference.pm

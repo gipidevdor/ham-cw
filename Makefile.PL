@@ -2,6 +2,13 @@ use 5.020;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker 7.22;
+use ExtUtils::Manifest qw(maniread);
+my %install;
+for my $file (keys %{maniread()}) {
+    next unless $file =~ m{\Alib/(.+\.pm)\z}x;
+    $install{$file} = '$(INST_LIB)/' . $1;
+}
+die "No installable modules found in MANIFEST\n" unless keys %install;
 my %provides;
 for my $module (
     qw(Ham::CW Ham::CW::Encoder Ham::CW::Decoder Ham::CW::Events
@@ -21,7 +28,8 @@ WriteMakefile(
     LICENSE            => 'artistic_2',
     MIN_PERL_VERSION   => '5.020',
     EXE_FILES          => ['bin/ham-cw'],
-    CONFIGURE_REQUIRES => {'ExtUtils::MakeMaker' => '7.22'},
+    PM                 => \%install,
+    CONFIGURE_REQUIRES => {'ExtUtils::MakeMaker' => '7.22', 'ExtUtils::Manifest' => 0},
     BUILD_REQUIRES     => {'ExtUtils::MakeMaker' => '7.22'},
     PREREQ_PM          => {
         'Carp'           => 0,
@@ -36,7 +44,8 @@ WriteMakefile(
         'Getopt::Long'   => 0,
         'IO::Handle'     => 0,
         'JSON::PP'       => 0,
-        'Text::Wrap'     => 0
+        'Text::Wrap'     => 0,
+        'Math::BigInt'   => 0
     },
     TEST_REQUIRES => {
         'Test::More'   => '0.98',

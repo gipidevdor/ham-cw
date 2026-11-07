@@ -123,6 +123,14 @@ See the [protocol and before/after results](docs/benchmarks.md) and
 [raw measurements](docs/optimization-results.json). The
 [verification record](docs/verification.md) lists reception and test coverage.
 
+## Measured generation
+
+The [2026-11-07 generation review](docs/benchmarks.md#generation-review-2026-11-07)
+measured 56–63% less Perl sample-generation time and 26–36% less complete
+WAV-generation time at 8, 16 and 44.1 kHz, with 72 unchanged sample/WAV
+fingerprints. These local paired measurements use macOS ARM64, Perl 5.44.0
+and PDL 2.106; the linked raw record includes source hashes and both backends.
+
 ## Explore the project
 
 [Documentation](docs/README.md) · [Contributing](CONTRIBUTING.md) ·

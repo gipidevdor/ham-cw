@@ -2,7 +2,35 @@
 
 [Overview](../README.md) · [Task guide](usage.md) · [Examples](../examples/README.md) · [Measured performance](benchmarks.md)
 
-## Scope of this record
+## Code review, 2026-11-07
+
+The review on baseline `49d8eb8` improves Perl synthesis, exact MIDI rounding,
+plain-data validation and installation inventory. MIDI now preserves a valid
+one-tick note after a long leading gap whose floating-point boundary previously
+rounded incorrectly. Scalar string options and event states reject references.
+Shared payload subtrees avoid repeated traversal while retaining cycle and
+depth checks. Installation copies only manifest-listed modules.
+
+Local checks use macOS ARM64, Perl 5.44.0 and PDL 2.106:
+
+| Check | Result and scope |
+| --- | --- |
+| Ordinary and author suite | PASS: 3,619 assertions in 44 files, with Perl warnings fatal; includes examples, documentation recipes, POD, style, metadata, site and release-tool checks |
+| System Perl 5.34.1 | PASS: 748 assertions in seven files covering event conversion, synthesis, MIDI, validation, snapshots and new boundary cases; no PDL |
+| Production coverage | PASS: statements 99.01% (2,306/2,329), branches 96.22% (764/794), all 20 production modules including PDL; fresh database, thresholds 95%/90% |
+| Generation equivalence | PASS: 72 identical sample-stream/WAV fingerprints against the unmodified baseline, at six rates, three block sizes and all PCM bit depths |
+| Real reception corpus | PASS: all eight hinted/estimated-speed decodes retain CER 0% and no warnings |
+| Candidate distribution and installation | PASS: archive indicators and release contracts; isolated build, all 2,886 ordinary assertions, installed CLI and complete Perl example catalog |
+| Documentation site | PASS: 47 HTML pages, reproducibility tests and validation of every local link and anchor |
+| Paired generation timings | 56–63% less Perl sample-generation time and 26–36% less complete WAV-generation time in the measured workloads; [protocol and table](benchmarks.md#generation-review-2026-11-07) |
+
+[Raw review results](review-results.json) retain source/input hashes, exact
+benchmark commands and paired runs, equivalence fingerprints and verification
+results. These are local observations. No new remote CI, minimum Perl 5.20,
+minimum PDL 2.081, peak-RSS or security-advisory audit result is implied.
+Earlier dated evidence and unresolved security observations follow below.
+
+## Receiver verification, 2026-10-27
 
 Updated 2026-10-27 after receiver CPU/RSS optimization. The complete ordinary
 suite passes 2,652 assertions across 31 files with Perl warnings fatal, including
