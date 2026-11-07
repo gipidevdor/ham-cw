@@ -28,9 +28,9 @@ checks text, tone tolerance, warnings and exact event equivalence for 137- and
 recordings, with per-file attribution, audio licenses, source hashes and
 transformations in [real/LICENSES.md](real/LICENSES.md). These files retain
 their own CC0/CC BY-SA terms. The test suite measures character error rate
-(CER), rather than requiring exact text on every recording. Recorded regression
-budgets are separate from the quality target. The 2026-10-25 local run on
-revision `85eb8f3` recovered all four clip references with CER 0%, with and
+(CER) against per-clip regression budgets, separate from the quality target.
+The 2026-11-07 verification of
+implementation `2168dbc` recovered all four clip references with CER 0%, with and
 without a speed hint, and no warnings. These eight checks cover four short
 automated-beacon clips. See the
 [raw results](../docs/current-results.json) and [verification record](../docs/verification.md).

@@ -90,6 +90,41 @@ Any future exception needs an exact advisory/fingerprint, evidence explaining
 why it does not apply, an owner and an expiry/review date. Do not add broad
 exclusions to make the pipeline green.
 
+## Remote results, 2026-11-07
+
+The [current implementation](https://github.com/gipidevdor/ham-cw/commit/2168dbc6256066d9975bf511f296fea7a269e010)
+has the same file tree as the tested `89a5759` revision. Its
+[Security run 42372079553](https://github.com/gipidevdor/ham-cw/actions/runs/42372079553)
+finished with a failed dependency-audit gate. Complete-history secret scanning,
+unsafe-Perl-construct checks and workflow syntax/security checks passed.
+No scanner errors were reported.
+
+CPAN::Audit **20261105.001** with CPANSA::DB **20261101.010** reported:
+
+| Scope | Matches | Distributions |
+| --- | ---: | --- |
+| Installed interpreter/dependencies | 2 | File::Temp 0.2312 and Perl 5.44.0 |
+| Declared compatibility ranges | 39 | Perl 29, Encode 3, Storable 3, PathTools 2, File::Temp 1 and URI 1 |
+
+The installed IDs are `CPANSA-File-Temp-2011-4116` and
+`CPANSA-perl-2026-15534`. These are scanner matches requiring an applicability
+review, not confirmed Ham::CW vulnerabilities. The declared audit includes
+historical versions allowed by lower bounds and is distinct from auditing the
+installed environment.
+
+Compared with [the previous main revision's scan](https://github.com/gipidevdor/ham-cw/actions/runs/41480294651),
+which used the same advisory database, all declared distribution/advisory IDs
+are unchanged and no installed IDs were added. That earlier environment also
+contained two Sereal/miniz matches absent from this runner; this inventory
+difference is not a claimed Ham::CW fix. No advisory exclusion or security-gate
+relaxation was introduced.
+
+The [current raw record](current-results.json) retains reports, scopes,
+advisory IDs, scanner/database versions, artifact hashes and the baseline
+comparison. The [verification guide](verification.md) separately records all
+12 required functional/author test jobs passing; that does not make the
+security workflow green.
+
 ## Remote results, 2026-10-25
 
 [Security run 40187441825](https://github.com/gipidevdor/ham-cw/actions/runs/40187441825)
@@ -104,7 +139,7 @@ matches: 29 Perl, three Encode, three Storable, two PathTools and one File::Temp
 Applicability to Ham::CW remains unresolved. No advisory exclusion was added.
 
 The [verification record](verification.md) distinguishes this remote source
-from the documentation working tree. The [raw summary](current-results.json)
+from the documentation working tree. The [raw summary](verification-20261025-results.json)
 retains tool/database metadata, scopes, advisory IDs, job outcomes and SHA-256
 hashes of the original audit artifacts. Full reports remain CI artifacts
 subject to the configured 14-day retention. Historical local observations
@@ -143,7 +178,8 @@ Perl::Tidy >=20260826, Pod::Man >=v6.1.1 and PPI >=1.291.
 Archive utilities enforce their minimum at startup; the package parser
 uses static tokens instead of evaluating version assignments. Security CI explicitly installs
 the fixed podlators release before auditing. These are author/build updates;
-the default runtime still uses the same core modules and supports Perl 5.20.
+the default runtime uses only core modules and supports Perl 5.20. Exact
+large-boundary MIDI arithmetic loads core Math::BigInt only when needed.
 File::Temp's advisory has no fixed version in this database, and updating tools
 does not patch the interpreter. Remaining matches must continue to fail the gate.
 

@@ -1,11 +1,36 @@
 {
-  "date": "2026-10-25",
+  "date": "2026-11-07",
   "status": "measured",
-  "source_revision": "85eb8f3fce614d30cb53eaeb0da6b978dbc3dacc",
-  "run_id": 40187441836,
-  "run_url": "https://github.com/gipidevdor/ham-cw/actions/runs/40187441836",
+  "source_revision": "2168dbc6256066d9975bf511f296fea7a269e010",
+  "tested_revision": "89a575951778181512c082e74e42939a24878d0b",
+  "tested_tree": "bc2920b47f7baf5a014efdb9a7d1cbb52235f5eb",
+  "source_tree": "bc2920b47f7baf5a014efdb9a7d1cbb52235f5eb",
+  "run_id": 42372079468,
+  "run_url": "https://github.com/gipidevdor/ham-cw/actions/runs/42372079468",
   "command": "perl maint/benchmark-platforms.pl --seconds 1 --json benchmark.json",
-  "note": "One warm-up per operation, then at least one wall-clock second of complete calls. Some receiver cases complete one call only. Ratios are PDL calls/second divided by Perl calls/second on the same runner; these single hosted runs do not establish stable rankings. PCM cases use one second of mono audio in memory.",
+  "note": "One warm-up per operation, then at least one wall-clock second of complete calls. Some receiver cases complete one call only. Ratios are PDL calls/second divided by Perl calls/second on the same runner; these single hosted runs do not establish stable rankings. PCM cases use one second of mono audio in memory. No peak-RSS measurement. Source/tested revisions have identical trees; later documentation-only commits retain the recorded production hashes.",
+  "production_source_hashes": {
+    "lib/Ham/CW.pm": "36917b9dd5547581e0ce3b654b1c3eb1605401c262ae4be2b5cf4e02d3ea6e01",
+    "lib/Ham/CW/Decoder.pm": "b3d2e4f0e5db5a2d6bee74a73da66945a6836c0157cb767ac968a8d265538c02",
+    "lib/Ham/CW/Detector.pm": "cbaf81544735b9e72834a51aa2c1d7dcb24b574c46afe1e96045799ed7b637aa",
+    "lib/Ham/CW/Error.pm": "c0b9b052b6baa9920915957ad7f4473efe4c9aa7f9f037f4a21af8403424d8b6",
+    "lib/Ham/CW/MIDI.pm": "d34c037346467bb7845a2d36310fffeeae5ec3a168e6beb3291ae8b06277a904",
+    "lib/Ham/CW/Events.pm": "c259045c3b7f61ad36983e15c0e7f6ea375ea17154abafc90b2a100ac89674ab",
+    "lib/Ham/CW/Encoder.pm": "4903e1937f406f10931248eeb77769485b73e6997f4ff93c54229fb609c3e10d",
+    "lib/Ham/CW/Generator.pm": "87d13b2e1866bc2d3735d7c38bcf3e68d6c2ca1c0436274c78a10d29202bb512",
+    "lib/Ham/CW/Result.pm": "83ef4bfb0b7302e3d4ea7a6d64a777e01475604723a6660ef290204ca70ca667",
+    "lib/Ham/CW/Audio.pm": "a2f54092f6ef2ba3a7d4b4b7185fe0795b893d64a0c419279c45101cf0b6dceb",
+    "lib/Ham/CW/_Internal/WavWriter.pm": "1abca7e6c2985eea57b619bfa397ebaf6124daac360f5874fba976db8f0b1964",
+    "lib/Ham/CW/_Internal/Biquad.pm": "64688868677be3fed646f210e1fd0b48998602d936e73fd0348b326e4949ca69",
+    "lib/Ham/CW/_Internal/PDL.pm": "c26eac9e70c42200be4efa476b0e3439f15246b1e2fbebfa6f082bba5a5662cf",
+    "lib/Ham/CW/_Internal/Backend.pm": "82302017f8259dfab0e0cfdb1ca49bbd46b038939b3a77a13b13661986e07f9e",
+    "lib/Ham/CW/_Internal/IO.pm": "ef0fb3a8dffde4d0ca578dbd488b20da6697e0ab0c70a9c47201070e7969b74c",
+    "lib/Ham/CW/_Internal/CLI.pm": "a5eb7b07943c4dc942aaa3d505f6867390726e14085d0111c3ddf011e855a2a4",
+    "lib/Ham/CW/_Internal/Symbols.pm": "423d1755acceb143eda2eb83ba79e936fac874b7df20dd796f517e34a2becb90",
+    "lib/Ham/CW/_Internal/Result.pm": "8cbad8839aa81cf4519246702aeb93f58b015d6d0d89b941d3f1148f133e3f96",
+    "lib/Ham/CW/_Internal/Validate.pm": "f5168dac6642c20890d2fd07ab37432e5e5ae92e736e357c77b79c5cbafc3a4b",
+    "lib/Ham/CW/_Internal/Data.pm": "7a8b7f8c3bd17418505898a600ef4deb0ac138eb9be0e6f94cef0a3cab94625a"
+  },
   "platforms": [
     {
       "architecture": "darwin-2level",
@@ -17,126 +42,128 @@
       "results": {
         "detect": {
           "pdl": {
-            "calls_per_second": 0.213463436501037,
-            "elapsed_seconds": 4.68464303016663,
+            "calls_per_second": 0.29671028453897,
+            "elapsed_seconds": 3.37029099464417,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.1792865902581,
-            "elapsed_seconds": 5.57766199111938,
+            "calls_per_second": 0.180956756109372,
+            "elapsed_seconds": 5.52618217468262,
             "iterations": 1
           },
-          "speedup": 1.19062689626556
+          "speedup": 1.63967508546427
         },
         "detect_stream": {
           "pdl": {
-            "calls_per_second": 0.17301984497737,
-            "elapsed_seconds": 5.77968382835388,
+            "calls_per_second": 0.299086532996894,
+            "elapsed_seconds": 3.34351396560669,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.174169026055442,
-            "elapsed_seconds": 5.74154901504517,
+            "calls_per_second": 0.182090291049409,
+            "elapsed_seconds": 5.49178099632263,
             "iterations": 1
           },
-          "speedup": 0.993401920513085
+          "speedup": 1.64251773816836
         },
         "generate": {
           "pdl": {
-            "calls_per_second": 29.9253632486001,
-            "elapsed_seconds": 1.00249409675598,
-            "iterations": 30
+            "calls_per_second": 60.3063546496951,
+            "elapsed_seconds": 1.0115020275116,
+            "iterations": 61
           },
           "perl": {
-            "calls_per_second": 8.8887482339644,
-            "elapsed_seconds": 1.01251602172852,
-            "iterations": 9
+            "calls_per_second": 28.5717410525109,
+            "elapsed_seconds": 1.01498889923096,
+            "iterations": 29
           },
-          "speedup": 3.36665663836148
+          "speedup": 2.11069932836296
         },
         "wav_read_16": {
           "pdl": {
-            "calls_per_second": 389.458136725476,
-            "elapsed_seconds": 1.01166200637817,
-            "iterations": 394
+            "calls_per_second": 705.093229084567,
+            "elapsed_seconds": 1.00128602981567,
+            "iterations": 706
           },
           "perl": {
-            "calls_per_second": 321.414690635901,
-            "elapsed_seconds": 1.00182104110718,
-            "iterations": 322
+            "calls_per_second": 611.933352294296,
+            "elapsed_seconds": 1.00174307823181,
+            "iterations": 613
           },
-          "speedup": 1.21169986336018
+          "speedup": 1.15223859990796
         },
         "wav_read_24": {
           "pdl": {
-            "calls_per_second": 169.120909199152,
-            "elapsed_seconds": 1.00519800186157,
-            "iterations": 170
+            "calls_per_second": 262.496823677452,
+            "elapsed_seconds": 1.00191688537598,
+            "iterations": 263
           },
           "perl": {
-            "calls_per_second": 174.814694849658,
-            "elapsed_seconds": 1.00106000900269,
-            "iterations": 175
+            "calls_per_second": 208.732161404448,
+            "elapsed_seconds": 1.00128316879272,
+            "iterations": 209
           },
-          "speedup": 0.967429593631117
+          "speedup": 1.25757727947265
         },
         "wav_read_8": {
           "pdl": {
-            "calls_per_second": 420.490315255461,
-            "elapsed_seconds": 1.00121212005615,
-            "iterations": 421
+            "calls_per_second": 728.27819908295,
+            "elapsed_seconds": 1.00099110603333,
+            "iterations": 729
           },
           "perl": {
-            "calls_per_second": 465.994889315389,
-            "elapsed_seconds": 1.00001096725464,
-            "iterations": 466
+            "calls_per_second": 669.468486294899,
+            "elapsed_seconds": 1.00079393386841,
+            "iterations": 670
           },
-          "speedup": 0.902349628497471
+          "speedup": 1.08784537882213
         },
         "wav_write_16": {
           "pdl": {
-            "calls_per_second": 109.505251760278,
-            "elapsed_seconds": 1.00451803207397,
-            "iterations": 110
+            "calls_per_second": 153.819273619557,
+            "elapsed_seconds": 1.00117492675781,
+            "iterations": 154
           },
           "perl": {
-            "calls_per_second": 80.6062418723767,
-            "elapsed_seconds": 1.00488495826721,
-            "iterations": 81
+            "calls_per_second": 91.6274436891853,
+            "elapsed_seconds": 1.004065990448,
+            "iterations": 92
           },
-          "speedup": 1.35852074500207
+          "speedup": 1.67874675344361
         },
         "wav_write_24": {
           "pdl": {
-            "calls_per_second": 83.9441613649825,
-            "elapsed_seconds": 1.00066518783569,
-            "iterations": 84
-          },
-          "perl": {
-            "calls_per_second": 62.8253480058317,
-            "elapsed_seconds": 1.00277996063232,
-            "iterations": 63
-          },
-          "speedup": 1.33615115601414
-        },
-        "wav_write_8": {
-          "pdl": {
-            "calls_per_second": 100.493829573733,
-            "elapsed_seconds": 1.0050368309021,
+            "calls_per_second": 100.055978007864,
+            "elapsed_seconds": 1.00943493843079,
             "iterations": 101
           },
           "perl": {
-            "calls_per_second": 72.3280053046425,
-            "elapsed_seconds": 1.00929093360901,
-            "iterations": 73
+            "calls_per_second": 70.6376420245646,
+            "elapsed_seconds": 1.00512981414795,
+            "iterations": 71
           },
-          "speedup": 1.38941795989613
+          "speedup": 1.41646826168219
+        },
+        "wav_write_8": {
+          "pdl": {
+            "calls_per_second": 130.261408610446,
+            "elapsed_seconds": 1.00567007064819,
+            "iterations": 131
+          },
+          "perl": {
+            "calls_per_second": 88.2054514015074,
+            "elapsed_seconds": 1.00900793075562,
+            "iterations": 89
+          },
+          "speedup": 1.47679544223975
         }
       },
       "sample_rate": 8000,
       "seconds_per_case": 1,
       "artifact": "benchmark-macos-15-intel-perl-5.40-pdl-2.106",
-      "artifact_sha256": "168304dc405bf587de62039be23a4a266df5d3ddaa17bbc83b66fb6e5412611f"
+      "artifact_id": 13574187044,
+      "artifact_sha256": "60a429b351a18f0919e618fd62bebff6791c17c089e543751132ca893691beca",
+      "json_sha256": "fa0c87ec9451072dc02eb370f0251701e5a976927c0a3d38d635d8d2c8ca8c7f"
     },
     {
       "architecture": "darwin-2level",
@@ -148,126 +175,128 @@
       "results": {
         "detect": {
           "pdl": {
-            "calls_per_second": 0.395256921465767,
-            "elapsed_seconds": 2.52999997138977,
+            "calls_per_second": 0.481469198822839,
+            "elapsed_seconds": 2.07697606086731,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.409219553696173,
-            "elapsed_seconds": 2.44367599487305,
+            "calls_per_second": 0.365081422314711,
+            "elapsed_seconds": 2.73911499977112,
             "iterations": 1
           },
-          "speedup": 0.965879850793317
+          "speedup": 1.31879950442342
         },
         "detect_stream": {
           "pdl": {
-            "calls_per_second": 0.32036978717882,
-            "elapsed_seconds": 3.12139296531677,
+            "calls_per_second": 0.617280905444541,
+            "elapsed_seconds": 1.62000799179077,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.448301222905741,
-            "elapsed_seconds": 2.23064303398132,
+            "calls_per_second": 0.408000034240726,
+            "elapsed_seconds": 2.4509801864624,
             "iterations": 1
           },
-          "speedup": 0.714630634068514
+          "speedup": 1.51294326872614
         },
         "generate": {
           "pdl": {
-            "calls_per_second": 83.6482600302331,
-            "elapsed_seconds": 1.00420498847961,
-            "iterations": 84
+            "calls_per_second": 68.9486949737041,
+            "elapsed_seconds": 1.00074410438538,
+            "iterations": 69
           },
           "perl": {
-            "calls_per_second": 22.5908571993273,
-            "elapsed_seconds": 1.01811099052429,
-            "iterations": 23
+            "calls_per_second": 49.8874580554674,
+            "elapsed_seconds": 1.00225591659546,
+            "iterations": 50
           },
-          "speedup": 3.70274838587018
+          "speedup": 1.38208474957861
         },
         "wav_read_16": {
           "pdl": {
-            "calls_per_second": 1074.48405959701,
-            "elapsed_seconds": 1.00048017501831,
-            "iterations": 1075
+            "calls_per_second": 883.734940873237,
+            "elapsed_seconds": 1.00029993057251,
+            "iterations": 884
           },
           "perl": {
-            "calls_per_second": 1001.30028649814,
-            "elapsed_seconds": 1.00069880485535,
-            "iterations": 1002
+            "calls_per_second": 939.235498906787,
+            "elapsed_seconds": 1.00081396102905,
+            "iterations": 940
           },
-          "speedup": 1.07308873680125
+          "speedup": 0.940908794335234
         },
         "wav_read_24": {
           "pdl": {
-            "calls_per_second": 437.534436180907,
-            "elapsed_seconds": 1.00106406211853,
-            "iterations": 438
+            "calls_per_second": 492.888596918612,
+            "elapsed_seconds": 1.00022602081299,
+            "iterations": 493
           },
           "perl": {
-            "calls_per_second": 409.051369982762,
-            "elapsed_seconds": 1.00231909751892,
-            "iterations": 410
+            "calls_per_second": 389.540739308386,
+            "elapsed_seconds": 1.00117897987366,
+            "iterations": 390
           },
-          "speedup": 1.06963200294219
+          "speedup": 1.26530692988291
         },
         "wav_read_8": {
           "pdl": {
-            "calls_per_second": 834.680400675896,
-            "elapsed_seconds": 1.00038290023804,
-            "iterations": 835
+            "calls_per_second": 969.106518052742,
+            "elapsed_seconds": 1.00092196464539,
+            "iterations": 970
           },
           "perl": {
-            "calls_per_second": 983.915315287395,
-            "elapsed_seconds": 1.00008606910706,
-            "iterations": 984
+            "calls_per_second": 1079.71065645746,
+            "elapsed_seconds": 1.00026798248291,
+            "iterations": 1080
           },
-          "speedup": 0.84832544804132
+          "speedup": 0.897561316318199
         },
         "wav_write_16": {
           "pdl": {
-            "calls_per_second": 210.603678028422,
-            "elapsed_seconds": 1.00188183784485,
-            "iterations": 211
+            "calls_per_second": 279.910173632214,
+            "elapsed_seconds": 1.00032091140747,
+            "iterations": 280
           },
           "perl": {
-            "calls_per_second": 184.986107200678,
-            "elapsed_seconds": 1.00007510185242,
-            "iterations": 185
+            "calls_per_second": 191.94110388739,
+            "elapsed_seconds": 1.0003068447113,
+            "iterations": 192
           },
-          "speedup": 1.13848375543118
+          "speedup": 1.45831282598247
         },
         "wav_write_24": {
           "pdl": {
-            "calls_per_second": 163.22921233665,
-            "elapsed_seconds": 1.00472211837769,
-            "iterations": 164
+            "calls_per_second": 153.412582855069,
+            "elapsed_seconds": 1.00382900238037,
+            "iterations": 154
           },
           "perl": {
-            "calls_per_second": 123.572362430974,
-            "elapsed_seconds": 1.01155304908752,
-            "iterations": 125
+            "calls_per_second": 163.250518801204,
+            "elapsed_seconds": 1.00459098815918,
+            "iterations": 164
           },
-          "speedup": 1.32092005951435
+          "speedup": 0.939737184185524
         },
         "wav_write_8": {
           "pdl": {
-            "calls_per_second": 234.383795235143,
-            "elapsed_seconds": 1.00262904167175,
-            "iterations": 235
+            "calls_per_second": 224.600471468538,
+            "elapsed_seconds": 1.00177884101868,
+            "iterations": 225
           },
           "perl": {
-            "calls_per_second": 175.450137125845,
-            "elapsed_seconds": 1.00313401222229,
-            "iterations": 176
+            "calls_per_second": 150.779239818638,
+            "elapsed_seconds": 1.00146412849426,
+            "iterations": 151
           },
-          "speedup": 1.33589975519385
+          "speedup": 1.48959811535523
         }
       },
       "sample_rate": 8000,
       "seconds_per_case": 1,
       "artifact": "benchmark-macos-latest-perl-5.40-pdl-2.106",
-      "artifact_sha256": "ba05c772fa7049acc0a016e8a11f3aa12f99be3ad6a53b63ca76d6ee4ae823cd"
+      "artifact_id": 13573753525,
+      "artifact_sha256": "c04d3c1591e43e8e940b775cd96566a86b6385282ede21a29f8ce3f41d89be5b",
+      "json_sha256": "257150b645c75e5aea81d00bad39379c93055e1f5fa808da8f87e2c5d29d132f"
     },
     {
       "architecture": "x86_64-linux",
@@ -279,126 +308,128 @@
       "results": {
         "detect": {
           "pdl": {
-            "calls_per_second": 0.452859393570856,
-            "elapsed_seconds": 2.20819091796875,
+            "calls_per_second": 0.437190202729395,
+            "elapsed_seconds": 2.28733396530151,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.450777949377673,
-            "elapsed_seconds": 2.21838712692261,
+            "calls_per_second": 0.274285971380981,
+            "elapsed_seconds": 3.64582991600037,
             "iterations": 1
           },
-          "speedup": 1.00461744900357
+          "speedup": 1.59392112009309
         },
         "detect_stream": {
           "pdl": {
-            "calls_per_second": 0.362323849642527,
-            "elapsed_seconds": 2.7599618434906,
+            "calls_per_second": 0.431520881514539,
+            "elapsed_seconds": 2.31738495826721,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.434656774537467,
-            "elapsed_seconds": 2.30066585540771,
+            "calls_per_second": 0.259126568284787,
+            "elapsed_seconds": 3.85911798477173,
             "iterations": 1
           },
-          "speedup": 0.833586109472441
+          "speedup": 1.66528999465731
         },
         "generate": {
           "pdl": {
-            "calls_per_second": 96.1495485067246,
-            "elapsed_seconds": 1.00884509086609,
-            "iterations": 97
+            "calls_per_second": 53.0660470656539,
+            "elapsed_seconds": 1.0175998210907,
+            "iterations": 54
           },
           "perl": {
-            "calls_per_second": 26.9856845979141,
-            "elapsed_seconds": 1.03758716583252,
-            "iterations": 28
+            "calls_per_second": 41.7365929242852,
+            "elapsed_seconds": 1.0063111782074,
+            "iterations": 42
           },
-          "speedup": 3.56298348325603
+          "speedup": 1.27145134155827
         },
         "wav_read_16": {
           "pdl": {
-            "calls_per_second": 944.963051333328,
-            "elapsed_seconds": 1.00003910064697,
-            "iterations": 945
+            "calls_per_second": 541.334673823462,
+            "elapsed_seconds": 1.00122904777527,
+            "iterations": 542
           },
           "perl": {
-            "calls_per_second": 934.212636549425,
-            "elapsed_seconds": 1.00084280967712,
-            "iterations": 935
+            "calls_per_second": 506.774903858688,
+            "elapsed_seconds": 1.00044417381287,
+            "iterations": 507
           },
-          "speedup": 1.01150746025403
+          "speedup": 1.06819550396365
         },
         "wav_read_24": {
           "pdl": {
-            "calls_per_second": 556.011341908466,
-            "elapsed_seconds": 1.00177812576294,
-            "iterations": 557
+            "calls_per_second": 315.265411171108,
+            "elapsed_seconds": 1.00233006477356,
+            "iterations": 316
           },
           "perl": {
-            "calls_per_second": 583.083454795488,
-            "elapsed_seconds": 1.00157189369202,
-            "iterations": 584
+            "calls_per_second": 315.459605868301,
+            "elapsed_seconds": 1.00171303749084,
+            "iterations": 316
           },
-          "speedup": 0.953570775050516
+          "speedup": 0.999384407088643
         },
         "wav_read_8": {
           "pdl": {
-            "calls_per_second": 922.537884689395,
-            "elapsed_seconds": 1.00050091743469,
-            "iterations": 923
+            "calls_per_second": 531.806387816859,
+            "elapsed_seconds": 1.00036406517029,
+            "iterations": 532
           },
           "perl": {
-            "calls_per_second": 1021.54333454316,
-            "elapsed_seconds": 1.00044703483582,
-            "iterations": 1022
+            "calls_per_second": 558.568252974476,
+            "elapsed_seconds": 1.00077295303345,
+            "iterations": 559
           },
-          "speedup": 0.903082476772222
+          "speedup": 0.952088460067136
         },
         "wav_write_16": {
           "pdl": {
-            "calls_per_second": 371.719059605849,
-            "elapsed_seconds": 1.00075578689575,
-            "iterations": 372
+            "calls_per_second": 221.784418326969,
+            "elapsed_seconds": 1.000972032547,
+            "iterations": 222
           },
           "perl": {
-            "calls_per_second": 261.195794465606,
-            "elapsed_seconds": 1.00307893753052,
-            "iterations": 262
+            "calls_per_second": 149.233853206374,
+            "elapsed_seconds": 1.00513386726379,
+            "iterations": 150
           },
-          "speedup": 1.42314335637129
+          "speedup": 1.48615353394559
         },
         "wav_write_24": {
           "pdl": {
-            "calls_per_second": 255.035992473442,
-            "elapsed_seconds": 1.00377988815308,
-            "iterations": 256
+            "calls_per_second": 144.43367096123,
+            "elapsed_seconds": 1.0039210319519,
+            "iterations": 145
           },
           "perl": {
-            "calls_per_second": 199.807210021268,
-            "elapsed_seconds": 1.00096487998962,
-            "iterations": 200
+            "calls_per_second": 109.308958922674,
+            "elapsed_seconds": 1.00632190704346,
+            "iterations": 110
           },
-          "speedup": 1.27641035799607
+          "speedup": 1.32133424729993
         },
         "wav_write_8": {
           "pdl": {
-            "calls_per_second": 322.895070557315,
-            "elapsed_seconds": 1.00032496452332,
-            "iterations": 323
+            "calls_per_second": 190.597293563947,
+            "elapsed_seconds": 1.002112865448,
+            "iterations": 191
           },
           "perl": {
-            "calls_per_second": 240.264308330562,
-            "elapsed_seconds": 1.0030620098114,
-            "iterations": 241
+            "calls_per_second": 133.340878383748,
+            "elapsed_seconds": 1.00494313240051,
+            "iterations": 134
           },
-          "speedup": 1.34391609307641
+          "speedup": 1.42939881508368
         }
       },
       "sample_rate": 8000,
       "seconds_per_case": 1,
       "artifact": "benchmark-ubuntu-22.04-perl-5.20-pdl-2.081",
-      "artifact_sha256": "0f59890df6584749d2b7f255145546bc278b1fc64934f50e76eb35b30df7811b"
+      "artifact_id": 13574492447,
+      "artifact_sha256": "a58a7934ea8f9533c553e92986f6b0d408ce1317f2cb86930e897e79dd3abe94",
+      "json_sha256": "c4c826e8a0d056ea89c3f4b63b2c0845b525f3b98a03307216989de919374746"
     },
     {
       "architecture": "x86_64-linux",
@@ -410,126 +441,128 @@
       "results": {
         "detect": {
           "pdl": {
-            "calls_per_second": 0.312829051761848,
-            "elapsed_seconds": 3.19663405418396,
+            "calls_per_second": 0.747044011132536,
+            "elapsed_seconds": 1.33860921859741,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.311642696412988,
-            "elapsed_seconds": 3.2088029384613,
+            "calls_per_second": 0.51447951240592,
+            "elapsed_seconds": 1.94371199607849,
             "iterations": 1
           },
-          "speedup": 1.00380678052948
+          "speedup": 1.4520384060369
         },
         "detect_stream": {
           "pdl": {
-            "calls_per_second": 0.260323589677832,
-            "elapsed_seconds": 3.84137296676636,
+            "calls_per_second": 0.741657007611424,
+            "elapsed_seconds": 1.34833216667175,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.286014443705404,
-            "elapsed_seconds": 3.49632692337036,
+            "calls_per_second": 0.497841360117014,
+            "elapsed_seconds": 2.00867199897766,
             "iterations": 1
           },
-          "speedup": 0.910176375379021
+          "speedup": 1.48974566403463
         },
         "generate": {
           "pdl": {
-            "calls_per_second": 65.3373429225487,
-            "elapsed_seconds": 1.0101420879364,
-            "iterations": 66
+            "calls_per_second": 104.461491971159,
+            "elapsed_seconds": 1.00515508651733,
+            "iterations": 105
           },
           "perl": {
-            "calls_per_second": 18.2763834895625,
-            "elapsed_seconds": 1.0395929813385,
-            "iterations": 19
+            "calls_per_second": 74.0880621941336,
+            "elapsed_seconds": 1.01230883598328,
+            "iterations": 75
           },
-          "speedup": 3.57496016429413
+          "speedup": 1.40996388456534
         },
         "wav_read_16": {
           "pdl": {
-            "calls_per_second": 620.354251227174,
-            "elapsed_seconds": 1.00104093551636,
-            "iterations": 621
+            "calls_per_second": 1267.64125390806,
+            "elapsed_seconds": 1.00028300285339,
+            "iterations": 1268
           },
           "perl": {
-            "calls_per_second": 539.596811197688,
-            "elapsed_seconds": 1.0007472038269,
-            "iterations": 540
+            "calls_per_second": 975.93577998274,
+            "elapsed_seconds": 1.00006580352783,
+            "iterations": 976
           },
-          "speedup": 1.14966255981061
+          "speedup": 1.29889822661332
         },
         "wav_read_24": {
           "pdl": {
-            "calls_per_second": 337.033008759638,
-            "elapsed_seconds": 1.00286912918091,
-            "iterations": 338
+            "calls_per_second": 557.464240466756,
+            "elapsed_seconds": 1.00096106529236,
+            "iterations": 558
           },
           "perl": {
-            "calls_per_second": 352.059647505045,
-            "elapsed_seconds": 1.00267100334167,
-            "iterations": 353
+            "calls_per_second": 568.819086870698,
+            "elapsed_seconds": 1.00031805038452,
+            "iterations": 569
           },
-          "speedup": 0.957317917995156
+          "speedup": 0.980037859723715
         },
         "wav_read_8": {
           "pdl": {
-            "calls_per_second": 611.334926302738,
-            "elapsed_seconds": 1.00108790397644,
-            "iterations": 612
+            "calls_per_second": 1232.8383376394,
+            "elapsed_seconds": 1.00013113021851,
+            "iterations": 1233
           },
           "perl": {
-            "calls_per_second": 604.28208884032,
-            "elapsed_seconds": 1.00118803977966,
-            "iterations": 605
+            "calls_per_second": 1414.55718193534,
+            "elapsed_seconds": 1.00031304359436,
+            "iterations": 1415
           },
-          "speedup": 1.01167143225435
+          "speedup": 0.871536586419705
         },
         "wav_write_16": {
           "pdl": {
-            "calls_per_second": 219.711315855579,
-            "elapsed_seconds": 1.00131392478943,
-            "iterations": 220
+            "calls_per_second": 354.092124294124,
+            "elapsed_seconds": 1.00256395339966,
+            "iterations": 355
           },
           "perl": {
-            "calls_per_second": 147.112025463898,
-            "elapsed_seconds": 1.00603604316711,
-            "iterations": 148
+            "calls_per_second": 274.541808924086,
+            "elapsed_seconds": 1.00166893005371,
+            "iterations": 275
           },
-          "speedup": 1.49349664082694
+          "speedup": 1.28975665193506
         },
         "wav_write_24": {
           "pdl": {
-            "calls_per_second": 142.263768824078,
-            "elapsed_seconds": 1.00517511367798,
-            "iterations": 143
+            "calls_per_second": 232.210464136826,
+            "elapsed_seconds": 1.00340008735657,
+            "iterations": 233
           },
           "perl": {
-            "calls_per_second": 106.683482823311,
-            "elapsed_seconds": 1.00296688079834,
-            "iterations": 107
+            "calls_per_second": 195.547299319174,
+            "elapsed_seconds": 1.00231504440308,
+            "iterations": 196
           },
-          "speedup": 1.33351260250562
+          "speedup": 1.18749000853144
         },
         "wav_write_8": {
           "pdl": {
-            "calls_per_second": 183.987673631599,
-            "elapsed_seconds": 1.00006699562073,
-            "iterations": 184
+            "calls_per_second": 315.193062043138,
+            "elapsed_seconds": 1.00256013870239,
+            "iterations": 316
           },
           "perl": {
-            "calls_per_second": 130.067544698349,
-            "elapsed_seconds": 1.007169008255,
-            "iterations": 131
+            "calls_per_second": 240.680378506593,
+            "elapsed_seconds": 1.0013279914856,
+            "iterations": 241
           },
-          "speedup": 1.41455483040216
+          "speedup": 1.30959184956784
         }
       },
       "sample_rate": 8000,
       "seconds_per_case": 1,
       "artifact": "benchmark-ubuntu-latest-perl-5.40-pdl-2.106",
-      "artifact_sha256": "714873db0f2e5a76161670a16ef83aa24b6ccd3378d82d8d7c44a169cbe9dd91"
+      "artifact_id": 13573728319,
+      "artifact_sha256": "5906134da91c709c2b9414192257af0db167c9b8943a7aad8ecb0ed422280faf",
+      "json_sha256": "a164d6123ec134ad4dd67d81a962ef52995a91c5e61512cb972db5500ed7b8f4"
     },
     {
       "architecture": "MSWin32-x64-multi-thread",
@@ -541,126 +574,139 @@
       "results": {
         "detect": {
           "pdl": {
-            "calls_per_second": 0.260647524817203,
-            "elapsed_seconds": 3.83659887313843,
+            "calls_per_second": 0.399856999993327,
+            "elapsed_seconds": 2.50089406967163,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.329801473745609,
-            "elapsed_seconds": 3.03212714195251,
+            "calls_per_second": 0.264842145568516,
+            "elapsed_seconds": 3.77583408355713,
             "iterations": 1
           },
-          "speedup": 0.790316434480982
+          "speedup": 1.50979368912371
         },
         "detect_stream": {
           "pdl": {
-            "calls_per_second": 0.252362234737268,
-            "elapsed_seconds": 3.96255803108215,
+            "calls_per_second": 0.393661107693705,
+            "elapsed_seconds": 2.54025602340698,
             "iterations": 1
           },
           "perl": {
-            "calls_per_second": 0.317643435265453,
-            "elapsed_seconds": 3.14818406105042,
+            "calls_per_second": 0.256723523480023,
+            "elapsed_seconds": 3.89524102210999,
             "iterations": 1
           },
-          "speedup": 0.79448276501093
+          "speedup": 1.53340489549778
         },
         "generate": {
           "pdl": {
-            "calls_per_second": 51.9114821147716,
-            "elapsed_seconds": 1.00170516967773,
-            "iterations": 52
+            "calls_per_second": 44.1501966299231,
+            "elapsed_seconds": 1.01924800872803,
+            "iterations": 45
           },
           "perl": {
-            "calls_per_second": 18.4541291148908,
-            "elapsed_seconds": 1.02957987785339,
-            "iterations": 19
+            "calls_per_second": 38.7773744637757,
+            "elapsed_seconds": 1.00574111938477,
+            "iterations": 39
           },
-          "speedup": 2.81300091657448
+          "speedup": 1.13855559434965
         },
         "wav_read_16": {
           "pdl": {
-            "calls_per_second": 662.709749743872,
-            "elapsed_seconds": 1.00043797492981,
-            "iterations": 663
+            "calls_per_second": 592.270376911759,
+            "elapsed_seconds": 1.00123190879822,
+            "iterations": 593
           },
           "perl": {
-            "calls_per_second": 814.667669205186,
-            "elapsed_seconds": 1.00040793418884,
-            "iterations": 815
+            "calls_per_second": 640.150496086784,
+            "elapsed_seconds": 1.00132703781128,
+            "iterations": 641
           },
-          "speedup": 0.813472505163278
+          "speedup": 0.925204901866492
         },
         "wav_read_24": {
           "pdl": {
-            "calls_per_second": 339.789611429957,
-            "elapsed_seconds": 1.00061917304993,
-            "iterations": 340
+            "calls_per_second": 273.034813124134,
+            "elapsed_seconds": 1.00353503227234,
+            "iterations": 274
           },
           "perl": {
-            "calls_per_second": 384.580055081303,
-            "elapsed_seconds": 1.00109195709229,
-            "iterations": 385
+            "calls_per_second": 282.620975735542,
+            "elapsed_seconds": 1.00134110450745,
+            "iterations": 283
           },
-          "speedup": 0.883534148327385
+          "speedup": 0.966081206157967
         },
         "wav_read_8": {
           "pdl": {
-            "calls_per_second": 655.69578170986,
-            "elapsed_seconds": 1.00046396255493,
-            "iterations": 656
+            "calls_per_second": 575.242391831285,
+            "elapsed_seconds": 1.00131702423096,
+            "iterations": 576
           },
           "perl": {
-            "calls_per_second": 917.604456697057,
-            "elapsed_seconds": 1.00043106079102,
-            "iterations": 918
+            "calls_per_second": 749.544122920616,
+            "elapsed_seconds": 1.00060820579529,
+            "iterations": 750
           },
-          "speedup": 0.714573449294324
+          "speedup": 0.767456343450256
         },
         "wav_write_16": {
           "pdl": {
-            "calls_per_second": 229.145710118028,
-            "elapsed_seconds": 1.00372815132141,
-            "iterations": 230
+            "calls_per_second": 193.538798263397,
+            "elapsed_seconds": 1.00238299369812,
+            "iterations": 194
           },
           "perl": {
-            "calls_per_second": 173.16618721082,
-            "elapsed_seconds": 1.00481510162354,
-            "iterations": 174
+            "calls_per_second": 137.87935608939,
+            "elapsed_seconds": 1.0008749961853,
+            "iterations": 138
           },
-          "speedup": 1.32327051723473
+          "speedup": 1.40368220270714
         },
         "wav_write_24": {
           "pdl": {
-            "calls_per_second": 147.626806490607,
-            "elapsed_seconds": 1.00252795219421,
-            "iterations": 148
+            "calls_per_second": 121.924042815238,
+            "elapsed_seconds": 1.00062298774719,
+            "iterations": 122
           },
           "perl": {
-            "calls_per_second": 122.642858535254,
-            "elapsed_seconds": 1.00291204452515,
-            "iterations": 123
+            "calls_per_second": 94.2553825140942,
+            "elapsed_seconds": 1.00789999961853,
+            "iterations": 95
           },
-          "speedup": 1.20371302702612
+          "speedup": 1.29354992323124
         },
         "wav_write_8": {
           "pdl": {
-            "calls_per_second": 204.688694671795,
-            "elapsed_seconds": 1.00152087211609,
-            "iterations": 205
+            "calls_per_second": 173.607280284086,
+            "elapsed_seconds": 1.00226211547852,
+            "iterations": 174
           },
           "perl": {
-            "calls_per_second": 156.845521724166,
-            "elapsed_seconds": 1.00098490715027,
-            "iterations": 157
+            "calls_per_second": 129.622934003407,
+            "elapsed_seconds": 1.00290894508362,
+            "iterations": 130
           },
-          "speedup": 1.30503371994112
+          "speedup": 1.33932534098884
         }
       },
       "sample_rate": 8000,
       "seconds_per_case": 1,
       "artifact": "benchmark-windows-latest-perl-5.40-pdl-2.106",
-      "artifact_sha256": "8ae7c2c5a2dd12ba184a7d4b366d46ca3e0496dac60b4488bece591ca0c811b0"
+      "artifact_id": 13574143991,
+      "artifact_sha256": "6f7d8e3a89374b6001083387e5f5389f1445d009a116f1355e0988caf2d05720",
+      "json_sha256": "998388078d984b2424946143004fbfc64911b03e76e841a779a6786fd1a2d769"
     }
-  ]
+  ],
+  "benchmark_script_sha256": "e0206d0d620b3084bab16dedaf2d026b37e5efc6f160b0c055ceb284db3a4a15",
+  "benchmark_input": {
+    "message": "CQ CQ DE TESTCALL",
+    "wpm": 20,
+    "frequency_hz": 700,
+    "sample_rate_hz": 8000,
+    "audio_seconds": 9.18,
+    "streamed_block_samples": 4096,
+    "tone": "default 25-candidate search",
+    "pcm_frames_per_call": 8000
+  }
 }

@@ -28,3 +28,5 @@ Revision history for Ham-CW
     - Reject references in scalar string options and event states.
     - Cache validated shared payload subtrees while retaining cycle/depth checks.
     - Install only manifest-listed modules, excluding local backups and scratch files.
+    - Refresh current-edition README, verification, platform measurements and
+      dependency-audit evidence on 2026-11-07; archive superseded result records.

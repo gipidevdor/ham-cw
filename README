@@ -10,6 +10,24 @@ Requirements
 Perl 5.20 or later and ExtUtils::MakeMaker 7.22 or later.
 The default backend uses only core Perl modules. PDL 2.081 or later is
 optional; performance depends on the operation and workload.
+Core ExtUtils::Manifest is also required during configuration. Only module
+paths listed in MANIFEST are installed.
+
+Current development edition
+---------------------------
+
+Version 0.001, implementation 2168dbc, verified 2026-11-07.
+All 12 required CI jobs pass, including Linux Perl 5.20, 5.34, 5.40 and 5.44,
+macOS/Windows and current/minimum PDL. The ordinary suite passes 2,886
+assertions in 33 files. Production coverage is 99.01% statements and
+96.22% branches. Archive, isolated installation, CLI and examples pass.
+
+Local paired measurements show 56-63% less Perl sample-generation time and
+26-36% less WAV-generation time, with 72 unchanged sample/WAV fingerprints.
+The dependency audit still reports pre-existing matches: two installed and
+39 declared-range matches. No new advisory IDs were added against the
+previous main revision. See README.md, docs/verification.md and
+docs/security-ci.md for source hashes, dated evidence and limits.
 
 Installation
 ------------

@@ -93,7 +93,7 @@ Perl/PDL versions, workload, block size and environment with new timings.
 
 Measured source: `85eb8f3fce614d30cb53eaeb0da6b978dbc3dacc`.
 Environment: macOS ARM64, Perl 5.44.0, PDL 2.106. The
-[raw measurement record](current-results.json) includes full environment details,
+[raw measurement record](verification-20261025-results.json) includes full environment details,
 commands, CPU and wall totals, corpus results and SHA-256 hashes of measured
 modules, tools and recording inputs. This update does not change the
 measured numerical implementation. Command-help and example-interface
